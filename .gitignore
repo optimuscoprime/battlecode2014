@@ -4,3 +4,12 @@
 *.jar
 *.war
 *.ear
+
+#MacOS thumbnails
+.DS_Store
+
+#emacs backup
+*~
+
+#haters gonna hate
+haters
