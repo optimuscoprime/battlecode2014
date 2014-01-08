@@ -22,8 +22,8 @@ def log(s)
   puts "DEBUG: #{s}" if DEBUG
 end
 
-def discover_maps(APP_DIR)
-  maps_dir = File.join(app_dir, "maps")
+def discover_maps
+  maps_dir = File.join(APP_DIR, "maps")
   maps = []
   Dir.foreach(maps_dir) do |f|
     f = File.expand_path(File.join(maps_dir, f))
@@ -38,8 +38,8 @@ def discover_maps(APP_DIR)
 end
 
 
-def discover_teams(APP_DIR)
-  teams_dir = File.join(app_dir, "teams")
+def discover_teams
+  teams_dir = File.join(APP_DIR, "teams")
   teams = []
   Dir.foreach(teams_dir) do |f|
     f = File.expand_path(File.join(teams_dir, f))
