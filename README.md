@@ -44,6 +44,7 @@ git pull
 
 The maps directory and teams directory are tracked in Git. So is the testbed directory.
 
+PS. This would be much simpler if you could just clone into the /Applications/Battlecode2014 directory, but Git will not allow a clone into a non-empty directory.
 .
 .
 .
