@@ -6,10 +6,10 @@ INSTALLATION
 
 Install Battlecode package (e.g. on OSX it installs to /Applications/Battlecode2014)
 
-Clone Github repo into Battlecode install dir e.g.
+Clone Github repo into Battlecode install dir e.g. on OSX:
 
 ```
-git clone git@github.com:optimuscoprime/battlecode2014.git Battlecode/
+git clone git@github.com:optimuscoprime/battlecode2014.git /Applications/Battlecode2014
 ```
 
 
