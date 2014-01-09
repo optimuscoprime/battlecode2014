@@ -8,11 +8,19 @@ Idea: clone first, then install official code into the cloned directory.
 
 The maps and teams folder are tracked by git. (And the testbed folder).
 
+Step 1
+------
+
 ```
 git clone git@github.com:optimuscoprime/battlecode2014.git
 ```
 
+Step 2
+------
+
 Then do the Battlecode release install (into the directory that you cloned into)
+
+.
 
 TODO DOUBLE CHECK OLD STUFF
 =========
