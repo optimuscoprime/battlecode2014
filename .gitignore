@@ -11,3 +11,23 @@ music
 sound
 version.txt
 .installationinformation
+
+*.class
+
+# Package Files #
+*.jar
+*.war
+*.ear
+
+#MacOS thumbnails
+.DS_Store
+
+#emacs backup
+*~
+
+# Build RobotPlayer
+# ?
+# team085/RobotPlayer.java
+
+#haters gonna hate
+haters
