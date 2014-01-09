@@ -6,11 +6,12 @@ INSTALLATION
 
 Install Battlecode package (e.g. on OSX it installs to /Applications/Battlecode2014 by default)
 
-Clone Github repo into your Battlecode install dir e.g. on OSX:
+Make a new Git repo in your Battlecode install dir e.g. on OSX:
 
 ```
 cd /Applications/Battlecode2014
 git init
+# delete .gitignore file because it will clash
 rm .gitignore
 ```
 
@@ -42,7 +43,7 @@ git push
 git pull
 ```
 
-The maps directory and teams directory are tracked in Git. So is the testbed directory.
+Currently the maps directory and teams directory are tracked in Git. So is the testbed directory.
 
 PS. This would be much simpler if you could just clone into the /Applications/Battlecode2014 directory, but Git will not allow a clone into a non-empty directory.
 .
