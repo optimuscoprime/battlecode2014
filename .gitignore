@@ -1,0 +1,33 @@
+AllowedPackages.txt
+DisallowedClasses.txt
+MethodCosts.txt
+Uninstaller
+art
+bc.conf
+build.xml
+doc
+lib
+music
+sound
+version.txt
+.installationinformation
+
+*.class
+
+# Package Files #
+*.jar
+*.war
+*.ear
+
+#MacOS thumbnails
+.DS_Store
+
+#emacs backup
+*~
+
+# Build RobotPlayer
+# ?
+# team085/RobotPlayer.java
+
+#haters gonna hate
+haters
