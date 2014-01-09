@@ -1,5 +1,8 @@
 package gk_attack;
 
+import gk_attack.Navigator.Move;
+
+import java.util.Deque;
 import java.util.Random;
 
 import battlecode.common.Direction;
@@ -45,12 +48,30 @@ public class RobotPlayer {
 						MapLocation[] pastures = rc.sensePastrLocations(ENEMY);
 						MapLocation dest = null;
 						if (pastures.length > 0) {
-							dest = pastures[0];
+							dest = pastures[rand.nextInt(pastures.length)];
+							Deque<Navigator.Move> path = Navigator.pathAStar(rc, dest);
+							while (!path.isEmpty()) {
+								if (rc.isActive()) {
+									attackNearby(rc, rc.getLocation());
+								}
+								if (rc.isActive()) {
+									Move top = path.removeLast();
+									if (top.direction != null) {
+										if (rc.canMove(top.direction)) {
+											rc.move(top.direction);
+										} else {
+											break;
+										}
+									}
+								} else {
+									rc.yield();								
+								}
+							}
 						} else {
 							dest = randomMapLocation(rc, rand);
+							Navigator.moveGreedy(rc, dest, 10);
 						}
-						moveTo(rc, dest);
-						attackNearby(rc, dest);
+						attackNearby(rc, rc.getLocation());
 					}
 				}
 			} catch(GameActionException e) {
@@ -66,30 +87,16 @@ public class RobotPlayer {
 		return new MapLocation(x,y);
 	}
 	
+	//attacks a nearby enemy (ignores HQ)
 	public static void attackNearby(RobotController rc, MapLocation loc) throws GameActionException {
 		Robot[] enemies = rc.senseNearbyGameObjects(Robot.class, loc, ROBOT_ATTACK_RADIUS, ENEMY);
 		for (Robot r : enemies) {
 			RobotInfo info = rc.senseRobotInfo(r);
 			MapLocation rl = info.location;
-			if (rc.canAttackSquare(rl)) {
+			if (info.type != RobotType.HQ && rc.canAttackSquare(rl)) {
 				rc.attackSquare(rl);
 				break;
 			}
-		}
-	}
-	
-	public static void moveTo(RobotController rc, MapLocation dest) throws GameActionException {
-		MapLocation loc = rc.getLocation();
-		while (!loc.equals(dest)) {
-			Direction d = loc.directionTo(dest);
-			if (rc.isActive()) {
-				if (rc.canMove(d)) {
-					rc.move(d);
-				} else {
-					break;
-				}
-			}
-			rc.yield();
 		}
 	}
 }
