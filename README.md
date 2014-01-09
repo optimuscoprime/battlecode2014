@@ -1,6 +1,25 @@
 battlecode2014
 ==============
 
+INSTALLATION
+============
+
+Install Battlecode package (e.g. on OSX it installs to /Applications/Battlecode2014)
+
+Clone Github repo into Battlecode install dir e.g.
+
+```
+git clone git@github.com:optimuscoprime/battlecode2014.git Battlecode/
+```
+
+
+
+
+
+
+TODO DOUBLE CHECK OLD STUFF
+=========
+
 Lecture Notes
 =============
 
