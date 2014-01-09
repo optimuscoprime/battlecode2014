@@ -13,6 +13,7 @@ version.txt
 .installationinformation
 
 *.class
+bin
 
 # Package Files #
 *.jar
@@ -28,6 +29,10 @@ version.txt
 # Build RobotPlayer
 # ?
 # team085/RobotPlayer.java
+
+#eclipse
+.classpath
+.project
 
 #haters gonna hate
 haters
