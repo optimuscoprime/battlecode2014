@@ -11,6 +11,7 @@ Clone Github repo into your Battlecode install dir e.g. on OSX:
 ```
 cd /Applications/Battlecode2014
 git init
+rm .gitignore
 ```
 
 Then add this to your /Applications/Battlecode2014/.git/config file
@@ -27,6 +28,17 @@ Then add this to your /Applications/Battlecode2014/.git/config file
 The pull the code from git
 
 ```
+git pull
+```
+
+Check that add, commit and push work e.g.
+
+```
+nano README.md
+# make some trivial change
+git add .
+git commit -a
+git push
 git pull
 ```
 
