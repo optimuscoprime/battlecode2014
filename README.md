@@ -4,18 +4,25 @@ battlecode2014
 INSTALLATION
 ============
 
-Install Battlecode package (e.g. on OSX it installs to /Applications/Battlecode2014)
+Install Battlecode package (e.g. on OSX it installs to /Applications/Battlecode2014 by default)
 
-Clone Github repo into Battlecode install dir e.g. on OSX:
+Clone Github repo into your Battlecode install dir e.g. on OSX:
 
 ```
 git clone git@github.com:optimuscoprime/battlecode2014.git /Applications/Battlecode2014
 ```
 
+The maps directory and teams directory are tracked in Git. So is the testbed directory.
 
-
-
-
+.
+.
+.
+.
+.
+.
+.
+.
+.
 
 TODO DOUBLE CHECK OLD STUFF
 =========
