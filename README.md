@@ -4,57 +4,15 @@ battlecode2014
 INSTALLATION
 ============
 
-Install Battlecode package (e.g. on OSX it installs to /Applications/Battlecode2014 by default)
+Idea: clone first, then install official code into the cloned directory.
 
-Make a new Git repo in your Battlecode install dir e.g. on OSX:
-
-```
-cd /Applications/Battlecode2014
-git init
-# delete .gitignore file because it will clash
-rm .gitignore
-```
-
-Then add this to your /Applications/Battlecode2014/.git/config file
+The maps and teams folder are tracked by git. (And the testbed folder).
 
 ```
-[remote "origin"]
-    url = git@github.com:optimuscoprime/battlecode2014.git
-    fetch = +refs/heads/*:refs/remotes/origin/*
-[branch "master"]
-    remote = origin
-    merge = refs/heads/master
+git clone git@github.com:optimuscoprime/battlecode2014.git
 ```
 
-The pull the code from git
-
-```
-git pull
-```
-
-Then check that add, commit and push work too e.g.
-
-```
-nano README.md
-# make some trivial change
-git add .
-git commit -a
-git push
-git pull
-```
-
-Currently the maps directory and teams directory are tracked in Git. So is the testbed directory.
-
-PS. This would be much simpler if you could just clone into the /Applications/Battlecode2014 directory, but Git will not allow a clone into a non-empty directory.
-.
-.
-.
-.
-.
-.
-.
-.
-.
+Then do the Battlecode release install (into the directory that you cloned into)
 
 TODO DOUBLE CHECK OLD STUFF
 =========
