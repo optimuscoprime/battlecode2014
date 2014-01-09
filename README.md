@@ -31,7 +31,7 @@ The pull the code from git
 git pull
 ```
 
-Check that add, commit and push work e.g.
+Then check that add, commit and push work too e.g.
 
 ```
 nano README.md
