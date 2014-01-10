@@ -20,7 +20,6 @@ public class Tactics {
 		boolean allClear = enemies.length == 0;
 		while (!allClear) {
 			allClear = true;
-			
 			for (int i = 0; i < enemies.length; i++) {
 				Robot e = enemies[i];
 				while(true) {
@@ -34,6 +33,8 @@ public class Tactics {
 								} else {
 									break;
 								}
+							} else {
+								break;
 							}
 						} else {
 							break;
