@@ -1,24 +1,81 @@
-package gk_attack;
+package gk_master;
 
-import java.util.ArrayList;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 import java.util.PriorityQueue;
-import java.util.Set;
+import java.util.Random;
 
 import battlecode.common.Direction;
 import battlecode.common.GameActionException;
 import battlecode.common.MapLocation;
 import battlecode.common.RobotController;
+import battlecode.common.RobotInfo;
 import battlecode.common.RobotLevel;
+import battlecode.common.Team;
 import battlecode.common.TerrainTile;
 
-public class Navigator {
+public class Navigation {
 	
-	//move to a location, will give up on first obstacle 
+	/**
+	 * walks one square in a given direction, or picks a random direction
+	 */
+	public static Direction wonder(RobotController rc, Random rand, Direction d) throws GameActionException {
+		if (d != null && rc.canMove(d)) {
+			rc.move(d);
+			return d;
+		} else {
+			int i = rand.nextInt(DIRECTIONS.length);
+			for (int j = i; j < DIRECTIONS.length; j++) {
+				d = DIRECTIONS[j];
+				if (rc.canMove(d)) {
+					rc.move(d);
+					return d;
+				}
+			}
+			for (int j = 0; j < i; j++) {
+				d = DIRECTIONS[j];
+				if (rc.canMove(d)) {
+					rc.move(d);
+					return d;
+				}				
+			}
+		}
+		return null;
+	}
+	
+	/**
+	 * moves along a path, until the path is blocked
+	 * will stop to attack an enemy if encountered
+	 */
+	public static boolean attackMoveOnPath(RobotController rc, Deque<Move> path, int attackRadius, Team enemyTeam) throws GameActionException {
+		while (!path.isEmpty()) {
+			if (rc.isActive()) {
+				RobotInfo enemy = Abilities.NearbyEnemy(rc, rc.getLocation(), attackRadius, enemyTeam);
+				if (enemy != null && rc.canAttackSquare(enemy.location)) {
+					rc.attackSquare(enemy.location);
+					return true;
+				}
+			}
+			if (rc.isActive()) {
+				Move top = path.removeLast();
+				if (top.direction != null) {
+					if (rc.canMove(top.direction)) {
+						rc.move(top.direction);
+					} else {
+						return false;
+					}
+				}
+			}
+			rc.yield();
+		}
+		return false;
+	}
+	
+	/**
+	 * move to a location, will give up on first obstacle, or after max steps
+	 */
 	public static void moveGreedy(RobotController rc, MapLocation dest, int max) throws GameActionException {
 		MapLocation loc = rc.getLocation();
 		while (max > 0 && !loc.equals(dest)) {
@@ -35,47 +92,34 @@ public class Navigator {
 		}
 	}
 	
-	//calculate a path to a location, if the location is unreachable, will return a nearby destination
-	//note: can be very expensive
+ /**
+  * calculate a path to a location
+  *
+  * note: can be very expensive
+  */
 	public static Deque<Move> pathAStar(RobotController rc, MapLocation dest) throws GameActionException {
 		Deque<Move> path = new LinkedList<Move>();
 		TerrainTile destTile = rc.senseTerrainTile(dest);
-		int cost = 0;
 		if (destTile.isTraversableAtHeight(RobotLevel.ON_GROUND)) {
 			Map<MapLocation, Move> been = new HashMap<MapLocation, Move>();
 			
 			PriorityQueue<Move> next = new PriorityQueue<Move>();
-			Map<MapLocation, Move> locs = new HashMap<MapLocation, Navigator.Move>();
+			Map<MapLocation, Move> locs = new HashMap<MapLocation, Move>();
 			
 			MapLocation loc = rc.getLocation();
-			next.add(Move.Create(loc, 0, manhattanDistance(loc, dest), null, null));
-			Move last = null;
+			Move first = Move.Create(loc, 0, manhattanDistance(loc, dest), null, null);
+			next.add(first);
 			while(!been.containsKey(dest) && !next.isEmpty()) {
-				cost++;
 				Move top = next.remove();
-				last = top;
 				been.put(top.loc, top);
 				for (Direction d : DIRECTIONS) {
 					MapLocation n = top.loc.add(d);
 					TerrainTile tile = rc.senseTerrainTile(n);
 					if (tile.isTraversableAtHeight(RobotLevel.ON_GROUND)) {
 						Move existing = locs.get(n);
-						Move move = new Move(n, top.distance + 1, top.distance + 1 + manhattanDistance(n, dest), top, d);
-						if (existing == null || move.cost < existing.cost) {
-							if (existing != null) {
-								next.remove(existing);
-							}
-							locs.put(n, move);
-							next.add(move);
-						}
-					}
-				}
-				for (Direction d : DIRECTIONS_DIAGONAL) {
-					MapLocation n = top.loc.add(d);
-					TerrainTile tile = rc.senseTerrainTile(n);
-					if (tile.isTraversableAtHeight(RobotLevel.ON_GROUND)) {
-						Move existing = locs.get(n);
-						Move move = new Move(n, top.distance + 1.4, top.distance + 1.4 + manhattanDistance(n, dest), top, d);
+						float delta = (d.isDiagonal()) ? 1.4f : 1;
+						float distance = top.distance + delta;
+						Move move = new Move(n, distance, distance + manhattanDistance(n, dest), top, d);
 						if (existing == null || move.cost < existing.cost) {
 							if (existing != null) {
 								next.remove(existing);
@@ -91,19 +135,18 @@ public class Navigator {
 				path.addLast(end);
 				end = end.prev;
 			}
-//			System.out.println("Path Cost:" + Integer.toString(cost));
 		}
 		return path;
 	}
 	
 	public static class Move implements Comparable<Move> {
 		public MapLocation loc;
-		public double distance;
-		public double cost;
+		public float distance;
+		public float cost;
 		public Move prev;
 		public Direction direction;
 		
-		public Move(MapLocation loc, double distance, double cost, Move prev, Direction d) {
+		public Move(MapLocation loc, float distance, float cost, Move prev, Direction d) {
 			this.loc = loc;
 			this.distance = distance;
 			this.cost = cost;
@@ -111,7 +154,7 @@ public class Navigator {
 			this.direction = d;
 		}
 		
-		public static Move Create(MapLocation loc, double distance, double cost, Move prev, Direction d) {
+		public static Move Create(MapLocation loc, float distance, float cost, Move prev, Direction d) {
 			return new Move(loc, distance, cost, prev, d);
 		}
 
@@ -123,12 +166,10 @@ public class Navigator {
 	}
 	
 	public static Direction[] DIRECTIONS = new Direction[]{
-		Direction.NORTH, Direction.SOUTH, Direction.EAST, Direction.WEST
-	};
-	public static Direction[] DIRECTIONS_DIAGONAL = new Direction[]{
+		Direction.NORTH, Direction.SOUTH, Direction.EAST, Direction.WEST,
 		Direction.NORTH_EAST, Direction.NORTH_WEST, Direction.SOUTH_EAST, Direction.SOUTH_WEST
 	};
-
+	
 	public static int manhattanDistance(MapLocation a, MapLocation b) {
 		return Math.abs(b.x - a.x) + Math.abs(b.y - a.y);
 	}

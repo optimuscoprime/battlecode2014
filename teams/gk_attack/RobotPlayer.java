@@ -75,7 +75,7 @@ public class RobotPlayer {
 					}
 				}
 			} catch(GameActionException e) {
-				throw new RuntimeException(e);
+				//throw new RuntimeException(e);
 			}
 			rc.yield();
 		}
