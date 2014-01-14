@@ -28,7 +28,12 @@ bin
 
 # Build RobotPlayer
 # ?
-# team085/RobotPlayer.java
+# Since this folder is a build folder it will change heaps
+# Original copies of files that might live in this folder should 
+#  also still live in their original homes. You won't lose these files
+#  you'll just not have to have to check them in every time you
+#  do a build for a different robot.
+teams/team085/*.java
 
 #eclipse
 .classpath
