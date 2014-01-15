@@ -6,6 +6,8 @@ import battlecode.common.GameConstants;
 import battlecode.common.MapLocation;
 import battlecode.common.RobotController;
 import battlecode.common.RobotInfo;
+import battlecode.common.Team;
+
 
 /**
  * HQ - continuous spawn strategy, while attacking nearby enemy robots
@@ -29,16 +31,16 @@ public class SpawnStrategy implements Strategy {
 	
 	public void play() throws GameActionException {
 		if (rc.isActive()) {
-			Tactics.killNearbyEnemies(rc, INFO);
+			Tactics.killNearbyEnemies(rc, info);
             attackNearbyRobots();
 			spawnRobot();
 		}
 	}
     
     public void attackNearbyRobots() throws GameActionException {
-        RobotInfo enemy = Abilities.NearbyEnemy(rc, hqLocation, info.type.attackRadiusSquared, enemyTeam);
+        RobotInfo enemy = Abilities.NearbyEnemy(rc, hqLocation, info.type.attackRadiusMaxSquared, enemyTeam);
         if (enemy != null) {
-            enemyLocation = enemy.location;
+            MapLocation enemyLocation = enemy.location;
 			if (rc.canAttackSquare(enemyLocation)) {
 				rc.attackSquare(enemyLocation);	
             }
