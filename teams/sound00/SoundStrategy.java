@@ -23,36 +23,38 @@ import battlecode.common.Team;
  *	Then I'll make soldiers retreat to herd if they've got < half life, and suicide if they can't run away?
 
  */
+import battlecode.common.RobotType;
 public class SoundStrategy implements Strategy {
 	RobotController rc;
 	Random rand;
-	Team ENEMY;
-	RobotInfo INFO;
+	Team enemy;
+	RobotInfo info;
+	MapLocation enemyHqLoc;
+	MapLocation centerLoc;
 	Direction wanderingDirection;
 
 	public SoundStrategy(RobotController rc, Random rand) throws GameActionException {
 		this.rc = rc;
-		this.ENEMY = rc.getTeam().opponent();
-		this.INFO = rc.senseRobotInfo(rc.getRobot());
+		this.enemy = rc.getTeam().opponent();
+		this.info = rc.senseRobotInfo(rc.getRobot());
 		this.rand = rand;
-		this.ENEMYHQLOC=rc.senseEnemyHQLocation();
-		this.CENTERLOC=MapLocation(rc.getMapHeight/2,rc.getMapWidth/2);
+		this.enemyHqLoc=rc.senseEnemyHQLocation();
+		this.centerLoc=new MapLocation(rc.getMapHeight()/2,rc.getMapWidth()/2);
 		wanderingDirection = null;
 	}
 	
 	public void play() throws GameActionException {
 		// set the below to middle of the map ?
-		//MapLocation dest = Abilities.ClosestPastr(rc, rc.getLocation(), ENEMY);
-		MapLocation dest=CENTERLOC;
-		if (dest != null) {
-			Deque<Move> path = Navigation.pathAStar(rc, dest);
-			while(Navigation.attackMoveOnPath(rc, path, INFO.type.attackRadiusMaxSquared, ENEMY)) {
-				Tactics.killNearbyEnemies(rc, INFO);
-			}
+		//MapLocation dest = Abilities.ClosestPastr(rc, rc.getLocation(), enemy);
+		MapLocation dest=centerLoc;
+		Deque<Move> path = Navigation.pathAStar(rc, dest);
+		while(Navigation.attackMoveOnPath(rc, path, info.type.attackRadiusMaxSquared, enemy)) {
+				  Tactics.killNearbyEnemies(rc, info);
 		}
-		Tactics.killNearbyEnemies(rc, INFO);
+		Tactics.killNearbyEnemies(rc, info);
 		if (rc.isActive()) {
-			wanderingDirection = Navigation.wonder(rc, rand, wanderingDirection);
+				// deploy sound
+			rc.construct(RobotType.NOISETOWER);
 		} else {
 			rc.yield();				
 		}
@@ -64,7 +66,7 @@ public class SoundStrategy implements Strategy {
 
 //Direction wonder = null;
 //while (true) {
-//	MapLocation dest = Abilities.ClosestPastr(rc, rc.getLocation(), ENEMY);
+//	MapLocation dest = Abilities.ClosestPastr(rc, rc.getLocation(), enemy);
 //	if (dest == null) {	
 //		Message m = Comms.ReadMessage(rc);
 //		if (m != null && m.type == Comms.Type.CONVERGE) {
@@ -73,11 +75,11 @@ public class SoundStrategy implements Strategy {
 //	}
 //	if (dest != null) {
 //		Deque<Move> path = Navigation.pathAStar(rc, dest);
-//		while(Navigation.attackMoveOnPath(rc, path, INFO.type.attackRadiusMaxSquared, ENEMY)) {
-//			Tactics.killNearbyEnemies(rc, INFO);
+//		while(Navigation.attackMoveOnPath(rc, path, info.type.attackRadiusMaxSquared, enemy)) {
+//			Tactics.killNearbyEnemies(rc, info);
 //		}
 //	}
-//	Tactics.killNearbyEnemies(rc, INFO);
+//	Tactics.killNearbyEnemies(rc, info);
 //	if (rc.isActive()) {
 //		wonder = Navigation.wonder(rc, rand, wonder);
 //	} else {
