@@ -29,27 +29,17 @@ public class SoundStrategy implements Strategy {
 	Random rand;
 	Team enemy;
 	RobotInfo info;
-<<<<<<< HEAD
-=======
 	MapLocation enemyHqLoc;
 	MapLocation centerLoc;
->>>>>>> e04a0486321cd8e4d7296e5f99249110a68e39ce
 	Direction wanderingDirection;
 
 	public SoundStrategy(RobotController rc, Random rand) throws GameActionException {
 		this.rc = rc;
 		this.enemy = rc.getTeam().opponent();
-<<<<<<< HEAD
-		this.INFO = rc.senseRobotInfo(rc.getRobot());
-		this.rand = rand;
-		this.enemyHqLoc=rc.senseEnemyHQLocation();
-		this.CENTERLOC=MapLocation(rc.getMapHeight/2,rc.getMapWidth/2);
-=======
 		this.info = rc.senseRobotInfo(rc.getRobot());
 		this.rand = rand;
 		this.enemyHqLoc=rc.senseEnemyHQLocation();
 		this.centerLoc=new MapLocation(rc.getMapHeight()/2,rc.getMapWidth()/2);
->>>>>>> e04a0486321cd8e4d7296e5f99249110a68e39ce
 		wanderingDirection = null;
 	}
 	
