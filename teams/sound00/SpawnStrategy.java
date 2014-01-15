@@ -32,8 +32,11 @@ public class SpawnStrategy implements Strategy {
 	public void play() throws GameActionException {
 		if (rc.isActive()) {
             
-            // this step almost never happens - because the HQ is busy spawning
-            // and cant shoot during spawning
+            // in principle the HQ is really good at killing enemies
+            // BUT
+            // killing nearby enemies almost never happens
+            // because the HQ is so busy spawning more robots
+            // and it cant shoot during spawning
 			Tactics.killNearbyEnemies(rc, info);
             
 			spawnRobot();
