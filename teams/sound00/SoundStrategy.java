@@ -26,16 +26,16 @@ import battlecode.common.Team;
 public class SoundStrategy implements Strategy {
 	RobotController rc;
 	Random rand;
-	Team ENEMY;
-	RobotInfo INFO;
+	Team enemy;
+	RobotInfo info;
 	Direction wanderingDirection;
 
 	public SoundStrategy(RobotController rc, Random rand) throws GameActionException {
 		this.rc = rc;
-		this.ENEMY = rc.getTeam().opponent();
+		this.enemy = rc.getTeam().opponent();
 		this.INFO = rc.senseRobotInfo(rc.getRobot());
 		this.rand = rand;
-		this.ENEMYHQLOC=rc.senseEnemyHQLocation();
+		this.enemyHqLoc=rc.senseEnemyHQLocation();
 		this.CENTERLOC=MapLocation(rc.getMapHeight/2,rc.getMapWidth/2);
 		wanderingDirection = null;
 	}
