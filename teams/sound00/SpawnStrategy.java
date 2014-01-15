@@ -12,33 +12,46 @@ import battlecode.common.RobotInfo;
  */
 public class SpawnStrategy implements Strategy {
 	RobotController rc;
-	RobotInfo INFO;
-	MapLocation HQ_LOCATION;
-	Direction DIRECTION_TO_ENEMY;
-	MapLocation PRIMARY_SPAWN_LOCATION;
+	RobotInfo info;
+	MapLocation hqLocation;
+	Direction directionToEnemy;
+	MapLocation primarySpawnLocation;
+    Team enemyTeam;
 	
 	public SpawnStrategy(RobotController rc) throws GameActionException {
 		this.rc = rc;
-		INFO = rc.senseRobotInfo(rc.getRobot());
-		HQ_LOCATION = rc.senseHQLocation();
-		DIRECTION_TO_ENEMY = this.HQ_LOCATION.directionTo(rc.senseEnemyHQLocation());
-		PRIMARY_SPAWN_LOCATION = HQ_LOCATION.add(DIRECTION_TO_ENEMY);
+		this.info = rc.senseRobotInfo(rc.getRobot());
+		this.hqLocation = rc.senseHQLocation();
+		this.directionToEnemy = this.hqLocation.directionTo(rc.senseEnemyHQLocation());
+		this.primarySpawnLocation = hqLocation.add(directionToEnemy);
+        this.enemyTeam = this.info.team.opponent();
 	}
 	
 	public void play() throws GameActionException {
 		if (rc.isActive()) {
 			Tactics.killNearbyEnemies(rc, INFO);
+            attackNearbyRobots();
 			spawnRobot();
 		}
 	}
+    
+    public void attackNearbyRobots() throws GameActionException {
+        RobotInfo enemy = Abilities.NearbyEnemy(rc, hqLocation, info.type.attackRadiusSquared, enemyTeam);
+        if (enemy != null) {
+            enemyLocation = enemy.location;
+			if (rc.canAttackSquare(enemyLocation)) {
+				rc.attackSquare(enemyLocation);	
+            }
+        }
+    }
 	
 	public void spawnRobot() throws GameActionException {
 		if (rc.senseRobotCount() < GameConstants.MAX_ROBOTS) {
-			if (rc.senseObjectAtLocation(PRIMARY_SPAWN_LOCATION) == null) {
-				rc.spawn(DIRECTION_TO_ENEMY);
+			if (rc.senseObjectAtLocation(primarySpawnLocation) == null) {
+				rc.spawn(directionToEnemy);
 			} else {
 				for (Direction d : Navigation.DIRECTIONS) {
-					MapLocation loc = HQ_LOCATION.add(d);
+					MapLocation loc = hqLocation.add(d);
 					if (rc.senseObjectAtLocation(loc) == null) {
 						rc.spawn(d);
 						break;
