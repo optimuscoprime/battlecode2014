@@ -3,7 +3,8 @@ package sound00;
 import sound00.Comms.Message;
 import sound00.Navigation.Move;
 
-import java.util.Deque;
+import java.util.List;
+import java.util.ArrayList;
 import java.util.Random;
 
 import battlecode.common.Direction;
@@ -25,35 +26,50 @@ public class SoundStrategy implements Strategy {
 	MapLocation firstTarget;
 	MapLocation currentTarget;
 	Direction DIRECTION_TO_HQ;
+	List<MapLocation> targetList;//=new ArrayList<MapLocation>();
+	int pos;
 
 	public SoundStrategy(RobotController rc, Random rand) throws GameActionException {
+		targetList=new ArrayList<MapLocation>();
 		this.rc = rc;
-		this.ENEMY = rc.getTeam().opponent();
-		this.INFO = rc.senseRobotInfo(rc.getRobot());
-		this.rand = rand;
-		wanderingDirection = null;
-		//for now lets actually just start at the max range closest to the enemyhq
-		// and 'pulse' towards our HQ.
-		Direction DIRECTION_TO_ENEMY = INFO.location.directionTo(rc.senseEnemyHQLocation());
-		DIRECTION_TO_HQ = DIRECTION_TO_ENEMY.opposite();
-		// lets make a function that generates the line between A-B where A is closest enemy hq.
-		// B is closest friendly HQ.
-		firstTarget=rc.getLocation();
-		MapLocation furtherTarget=firstTarget.add(DIRECTION_TO_ENEMY);
-		while(rc.canAttackSquare(furtherTarget)){
-			firstTarget=furtherTarget;
-			furtherTarget=furtherTarget.add(DIRECTION_TO_ENEMY);
+		// The above strategy is pretty poor.  How about two-dimensional forloop
+		// building an array of target MapLocations we can hit.
+		for(int x=1;x<rc.getMapWidth();x=x+2){
+			for(int y=1; y<rc.getMapHeight();y=y+2){
+				if (rc.isActive()) {
+					currentTarget=new MapLocation(x,y);
+					if(rc.canAttackSquare(currentTarget)){
+						targetList.add(currentTarget);
+						//System.out.println("Adding x:" + x + " y:" + y);
+					}
+				}else{
+					rc.yield();
+				}	
+			}
 		}
-		currentTarget=firstTarget;
+		pos=0;  
 	}
 	
 	public void play() throws GameActionException {
+		
+		if (rc.isActive()) {
+			rc.attackSquare(targetList.get(pos));
+			if(pos<targetList.size()-1){
+				pos++;
+			}else{
+				pos=0;
+			}
+		}else{
+			rc.yield();
+		}
+		/*
 		if(!rc.canAttackSquare(currentTarget)){
 			currentTarget=firstTarget;
 		}
-			  rc.attackSquare(currentTarget);
-			  currentTarget=currentTarget.add(DIRECTION_TO_HQ);
-			  currentTarget=currentTarget.add(DIRECTION_TO_HQ);
+		rc.attackSquare(currentTarget);
+		currentTarget=currentTarget.add(DIRECTION_TO_HQ);
+		currentTarget=currentTarget.add(DIRECTION_TO_HQ);
+		*/
 	}
 }
 
