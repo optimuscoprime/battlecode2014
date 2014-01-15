@@ -14,75 +14,38 @@ import battlecode.common.RobotInfo;
 import battlecode.common.Team;
 
 /**
- * SoundStrategy
- *
- * 	I intend to make this adaptation from SoundStrategy build a sound-tower
- * 	Then herd cows towards the HQ.
- * 	I'll probably make a pasture near the HQ.  
- *	Then make a HQ which shoots any enemies that come near, since the HQ seems like powerful defence.
- *	Then I'll make soldiers retreat to herd if they've got < half life, and suicide if they can't run away?
-
+ * Aggressive attack strategy
  */
-import battlecode.common.RobotType;
 public class SoundStrategy implements Strategy {
 	RobotController rc;
 	Random rand;
-	Team enemy;
-	RobotInfo info;
-	MapLocation enemyHqLoc;
-	MapLocation centerLoc;
+	Team ENEMY;
+	RobotInfo INFO;
 	Direction wanderingDirection;
+	MapLocation target;
 
 	public SoundStrategy(RobotController rc, Random rand) throws GameActionException {
 		this.rc = rc;
-		this.enemy = rc.getTeam().opponent();
-		this.info = rc.senseRobotInfo(rc.getRobot());
+		this.ENEMY = rc.getTeam().opponent();
+		this.INFO = rc.senseRobotInfo(rc.getRobot());
 		this.rand = rand;
-		this.enemyHqLoc=rc.senseEnemyHQLocation();
-		this.centerLoc=new MapLocation(rc.getMapHeight()/2,rc.getMapWidth()/2);
 		wanderingDirection = null;
+		//for now lets actually just start at the max range closest to the enemyhq
+		// and 'pulse' towards our HQ.
+		Direction DIRECTION_TO_ENEMY = INFO.location.directionTo(rc.senseEnemyHQLocation());
+		// lets make a function that generates the line between A-B where A is closest enemy hq.
+		// B is closest friendly HQ.
+		target=rc.getLocation();
+		MapLocation furtherTarget=target.add(DIRECTION_TO_ENEMY);
+		while(rc.canAttackSquare(furtherTarget)){
+			target=furtherTarget;
+			furtherTarget=furtherTarget.add(DIRECTION_TO_ENEMY);
+		}
 	}
 	
 	public void play() throws GameActionException {
-		// set the below to middle of the map ?
-		//MapLocation dest = Abilities.ClosestPastr(rc, rc.getLocation(), enemy);
-		MapLocation dest=centerLoc;
-		Deque<Move> path = Navigation.pathAStar(rc, dest);
-		while(Navigation.attackMoveOnPath(rc, path, info.type.attackRadiusMaxSquared, enemy)) {
-				  Tactics.killNearbyEnemies(rc, info);
-		}
-		Tactics.killNearbyEnemies(rc, info);
-		if (rc.isActive()) {
-				// deploy sound
-			rc.construct(RobotType.NOISETOWER);
-		} else {
-			rc.yield();				
-		}
+			  rc.attackSquare(target);
 	}
 }
 
 
-
-
-//Direction wonder = null;
-//while (true) {
-//	MapLocation dest = Abilities.ClosestPastr(rc, rc.getLocation(), enemy);
-//	if (dest == null) {	
-//		Message m = Comms.ReadMessage(rc);
-//		if (m != null && m.type == Comms.Type.CONVERGE) {
-//			dest = m.loc;
-//		}
-//	}
-//	if (dest != null) {
-//		Deque<Move> path = Navigation.pathAStar(rc, dest);
-//		while(Navigation.attackMoveOnPath(rc, path, info.type.attackRadiusMaxSquared, enemy)) {
-//			Tactics.killNearbyEnemies(rc, info);
-//		}
-//	}
-//	Tactics.killNearbyEnemies(rc, info);
-//	if (rc.isActive()) {
-//		wonder = Navigation.wonder(rc, rand, wonder);
-//	} else {
-//		rc.yield();				
-//	}
-//}

@@ -19,16 +19,15 @@ public class RobotPlayer {
 			} else if (type == RobotType.SOLDIER) {
 				rc.setIndicatorString(0," " + rc.getRobot().getID());
 				if (rc.getRobot().getID() < 200 ){
-						  SoundStrategy soundStrategy = new SoundStrategy(rc, rand);
+						  BuildSoundStrategy soundStrategy = new BuildSoundStrategy(rc, rand);
 						  playSingleStrategy(rc, soundStrategy);
 				}else{
 						  AttackStrategy attackStrategy = new AttackStrategy(rc, rand);
 						  playSingleStrategy(rc, attackStrategy);
 				}
 			} else if (type == RobotType.NOISETOWER){
-			   while(true){
-						  rc.yield();
-				}
+					  SoundStrategy soundStrategy = new SoundStrategy(rc, rand);
+					  playSingleStrategy(rc, soundStrategy);
 			}	
 		} catch(GameActionException e) {
 			throw new RuntimeException(e);
