@@ -15,6 +15,9 @@ import battlecode.common.Team;
 
 /**
  * Aggressive attack strategy
+ *
+ * Ian has plans for what happends when retreating -
+ * by shooting out to the side I think single soldiers can perhaps herd a *lot*
  */
 public class AttackStrategy implements Strategy {
 	RobotController rc;

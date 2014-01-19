@@ -32,10 +32,12 @@ public class SoundStrategy implements Strategy {
 	public SoundStrategy(RobotController rc, Random rand) throws GameActionException {
 		targetList=new ArrayList<MapLocation>();
 		this.rc = rc;
+		int increment=4;
+		//int increment=NOISE_SCARE_RANGE_SMALL; // this doesnt seem to exist in GameConstants?
 		// The above strategy is pretty poor.  How about two-dimensional forloop
 		// building an array of target MapLocations we can hit.
-		for(int x=1;x<rc.getMapWidth();x=x+2){
-			for(int y=1; y<rc.getMapHeight();y=y+2){
+		for(int x=1;x<rc.getMapWidth();x=x+increment){
+			for(int y=0; y<rc.getMapHeight();y=y+increment){
 				if (rc.isActive()) {
 					currentTarget=new MapLocation(x,y);
 					if(rc.canAttackSquare(currentTarget)){

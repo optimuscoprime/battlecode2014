@@ -18,9 +18,16 @@ public class RobotPlayer {
 				
 			} else if (type == RobotType.SOLDIER) {
 				rc.setIndicatorString(0," " + rc.getRobot().getID());
-				if (rc.getRobot().getID() < 200 ){
+				//make the below looks for coms as to whether a sound tower exists
+				//then whether a pasture exists.
+				// fall back to this logic when a soldier is injured (to rebuild).
+
+				if (rc.getRobot().getID() < 120 ){
 						  BuildSoundStrategy soundStrategy = new BuildSoundStrategy(rc, rand);
 						  playSingleStrategy(rc, soundStrategy);
+				}else if(rc.sensePastrLocations(rc.getTeam()).length < 1 ){
+						  BuildPastrStrategy pastrBuildStrategy = new BuildPastrStrategy(rc, rand);
+						  playSingleStrategy(rc, pastrBuildStrategy);
 				}else{
 						  AttackStrategy attackStrategy = new AttackStrategy(rc, rand);
 						  playSingleStrategy(rc, attackStrategy);
@@ -28,7 +35,13 @@ public class RobotPlayer {
 			} else if (type == RobotType.NOISETOWER){
 					  SoundStrategy soundStrategy = new SoundStrategy(rc, rand);
 					  playSingleStrategy(rc, soundStrategy);
-			}	
+			}else if (type == RobotType.PASTR){
+					  //SoundStrategy soundStrategy = new SoundStrategy(rc, rand);
+					  //playSingleStrategy(rc, soundStrategy);
+					  while(true){
+						  rc.yield();
+					  }
+			}		
 		} catch(GameActionException e) {
 			throw new RuntimeException(e);
 		}
