@@ -20,7 +20,7 @@ public class RobotPlayer {
     private static double health;
 
     private static void die () {
-        throw new RuntimeException("I'm melting, melting. Ohhhhh, what a world, what a world...");
+        die(null);
     }
 
     private static void die (Exception e) {
