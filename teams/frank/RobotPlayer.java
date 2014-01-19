@@ -15,11 +15,12 @@ public class RobotPlayer {
     private static Team team;
 
     private static MapLocation location;
-    private static Direction direction;
     private static double actionDelay;
     private static double health;
 
-    private static final Direction[] ALL_DIRECTIONS = new Direction[] {
+    private static Random random;
+
+    private static Direction[] allDirections = new Direction[] {
         EAST,
         NORTH_EAST,
         NORTH,
@@ -57,7 +58,6 @@ public class RobotPlayer {
             die(e);
         }
         RobotPlayer.location = info.location;
-        RobotPlayer.direction = info.direction;
         RobotPlayer.actionDelay = info.actionDelay;
         RobotPlayer.health = info.health;
     }
@@ -102,7 +102,10 @@ public class RobotPlayer {
     private static void tryToSpawn () {
         // check surrounding squares
         // spawn in one of them
-        for (Direction d: ALL_DIRECTIONS) {
+
+        // shuffle directions first
+
+        for (Direction direction: allDirections) {
             if (rc.canMove(direction)) {
                 try {
                     rc.spawn(direction);
