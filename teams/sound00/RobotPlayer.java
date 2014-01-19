@@ -1,5 +1,8 @@
 package sound00;
 
+import sound00.Comms.Message;
+
+
 import java.util.Random;
 
 import battlecode.common.GameActionException;
@@ -21,11 +24,15 @@ public class RobotPlayer {
 				//make the below looks for coms as to whether a sound tower exists
 				//then whether a pasture exists.
 				// fall back to this logic when a soldier is injured (to rebuild).
-
-				if (rc.getRobot().getID() < 120 ){
+				int soundChannel=1;
+				int pastrChannel=2;
+				Message ms = Comms.ReadMessage(rc,soundChannel);
+				Message mp = Comms.ReadMessage(rc,pastrChannel);
+				
+				if (ms==null){
 						  BuildSoundStrategy soundStrategy = new BuildSoundStrategy(rc, rand);
 						  playSingleStrategy(rc, soundStrategy);
-				}else if(rc.sensePastrLocations(rc.getTeam()).length < 1 ){
+				}else if((rc.sensePastrLocations(rc.getTeam()).length < 1)&&( mp==null) ){
 						  BuildPastrStrategy pastrBuildStrategy = new BuildPastrStrategy(rc, rand);
 						  playSingleStrategy(rc, pastrBuildStrategy);
 				}else{
