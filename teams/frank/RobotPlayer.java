@@ -8,49 +8,56 @@ import static battlecode.common.RobotType.*;
 
 public class RobotPlayer {
     private static RobotController rc;
+    private static RobotType type;
 
     private static void die() {
-        throw new RuntimeException("die");
+        throw new RuntimeException("I'm melting, melting. Ohhhhh, what a world, what a world...");
     }
 
     public static void run (RobotController rc) {
         RobotPlayer.rc = rc;
+        RobotPlayer.type = rc.getType();
+        switch (type) {
+            case HQ:
+                playAsHq();
+                break;
+            case NOISETOWER:
+                playAsNoiseTower();
+                break;
+            case PASTR:
+                playAsPastr();
+                break;
+            case SOLDIER:
+                playAsSoldier();
+                break;
+        }
+    }
+
+    private static void playAsHq() {
         while (true) {
-            playMove();
+            // TODO
             rc.yield();
         }
     }
 
-    private static void playMove() {
-        switch (rc.getType()) {
-            case HQ:
-                playHqMove();
-                break;
-            case NOISETOWER:
-                playNoiseTowerMove();
-                break;
-            case PASTR:
-                playPastrMove();
-                break;
-            case SOLDIER:
-                playSoldierMove();
-                break;
+    private static void playAsNoiseTower() {
+        while (true) {
+            // TODO
+            rc.yield();
         }
     }
 
-    private static void playHqMove() {
-        die();
+    private static void playAsPastr() {
+        while (true) {
+            // TODO
+            rc.yield();
+        }
     }
 
-    private static void playNoiseTowerMove() {
-        die();
-    }
-
-    private static void playPastrMove() {
-        die();
-    }
-
-    private static void playSoldierMove() {
-        die();
+    private static void playAsSoldier() {
+        while (true) {
+            // TODO
+            rc.yield();
+        }
     }
 }
