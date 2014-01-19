@@ -36,7 +36,11 @@ public class SoundStrategy implements Strategy {
 		this.rc = rc;
 		int pastrChannel=2;
 		Message mp = Comms.ReadMessage(rc,pastrChannel);
-		this.pastrLoc=mp.loc;
+		if(mp!=null){
+			this.pastrLoc=mp.loc;
+		}else{
+			this.pastrLoc=null;
+		}
 		int increment=3;
 		//int increment=NOISE_SCARE_RANGE_SMALL; // this doesnt seem to exist in GameConstants?
 		// The above strategy is pretty poor.  How about two-dimensional forloop

@@ -40,8 +40,8 @@ public class AttackStrategy implements Strategy {
 		if(rc.getHealth()<rc.getType().maxHealth){
 			if(rc.isActive()){
 				dest=rc.senseHQLocation();	//run away!
-				System.out.println("Ouch!\n");
-				Navigation.moveGreedy(rc,dest,3);
+				//System.out.println("Ouch!\n");
+				Navigation.moveGreedy(rc,dest,1);
 				//Deque<Move> path = Navigation.pathAStar(rc, dest);
 				//while(Navigation.moveOnPath(rc,path)){
 				//	System.out.println("For mother Russia!\n");

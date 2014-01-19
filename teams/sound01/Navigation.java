@@ -15,9 +15,25 @@ import battlecode.common.RobotInfo;
 import battlecode.common.RobotLevel;
 import battlecode.common.Team;
 import battlecode.common.TerrainTile;
+import sound01.Comms.Message;
 
 public class Navigation {
-	
+	private static void cleverMove(RobotController rc, Direction d)throws GameActionException{
+		MapLocation current=rc.getLocation();
+		MapLocation next=current.add(d);
+		int pastrChannel=2;
+		Message m = Comms.ReadMessage(rc,pastrChannel);
+		if(m==null){
+			rc.move(d);
+		}else{
+			MapLocation pastrLoc=m.loc;
+			if( (new Integer(pastrLoc.distanceSquaredTo(current)).compareTo( pastrLoc.distanceSquaredTo(next))) > 0){
+				rc.move(d);
+			}else{
+				rc.sneak(d);
+			}
+		}
+	}
 	/**
 	 * walks one square in a given direction, or picks a random direction
 	 */
@@ -30,14 +46,16 @@ public class Navigation {
 			for (int j = i; j < DIRECTIONS.length; j++) {
 				d = DIRECTIONS[j];
 				if (rc.canMove(d)) {
-					rc.move(d);
+					//rc.move(d);
+					cleverMove(rc,d);
 					return d;
 				}
 			}
 			for (int j = 0; j < i; j++) {
 				d = DIRECTIONS[j];
 				if (rc.canMove(d)) {
-					rc.move(d);
+					//rc.move(d);
+					cleverMove(rc,d);
 					return d;
 				}				
 			}
@@ -62,8 +80,11 @@ public class Navigation {
 				Move top = path.removeLast();
 				if (top.direction != null) {
 					if (rc.canMove(top.direction)) {
-						rc.move(top.direction);
-					} else {
+						//rc.move(top.direction);
+						cleverMove(rc,top.direction);
+					} else if(rc.canMove(top.direction.rotateLeft())){
+						cleverMove(rc,top.direction.rotateLeft());
+					}else {
 						return false;
 					}
 				}
