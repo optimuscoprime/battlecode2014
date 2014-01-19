@@ -7,7 +7,8 @@ import battlecode.common.RobotController;
 public class Comms {
 	public static enum Type {
 		NONE,
-		CONVERGE;
+		CONVERGE,
+		SOUND;
 	}
 	
 	public static class Message {
@@ -53,21 +54,21 @@ public class Comms {
 		}
 	}
 	
-	public static void BroadcastMessage(RobotController rc, Message message) throws GameActionException {
-		rc.broadcast(0, message.encode());
+	public static void BroadcastMessage(RobotController rc,int channel, Message message) throws GameActionException {
+		rc.broadcast(channel, message.encode());
 	}
 	
-	public static Message ReadMessage(RobotController rc) throws GameActionException {
+	public static Message ReadMessage(RobotController rc, int channel) throws GameActionException {
 		int id = rc.getRobot().getID();	
-		Message m = Message.decode(rc.readBroadcast(0));
+		Message m = Message.decode(rc.readBroadcast(channel));
 		if (m == null || m.id == id ) {
 			return null;
 		} else if (m.type == Type.CONVERGE) {
 			m.val--;
 			if (m.val > 0) {
-				BroadcastMessage(rc, m);
+				BroadcastMessage(rc, channel, m);
 			} else {
-				BroadcastMessage(rc, new Message(Type.NONE, null, 0, rc.getRobot().getID()));
+				BroadcastMessage(rc, channel, new Message(Type.NONE, null, 0, rc.getRobot().getID()));
 			}
 		}
 		return m;

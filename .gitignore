@@ -19,6 +19,8 @@ bin
 *.jar
 *.war
 *.ear
+#vim swp files
+*.swp
 
 #MacOS thumbnails
 .DS_Store
@@ -41,3 +43,4 @@ teams/team085/*.java
 
 #haters gonna hate
 haters
+replays
