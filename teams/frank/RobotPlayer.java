@@ -3,19 +3,18 @@ package frank;
 import java.util.*;
 
 import battlecode.common.*;
-static import battlecode.common.RobotType.*;
+
+import static battlecode.common.RobotType.*;
 
 public class RobotPlayer {
-    private static final RobotController rc;
+    private static RobotController rc;
 
     private static void die() {
-        // asserts are disabled by default
-        printf("Die\n");
-        System.exit(-1);
+        throw new RuntimeException("die");
     }
 
     public static void run (RobotController rc) {
-        this.rc = rc;
+        RobotPlayer.rc = rc;
         while (true) {
             playMove();
             rc.yield();
