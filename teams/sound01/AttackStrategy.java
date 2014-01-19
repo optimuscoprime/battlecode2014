@@ -36,13 +36,18 @@ public class AttackStrategy implements Strategy {
 	
 	public void play() throws GameActionException {
 		MapLocation dest = Abilities.ClosestPastr(rc, rc.getLocation(), ENEMY);
-		if(rc.getHealth()<rc.getType().maxHealth){
-			dest=rc.senseHQLocation();	//run away!
 
-			System.out.println("Ouch!\n");
-			Deque<Move> path = Navigation.pathAStar(rc, dest);
-			while(Navigation.moveOnPath(rc,path)){
-				System.out.println("Running?\n");
+		if(rc.getHealth()<rc.getType().maxHealth){
+			if(rc.isActive()){
+				dest=rc.senseHQLocation();	//run away!
+				System.out.println("Ouch!\n");
+				Navigation.moveGreedy(rc,dest,3);
+				//Deque<Move> path = Navigation.pathAStar(rc, dest);
+				//while(Navigation.moveOnPath(rc,path)){
+				//	System.out.println("For mother Russia!\n");
+				//	rc.selfDestruct();
+				//	System.out.println("Running?\n");
+				//}
 			}
 		}
 		if (dest != null) {

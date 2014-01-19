@@ -1,5 +1,7 @@
 package sound01;
 
+import sound01.Comms.Message;
+
 import battlecode.common.Direction;
 import battlecode.common.GameActionException;
 import battlecode.common.GameConstants;
@@ -31,7 +33,20 @@ public class SpawnStrategy implements Strategy {
 	
 	public void play() throws GameActionException {
 		if (rc.isActive()) {
-            
+			int soundChannel=1;
+			int pastrChannel=2;
+			Message ms = Comms.ReadMessage(rc,soundChannel);
+			Message mp = Comms.ReadMessage(rc,pastrChannel);
+			if (ms!=null){
+				if(rc.senseObjectAtLocation(ms.loc)==null){
+					rc.broadcast(soundChannel,0);
+				}
+			}       
+			if (mp!=null){
+				if(rc.senseObjectAtLocation(mp.loc)==null){
+					rc.broadcast(pastrChannel,0);
+				}
+			}     	    
             // in principle the HQ is really good at killing enemies
             // BUT
             // killing nearby enemies almost never happens
@@ -45,12 +60,12 @@ public class SpawnStrategy implements Strategy {
     
 	public void spawnRobot() throws GameActionException {
 		if (rc.senseRobotCount() < GameConstants.MAX_ROBOTS) {
-			if (rc.senseObjectAtLocation(primarySpawnLocation) == null) {
+			if (rc.canMove(directionToEnemy)) {
 				rc.spawn(directionToEnemy);
 			} else {
 				for (Direction d : Navigation.DIRECTIONS) {
 					MapLocation loc = hqLocation.add(d);
-					if (rc.senseObjectAtLocation(loc) == null) {
+					if (rc.canMove(d)) {
 						rc.spawn(d);
 						break;
 					}

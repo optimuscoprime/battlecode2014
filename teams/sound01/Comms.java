@@ -42,6 +42,9 @@ public class Comms {
 		}
 		
 		public static Message decode(int m) {
+			if(m==0){
+				return null;
+			}
 			int t = (m) & 0xFF;
 			if (t > 0) {
 				int x = (m >>> 8) & 0xFF;
