@@ -19,6 +19,17 @@ public class RobotPlayer {
     private static double actionDelay;
     private static double health;
 
+    private static final Direction[] ALL_DIRECTIONS = new Direction[] {
+        EAST,
+        NORTH_EAST,
+        NORTH,
+        NORTH_WEST,
+        WEST,
+        SOUTH_WEST,
+        SOUTH,
+        SOUTH_EAST
+    };
+
     private static void die () {
         die(null);
     }
@@ -91,7 +102,16 @@ public class RobotPlayer {
     private static void tryToSpawn () {
         // check surrounding squares
         // spawn in one of them
-        
+        for (Direction d: ALL_DIRECTIONS) {
+            if (rc.canMove(direction)) {
+                try {
+                    rc.spawn(direction);
+                } catch (GameActionException e) {
+                    die(e);
+                }
+                break;
+            }
+        }
     }
 
     private static void playAsNoiseTower () {
