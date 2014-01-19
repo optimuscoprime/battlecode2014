@@ -218,9 +218,9 @@ public class RobotPlayer {
             if (rc.isActive()) {
                 // try to attack nearby enemies
                 if (attackNearbyEnemies()) {
-                    // ?
+                    // attacking them
                 } else {
-                    // lets just try to move randomly
+                    // otherwise lets just try to move randomly
                     shuffle(allDirections);
                     for (Direction direction: allDirections) {
                         if (rc.canMove(direction)) {
