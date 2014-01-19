@@ -49,6 +49,7 @@ public class RobotPlayer {
         }
         RobotPlayer.type = info.type;
         RobotPlayer.team = info.team;
+        RobotPlayer.random = new Random(robot.getID());
     }
 
     private static void reinit () {
@@ -99,11 +100,21 @@ public class RobotPlayer {
         }
     }
 
+    private static void shuffle (Direction[] items) {
+        for (int i = items.length - 1; i > 0; i--) {
+            int index = random.nextInt(i + 1);
+            Direction temp = items[index];
+            items[index] = items[i];
+            items[i] = temp;
+        }
+    }
+
     private static void tryToSpawn () {
         // check surrounding squares
         // spawn in one of them
 
         // shuffle directions first
+        shuffle(allDirections);
 
         for (Direction direction: allDirections) {
             if (rc.canMove(direction)) {
