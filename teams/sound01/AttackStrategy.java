@@ -42,7 +42,7 @@ public class AttackStrategy implements Strategy {
 			System.out.println("Ouch!\n");
 			Deque<Move> path = Navigation.pathAStar(rc, dest);
 			while(Navigation.moveOnPath(rc,path)){
-		
+				System.out.println("Running?\n");
 			}
 		}
 		if (dest != null) {

@@ -3,9 +3,10 @@ package sound01;
 import sound01.Comms.Message;
 import sound01.Navigation.Move;
 
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Random;
+import java.util.*;
+//import java.util.List;
+//import java.util.ArrayList;
+//import java.util.Random;
 
 import battlecode.common.Direction;
 import battlecode.common.GameActionException;
@@ -18,8 +19,9 @@ import battlecode.common.Team;
  * Aggressive attack strategy
  */
 public class SoundStrategy implements Strategy {
-	RobotController rc;
+	private final RobotController rc;
 	Random rand;
+	MapLocation pastrLoc;
 	Team ENEMY;
 	RobotInfo INFO;
 	Direction wanderingDirection;
@@ -29,10 +31,13 @@ public class SoundStrategy implements Strategy {
 	List<MapLocation> targetList;//=new ArrayList<MapLocation>();
 	int pos;
 
-	public SoundStrategy(RobotController rc, Random rand) throws GameActionException {
+	public SoundStrategy(final RobotController rc, Random rand) throws GameActionException {
 		targetList=new ArrayList<MapLocation>();
 		this.rc = rc;
-		int increment=4;
+		int pastrChannel=2;
+		Message mp = Comms.ReadMessage(rc,pastrChannel);
+		this.pastrLoc=mp.loc;
+		int increment=3;
 		//int increment=NOISE_SCARE_RANGE_SMALL; // this doesnt seem to exist in GameConstants?
 		// The above strategy is pretty poor.  How about two-dimensional forloop
 		// building an array of target MapLocations we can hit.
@@ -50,6 +55,14 @@ public class SoundStrategy implements Strategy {
 			}
 		}
 		pos=0;  
+		// sort by distance from rc.getLocation()
+		Collections.sort(targetList, new Comparator<MapLocation>(){
+				public int compare(MapLocation b, MapLocation a){
+				return new Integer(pastrLoc.distanceSquaredTo(a)).compareTo( pastrLoc.distanceSquaredTo(b));
+				}
+				}
+		);
+
 	}
 	
 	public void play() throws GameActionException {

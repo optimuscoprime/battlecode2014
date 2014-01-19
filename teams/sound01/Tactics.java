@@ -49,6 +49,9 @@ public class Tactics {
 				enemies = rc.senseNearbyGameObjects(Robot.class, loc, r, et);
 				allClear = enemies.length == 0;
 			}
+			if(rc.getHealth()<rc.getType().maxHealth){
+				allClear=false;// a lie but we want wounded to run away.
+			}
 		}
 	}
 	
