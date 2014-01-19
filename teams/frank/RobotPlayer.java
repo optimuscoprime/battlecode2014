@@ -23,18 +23,30 @@ public class RobotPlayer {
         throw new RuntimeException("I'm melting, melting. Ohhhhh, what a world, what a world...");
     }
 
+    private static void die (Exception e) {
+        throw new RuntimeException("I'm melting, melting. Ohhhhh, what a world, what a world...", e);
+    }
+
     public static void init (RobotController rc) {
         RobotPlayer.rc = rc;
         RobotPlayer.robot = rc.getRobot();
-        RobotPlayer.info = rc.senseRobotInfo(robot);
+        try {
+            RobotPlayer.info = rc.senseRobotInfo(robot);
+        } catch (GameActionException e) {
+            die(e);
+        }
         RobotPlayer.type = info.type;
         RobotPlayer.team = info.team;
     }
 
     private static void reinit () {
-        RobotPlayer.info = rc.senseRobotInfo(robot);
+        try {
+            RobotPlayer.info = rc.senseRobotInfo(robot);
+        } catch (GameActionException e) {
+            die(e);
+        }
         RobotPlayer.location = info.location;
-        RobotPlayer.directon = info.direction;
+        RobotPlayer.direction = info.direction;
         RobotPlayer.actionDelay = info.actionDelay;
         RobotPlayer.health = info.health;
     }

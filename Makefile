@@ -1,6 +1,7 @@
 default: commit
 
 commit:
+	ant build
 	git add .
 	git commit -a
 	git push
