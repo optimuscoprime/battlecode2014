@@ -56,7 +56,9 @@ public class BuildPastrStrategy implements Strategy {
 		}
 		Tactics.killNearbyEnemies(rc, info);
 		if (rc.isActive()) {
-				// deploy PASTR
+			// deploy PASTR
+			int pastr_channel=2;
+			Comms.BroadcastMessage(rc,pastr_channel,Comms.Message.create(Comms.Type.SOUND, rc.getLocation(), 0, rc.getRobot().getID()));
 			rc.construct(RobotType.PASTR);
 		} else {
 			rc.yield();				
