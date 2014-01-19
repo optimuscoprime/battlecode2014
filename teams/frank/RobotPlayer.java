@@ -13,6 +13,7 @@ public class RobotPlayer {
     private static RobotInfo info;
     private static RobotType type;
     private static Team team;
+    private static Team opponent;
 
     private static MapLocation location;
     private static double actionDelay;
@@ -49,6 +50,7 @@ public class RobotPlayer {
         }
         RobotPlayer.type = info.type;
         RobotPlayer.team = info.team;
+        RobotPlayer.opponent = team.opponent();
         RobotPlayer.random = new Random(robot.getID());
     }
 
@@ -91,13 +93,67 @@ public class RobotPlayer {
             // active stuff
             if (rc.isActive()) {
                 boolean shouldSpawn = true;
-                // TODO if enemies are nearby, maybe (probability) don't spawn, attack instead?
+                if (attackNearbyEnemies()) {
+                    // if we attacked, then with high probability, should set shouldSpawn to false
+                    // so that we can attack next time too
+                    if (random.nextDouble() < 0.9) {
+                        shouldSpawn = false;
+                    }
+                }
                 if (shouldSpawn) {
                     tryToSpawn();
                 }
             }
             rc.yield();
         }
+    }
+
+    private static boolean attackNearbyEnemies() {
+        boolean didAttack = false;
+
+        Robot[] nearbyEnemies = rc.senseNearbyGameObjects(
+            Robot.class,
+            location,
+            type.attackRadiusMaxSquared,
+            opponent
+        );
+
+        if (nearbyEnemies.length > 0) {
+            // idea: attack the nearby enemy that is the furthest away from our position
+            // (because they might retreat)
+            Arrays.sort(nearbyEnemies, new Comparator<Robot>() {
+                public int compare(Robot a, Robot b) {
+                    RobotInfo aInfo = null;
+                    RobotInfo bInfo = null;
+                    try {
+                        aInfo = rc.senseRobotInfo(a);
+                    } catch (GameActionException e) {
+                        die(e);
+                    }
+                    try {
+                        bInfo = rc.senseRobotInfo(b);
+                    } catch (GameActionException e) {
+                        die(e);
+                    }
+                    return new Integer(location.distanceSquaredTo(bInfo.location)).compareTo(location.distanceSquaredTo(aInfo.location));
+                }
+            });
+            RobotInfo furthestNearbyEnemyInfo = null;
+            try {
+                furthestNearbyEnemyInfo = rc.senseRobotInfo(nearbyEnemies[0]);
+            } catch (GameActionException e) {
+                die(e);
+            }
+            MapLocation furthestNearbyEnemyLocation = furthestNearbyEnemyInfo.location;
+            try {
+                rc.attackSquare(furthestNearbyEnemyLocation);
+            } catch (GameActionException e) {
+                die(e);
+            }
+            didAttack = true;
+        }
+
+        return didAttack;
     }
 
     private static void shuffle (Direction[] items) {
