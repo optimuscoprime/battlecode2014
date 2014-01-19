@@ -15,14 +15,14 @@ public class SpawnStrategy implements Strategy {
 	RobotInfo INFO;
 	MapLocation HQ_LOCATION;
 	Direction DIRECTION_TO_ENEMY;
-	MapLocation PRIMARY_SPAWN_LOCATION;
+	//MapLocation PRIMARY_SPAWN_LOCATION;
 	
 	public SpawnStrategy(RobotController rc) throws GameActionException {
 		this.rc = rc;
 		INFO = rc.senseRobotInfo(rc.getRobot());
 		HQ_LOCATION = rc.senseHQLocation();
 		DIRECTION_TO_ENEMY = this.HQ_LOCATION.directionTo(rc.senseEnemyHQLocation());
-		PRIMARY_SPAWN_LOCATION = HQ_LOCATION.add(DIRECTION_TO_ENEMY);
+		//PRIMARY_SPAWN_LOCATION = HQ_LOCATION.add(DIRECTION_TO_ENEMY);
 	}
 	
 	public void play() throws GameActionException {
@@ -34,12 +34,14 @@ public class SpawnStrategy implements Strategy {
 	
 	public void spawnRobot() throws GameActionException {
 		if (rc.senseRobotCount() < GameConstants.MAX_ROBOTS) {
-			if (rc.senseObjectAtLocation(PRIMARY_SPAWN_LOCATION) == null) {
+			//if (rc.senseObjectAtLocation(PRIMARY_SPAWN_LOCATION) == null) {
+			if (rc.canMove(DIRECTION_TO_ENEMY)) {
 				rc.spawn(DIRECTION_TO_ENEMY);
 			} else {
 				for (Direction d : Navigation.DIRECTIONS) {
-					MapLocation loc = HQ_LOCATION.add(d);
-					if (rc.senseObjectAtLocation(loc) == null) {
+					//MapLocation loc = HQ_LOCATION.add(d);
+					//if (rc.senseObjectAtLocation(loc) == null) {
+					if (rc.canMove(d)) {
 						rc.spawn(d);
 						break;
 					}

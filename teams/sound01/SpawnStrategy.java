@@ -19,7 +19,7 @@ public class SpawnStrategy implements Strategy {
 	RobotInfo info;
 	MapLocation hqLocation;
 	Direction directionToEnemy;
-	MapLocation primarySpawnLocation;
+	//MapLocation primarySpawnLocation;
     Team enemyTeam;
 	
 	public SpawnStrategy(RobotController rc) throws GameActionException {
@@ -27,7 +27,7 @@ public class SpawnStrategy implements Strategy {
 		this.info = rc.senseRobotInfo(rc.getRobot());
 		this.hqLocation = rc.senseHQLocation();
 		this.directionToEnemy = this.hqLocation.directionTo(rc.senseEnemyHQLocation());
-		this.primarySpawnLocation = hqLocation.add(directionToEnemy);
+		//this.primarySpawnLocation = hqLocation.add(directionToEnemy);
         this.enemyTeam = this.info.team.opponent();
 	}
 	
@@ -64,7 +64,7 @@ public class SpawnStrategy implements Strategy {
 				rc.spawn(directionToEnemy);
 			} else {
 				for (Direction d : Navigation.DIRECTIONS) {
-					MapLocation loc = hqLocation.add(d);
+					//MapLocation loc = hqLocation.add(d);
 					if (rc.canMove(d)) {
 						rc.spawn(d);
 						break;
