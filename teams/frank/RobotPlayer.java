@@ -85,6 +85,8 @@ public class RobotPlayer {
     }
 
     private static void playAsHq () {
+        boolean shouldSpawn = true;
+
         while (true) {
             reinit();
 
@@ -92,18 +94,20 @@ public class RobotPlayer {
 
             // active stuff
             if (rc.isActive()) {
-                boolean shouldSpawn = true;
+                if (!shouldSpawn && random.nextDouble() > 0.9) {
+                    shouldSpawn = true;
+                }
                 if (attackNearbyEnemies()) {
                     // if we attacked, then with high probability, should set shouldSpawn to false
                     // so that we can attack next time too
-                    if (random.nextDouble() < 0.9) {
-                        shouldSpawn = false;
-                    }
-                }
-                if (shouldSpawn) {
+                    shouldSpawn = false;
+                } else if (shouldSpawn) {
                     tryToSpawn();
+                } else {
+                    // wait - enemies might come back, need to shoot them
                 }
             }
+
             rc.yield();
         }
     }
@@ -150,6 +154,7 @@ public class RobotPlayer {
             } catch (GameActionException e) {
                 die(e);
             }
+
             didAttack = true;
         }
 
@@ -210,7 +215,25 @@ public class RobotPlayer {
         while (true) {
             reinit();
 
-            // re-init
+            if (rc.isActive()) {
+                // try to attack nearby enemies
+                if (attackNearbyEnemies()) {
+                    // ?
+                } else {
+                    // lets just try to move randomly
+                    shuffle(allDirections);
+                    for (Direction direction: allDirections) {
+                        if (rc.canMove(direction)) {
+                            try {
+                                rc.move(direction);
+                            } catch (GameActionException e) {
+                                die(e);
+                            }
+                            break;
+                        }
+                    }
+                }
+            }
 
             // TODO non-active stuff
             // TODO active stuff
