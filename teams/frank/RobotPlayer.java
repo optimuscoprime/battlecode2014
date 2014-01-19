@@ -5,18 +5,66 @@ import java.util.*;
 import battlecode.common.*;
 
 import static battlecode.common.RobotType.*;
+import static battlecode.common.Direction.*;
 
 public class RobotPlayer {
     private static RobotController rc;
+    private static Robot robot;
+    private static RobotInfo info;
     private static RobotType type;
+    private static Team team;
 
-    private static void die() {
-        throw new RuntimeException("I'm melting, melting. Ohhhhh, what a world, what a world...");
+    private static MapLocation location;
+    private static Direction direction;
+    private static double actionDelay;
+    private static double health;
+
+    private static final Direction[] ALL_DIRECTIONS = new Direction[] {
+        EAST,
+        NORTH_EAST,
+        NORTH,
+        NORTH_WEST,
+        WEST,
+        SOUTH_WEST,
+        SOUTH,
+        SOUTH_EAST
+    };
+
+    private static void die () {
+        die(null);
+    }
+
+    private static void die (Exception e) {
+        throw new RuntimeException("I'm melting, melting. Ohhhhh, what a world, what a world...", e);
+    }
+
+    public static void init (RobotController rc) {
+        RobotPlayer.rc = rc;
+        RobotPlayer.robot = rc.getRobot();
+        try {
+            RobotPlayer.info = rc.senseRobotInfo(robot);
+        } catch (GameActionException e) {
+            die(e);
+        }
+        RobotPlayer.type = info.type;
+        RobotPlayer.team = info.team;
+    }
+
+    private static void reinit () {
+        try {
+            RobotPlayer.info = rc.senseRobotInfo(robot);
+        } catch (GameActionException e) {
+            die(e);
+        }
+        RobotPlayer.location = info.location;
+        RobotPlayer.direction = info.direction;
+        RobotPlayer.actionDelay = info.actionDelay;
+        RobotPlayer.health = info.health;
     }
 
     public static void run (RobotController rc) {
-        RobotPlayer.rc = rc;
-        RobotPlayer.type = rc.getType();
+        init(rc);
+
         switch (type) {
             case HQ:
                 playAsHq();
@@ -33,30 +81,69 @@ public class RobotPlayer {
         }
     }
 
-    private static void playAsHq() {
+    private static void playAsHq () {
         while (true) {
-            // TODO
+            reinit();
+
+            // TODO non-active stuff
+
+            // active stuff
+            if (rc.isActive()) {
+                boolean shouldSpawn = true;
+                // TODO if enemies are nearby, maybe (probability) don't spawn, attack instead?
+                if (shouldSpawn) {
+                    tryToSpawn();
+                }
+            }
             rc.yield();
         }
     }
 
-    private static void playAsNoiseTower() {
+    private static void tryToSpawn () {
+        // check surrounding squares
+        // spawn in one of them
+        for (Direction d: ALL_DIRECTIONS) {
+            if (rc.canMove(direction)) {
+                try {
+                    rc.spawn(direction);
+                } catch (GameActionException e) {
+                    die(e);
+                }
+                break;
+            }
+        }
+    }
+
+    private static void playAsNoiseTower () {
         while (true) {
-            // TODO
+            reinit();
+
+            // TODO non-active stuff
+            // TODO active stuff
             rc.yield();
         }
     }
 
-    private static void playAsPastr() {
+    private static void playAsPastr () {
         while (true) {
-            // TODO
+            reinit();
+
+            // re-init
+
+            // TODO non-active stuff
+            // TODO active stuff
             rc.yield();
         }
     }
 
-    private static void playAsSoldier() {
+    private static void playAsSoldier () {
         while (true) {
-            // TODO
+            reinit();
+
+            // re-init
+
+            // TODO non-active stuff
+            // TODO active stuff
             rc.yield();
         }
     }
