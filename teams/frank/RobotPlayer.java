@@ -21,6 +21,8 @@ public class RobotPlayer {
 
     private static Random random;
 
+    private static boolean exploring = false;
+
     private static Direction[] allDirections = new Direction[] {
         EAST,
         NORTH_EAST,
@@ -125,32 +127,23 @@ public class RobotPlayer {
         if (nearbyEnemies.length > 0) {
             // idea: attack the nearby enemy that is the furthest away from our position
             // (because they might retreat)
-            Arrays.sort(nearbyEnemies, new Comparator<Robot>() {
-                public int compare(Robot a, Robot b) {
-                    RobotInfo aInfo = null;
-                    RobotInfo bInfo = null;
-                    try {
-                        aInfo = rc.senseRobotInfo(a);
-                    } catch (GameActionException e) {
-                        die(e);
-                    }
-                    try {
-                        bInfo = rc.senseRobotInfo(b);
-                    } catch (GameActionException e) {
-                        die(e);
-                    }
-                    return new Integer(location.distanceSquaredTo(bInfo.location)).compareTo(location.distanceSquaredTo(aInfo.location));
+
+            MapLocation[] nearbyEnemyLocations = new MapLocation[nearbyEnemies.length];
+            for (int i=0; i < nearbyEnemies.length; i++) {
+                // copy across the location
+                RobotInfo info = null;
+                try {
+                    info = rc.senseRobotInfo(nearbyEnemies[i]);
+                } catch (GameActionException e) {
+                    die(e);
                 }
-            });
-            RobotInfo furthestNearbyEnemyInfo = null;
-            try {
-                furthestNearbyEnemyInfo = rc.senseRobotInfo(nearbyEnemies[0]);
-            } catch (GameActionException e) {
-                die(e);
+                nearbyEnemyLocations[i] = info.location;
             }
-            MapLocation furthestNearbyEnemyLocation = furthestNearbyEnemyInfo.location;
+
+            sortLocationsByDistanceDescending(nearbyEnemyLocations, location);
+
             try {
-                rc.attackSquare(furthestNearbyEnemyLocation);
+                rc.attackSquare(nearbyEnemyLocations[0]);
             } catch (GameActionException e) {
                 die(e);
             }
@@ -161,23 +154,15 @@ public class RobotPlayer {
         return didAttack;
     }
 
-    private static void shuffle (Direction[] items) {
-        for (int i = items.length - 1; i > 0; i--) {
-            int index = random.nextInt(i + 1);
-            Direction temp = items[index];
-            items[index] = items[i];
-            items[i] = temp;
-        }
-    }
-
     private static void tryToSpawn () {
         // check surrounding squares
         // spawn in one of them
 
-        // shuffle directions first
-        shuffle(allDirections);
+        List<Direction> shuffledDirections = Arrays.asList(allDirections);
+        Collections.shuffle(shuffledDirections);
 
-        for (Direction direction: allDirections) {
+        // shuffle directions first
+        for (Direction direction: shuffledDirections) {
             if (rc.canMove(direction)) {
                 try {
                     rc.spawn(direction);
@@ -215,29 +200,87 @@ public class RobotPlayer {
         while (true) {
             reinit();
 
+            // TODO non-active stuff
+
+            // active stuff
             if (rc.isActive()) {
                 // try to attack nearby enemies
                 if (attackNearbyEnemies()) {
                     // attacking them
+                } else if (maybeBecomePastr()) {
+                    // becoming a pastr
                 } else {
-                    // otherwise lets just try to move randomly
-                    shuffle(allDirections);
-                    for (Direction direction: allDirections) {
-                        if (rc.canMove(direction)) {
-                            try {
-                                rc.move(direction);
-                            } catch (GameActionException e) {
-                                die(e);
+                    // otherwise
+                    // sometimes, lets move towards a pastr
+                    // other times, lets just move randomly
+
+                    MapLocation[] friendlyPastrLocations = rc.sensePastrLocations(team);
+
+                    sortLocationsByDistanceDescending(friendlyPastrLocations, location);
+
+
+                    if (random.nextDouble() < 0.05) {
+                        // small chance to start or stop exploring
+                        exploring = !exploring;
+                    }
+
+                    if (friendlyPastrLocations.length > 0 && !exploring && random.nextDouble() < 0.8) {
+                        for (MapLocation friendlyPastrLocation : friendlyPastrLocations) {
+                            Direction nextDirection = location.directionTo(friendlyPastrLocation);
+                            if (rc.canMove(nextDirection)) {
+                                try {
+                                    rc.move(nextDirection);
+                                } catch (GameActionException e) {
+                                    die(e);
+                                }
+                                break;
                             }
-                            break;
+                        }
+                    } else {
+                        List<Direction> shuffledDirections = Arrays.asList(allDirections);
+                        Collections.shuffle(shuffledDirections);
+                        for (Direction direction: shuffledDirections) {
+                            if (rc.canMove(direction)) {
+                                try {
+                                    rc.move(direction);
+                                } catch (GameActionException e) {
+                                    die(e);
+                                }
+                                break;
+                            }
                         }
                     }
                 }
             }
 
-            // TODO non-active stuff
-            // TODO active stuff
             rc.yield();
         }
+    }
+
+    private static boolean maybeBecomePastr() {
+        boolean becamePastr = false;
+        double cowsAtLocation = 0;
+        try {
+            cowsAtLocation = rc.senseCowsAtLocation(location);
+        } catch (GameActionException e) {
+            die(e);
+        }
+        if (cowsAtLocation > 1000) {
+            try {
+                rc.construct(PASTR);
+            } catch (GameActionException e) {
+                die(e);
+            }
+            becamePastr = true;
+        }
+        return becamePastr;
+    }
+
+    private static void sortLocationsByDistanceDescending(MapLocation[] locations, final MapLocation from) {
+        Arrays.sort(locations, new Comparator<MapLocation>() {
+            public int compare(final MapLocation a, final MapLocation b) {
+                return new Integer(from.distanceSquaredTo(b)).compareTo(from.distanceSquaredTo(a));
+            }
+        });
     }
 }
