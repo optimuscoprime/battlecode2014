@@ -41,7 +41,7 @@ public class AttackStrategy implements Strategy {
 			if(rc.isActive()){
 				dest=rc.senseHQLocation();	//run away!
 				//System.out.println("Ouch!\n");
-				Navigation.moveGreedy(rc,dest,1);
+				Navigation.moveGreedy(rc,dest,2);
 				//Deque<Move> path = Navigation.pathAStar(rc, dest);
 				//while(Navigation.moveOnPath(rc,path)){
 				//	System.out.println("For mother Russia!\n");
