@@ -1,6 +1,6 @@
-package sound01;
+package sound02;
 
-import sound01.Comms.Message;
+import sound02.Comms.Message;
 
 
 import java.util.Random;
