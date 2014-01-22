@@ -46,9 +46,6 @@ public class RobotPlayer {
 					  //SoundStrategy soundStrategy = new SoundStrategy(rc, rand);
 					  //playSingleStrategy(rc, soundStrategy);
 					  while(true){
-						  if(rc.getHealth()<30){
-								rc.selfDestruct();
-						  }
 						  rc.yield();
 					  }
 			}		

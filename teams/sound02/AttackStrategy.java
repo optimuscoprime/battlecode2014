@@ -11,6 +11,7 @@ import battlecode.common.GameActionException;
 import battlecode.common.MapLocation;
 import battlecode.common.RobotController;
 import battlecode.common.RobotInfo;
+import battlecode.common.Clock;
 import battlecode.common.Team;
 
 /**
@@ -35,58 +36,31 @@ public class AttackStrategy implements Strategy {
 	}
 	
 	public void play() throws GameActionException {
-		MapLocation dest = Abilities.ClosestPastr(rc, rc.getLocation(), ENEMY);
-
-		if(rc.getHealth()<rc.getType().maxHealth){
+		MapLocation dest=null;
+		if((Clock.getRoundNum()%3)==0){	//save operations for only some turns.
+			dest = Abilities.ClosestPastr(rc, rc.getLocation(), ENEMY);
+		}
+		if(rc.getHealth()<(rc.getType().maxHealth/2)){
 			if(rc.isActive()){
 				dest=rc.senseHQLocation();	//run away!
-				//System.out.println("Ouch!\n");
-				Navigation.moveGreedy(rc,dest,2);
-				//Deque<Move> path = Navigation.pathAStar(rc, dest);
-				//while(Navigation.moveOnPath(rc,path)){
-				//	System.out.println("For mother Russia!\n");
-				//	rc.selfDestruct();
-				//	System.out.println("Running?\n");
-				//}
+				Navigation.moveGreedy(rc,dest,2); //make this away from e
+				Deque<Move> path = Navigation.pathAStar(rc, dest);
+				while(Navigation.moveOnPath(rc,path)){
+					//System.out.println("For mother Russia!\n");
+					//rc.selfDestruct();
+					//System.out.println("Running?\n");
+				}
 			}
-		}
-		if (dest != null) {
+		}else if (dest != null) {
 			Deque<Move> path = Navigation.pathAStar(rc, dest);
 			while(Navigation.attackMoveOnPath(rc, path, INFO.type.attackRadiusMaxSquared, ENEMY)) {
-				Tactics.killNearbyEnemies(rc, INFO);
+				Tactics.fightOrFlight(rc, INFO);
 			}
 		}
 		Tactics.killNearbyEnemies(rc, INFO);
 		if (rc.isActive()) {
 			wanderingDirection = Navigation.wonder(rc, rand, wanderingDirection);
-		} else {
-			rc.yield();				
-		}
+		} 
+		//yield runs straight after play in playSingleStrategy
 	}
 }
-
-
-
-
-//Direction wonder = null;
-//while (true) {
-//	MapLocation dest = Abilities.ClosestPastr(rc, rc.getLocation(), ENEMY);
-//	if (dest == null) {	
-//		Message m = Comms.ReadMessage(rc);
-//		if (m != null && m.type == Comms.Type.CONVERGE) {
-//			dest = m.loc;
-//		}
-//	}
-//	if (dest != null) {
-//		Deque<Move> path = Navigation.pathAStar(rc, dest);
-//		while(Navigation.attackMoveOnPath(rc, path, INFO.type.attackRadiusMaxSquared, ENEMY)) {
-//			Tactics.killNearbyEnemies(rc, INFO);
-//		}
-//	}
-//	Tactics.killNearbyEnemies(rc, INFO);
-//	if (rc.isActive()) {
-//		wonder = Navigation.wonder(rc, rand, wonder);
-//	} else {
-//		rc.yield();				
-//	}
-//}
