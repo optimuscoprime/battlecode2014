@@ -17,7 +17,7 @@ DEBUG = false
 # -- Leave this as empty (which is '[]') to make all teams in 'teams/' directory play each other.
 
 # warning: don't put team085 as a custom team
-custom_list_of_teams = [ "bytecodeTricks", "coarsenserPlayer", "examplefuncsplayer", "frank", "gk_attack", "gk_master", "hubertTheFraternal", "networkmaker4", "paulTheConqueror", "sc01", "sc02", "sound00", "sound01", "sound02", "watson" ]
+custom_list_of_teams = [ "coarsenserPlayer", "examplefuncsplayer", "frank", "gk_attack", "gk_master", "hubertTheFraternal", "networkmaker4", "paulTheConqueror", "sc01", "sc02", "sound00", "sound01", "sound02", "watson" ]
 
 custom_list_of_maps = [ "simple", "bakedpotato" ]
 
