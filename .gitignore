@@ -44,3 +44,5 @@ teams/team085/*.java
 #haters gonna hate
 haters
 replays
+
+*.conf.backup
