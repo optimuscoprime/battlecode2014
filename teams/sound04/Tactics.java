@@ -1,4 +1,4 @@
-package sound03;
+package sound04;
 
 import battlecode.common.GameActionException;
 import battlecode.common.MapLocation;
@@ -9,7 +9,7 @@ import battlecode.common.RobotType;
 import battlecode.common.Team;
 import battlecode.common.Direction;
 import battlecode.common.Clock;
-import sound03.Comms.Message;
+import sound04.Comms.Message;
 
 public class Tactics {
 	
@@ -54,6 +54,55 @@ public class Tactics {
 			}
 		}
 	}
+
+	//attacks nearby enemies until they are all dead
+	public static void killNearbyEnemiesHQ(RobotController rc, RobotInfo info) throws GameActionException {
+		int r = info.type.sensorRadiusSquared;
+		Team et = info.team.opponent();
+		MapLocation loc = rc.getLocation();
+		
+		Robot enemies[] = rc.senseNearbyGameObjects(Robot.class, loc, r, et);
+		boolean allClear = enemies.length == 0;
+		while (!allClear) {
+			allClear = true;
+			for (int i = 0; i < enemies.length; i++) {
+				Robot e = enemies[i];
+				while(true) {
+					if (rc.isActive()) {
+						if (rc.canSenseObject(e)) {
+							RobotInfo ei = rc.senseRobotInfo(e);
+							MapLocation eloc = ei.location;
+							Direction toMe=eloc.directionTo(rc.getLocation());
+							if (ei.type != RobotType.HQ) {
+								if (rc.canAttackSquare(eloc)) {
+									rc.attackSquare(eloc);	
+								} else if(rc.canAttackSquare(eloc.add(toMe))){
+									rc.attackSquare(eloc.add(toMe));
+
+								}else{
+									break;
+								}
+							} else {
+								break;
+							}
+						} else {
+							break;
+						}
+					} else {
+						rc.yield();
+					}
+				}
+			}
+			
+			if (!allClear) {
+				enemies = rc.senseNearbyGameObjects(Robot.class, loc, r, et);
+				allClear = enemies.length == 0;
+			}
+		}
+	}
+
+
+
 	public static void getHelp(RobotController rc, MapLocation targetLoc) throws GameActionException {
 		int help_channel=3;
 		int helpWithin=5;
@@ -87,31 +136,32 @@ maybe even when we're getting shot we just want that soldier to yell help and ru
 
 */
 
-		Robot enemies[] = rc.senseNearbyGameObjects(Robot.class, loc, r, et);
-		Robot friendlies[] = rc.senseNearbyGameObjects(Robot.class, loc, r, rc.getTeam());
+		Robot enemies[] = rc.senseNearbyGameObjects(Robot.class, loc, r+1, et);
 		while(enemies.length >0){
 		
 			boolean allClear = enemies.length == 0;
 			double lowestEH=100000;
 			MapLocation targetLoc=null;
 			if(rc.isActive()){
-				if((enemies.length<friendlies.length)&&(rc.getHealth()>(rc.getType().maxHealth/3)) ){
 						//we have strength.
-					for (int i = 0; i < enemies.length; i++) {
-						Robot e = enemies[i];
-						RobotInfo ei = rc.senseRobotInfo(e);
+				for (int i = 0; i < enemies.length; i++) {
+					Robot e = enemies[i];
+					RobotInfo ei = rc.senseRobotInfo(e);
+					Robot friendlies[] = rc.senseNearbyGameObjects(Robot.class, ei.location, r, rc.getTeam());
+					if((enemies.length<friendlies.length)&&(rc.getHealth()>(rc.getType().maxHealth/4)) ){
 						if(ei.health<lowestEH){	//pickoff weakest .. also skips hq.
 							targetLoc = ei.location;
 							lowestEH=ei.health;
 							//if(ei.type == RobotType.HQ) { //run or we could make movement not go there.
 						}
 					}
-						//so here the tloc & lowestEH should be set.
-					if(targetLoc!=null){
-						if (rc.canAttackSquare(targetLoc)) {
-							getHelp(rc, targetLoc);
-							rc.attackSquare(targetLoc);
-						}
+				}
+				//so here the tloc & lowestEH should be set.
+
+				if(targetLoc!=null){
+					if (rc.canAttackSquare(targetLoc)) {
+						getHelp(rc, targetLoc);
+						rc.attackSquare(targetLoc);
 					}
 				}else{
 					//viable strategies are suicide or running.
@@ -140,7 +190,7 @@ maybe even when we're getting shot we just want that soldier to yell help and ru
 			}
 			rc.yield();
 			enemies= rc.senseNearbyGameObjects(Robot.class, loc, r, et);
-			friendlies = rc.senseNearbyGameObjects(Robot.class, loc, r, rc.getTeam());
+			//friendlies = rc.senseNearbyGameObjects(Robot.class, loc, r, rc.getTeam());
 		}
 	}
 	public static void killNearbyEnemies2(RobotController rc, RobotInfo info) throws GameActionException {
