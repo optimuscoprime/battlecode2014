@@ -1,7 +1,7 @@
-package sound02;
+package sound03;
 
-import sound02.Comms.Message;
-import sound02.Navigation.Move;
+import sound03.Comms.Message;
+import sound03.Navigation.Move;
 
 import java.util.*;
 //import java.util.List;
@@ -41,7 +41,7 @@ public class SoundStrategy implements Strategy {
 		}else{
 			this.pastrLoc=null;
 		}
-		int increment=2;
+		int increment=3;
 		//int increment=NOISE_SCARE_RANGE_SMALL; // this doesnt seem to exist in GameConstants?
 		// The above strategy is pretty poor.  How about two-dimensional forloop
 		// building an array of target MapLocations we can hit.

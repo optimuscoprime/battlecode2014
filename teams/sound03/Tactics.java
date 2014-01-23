@@ -1,4 +1,4 @@
-package sound02;
+package sound03;
 
 import battlecode.common.GameActionException;
 import battlecode.common.MapLocation;
@@ -8,6 +8,8 @@ import battlecode.common.RobotInfo;
 import battlecode.common.RobotType;
 import battlecode.common.Team;
 import battlecode.common.Direction;
+import battlecode.common.Clock;
+import sound03.Comms.Message;
 
 public class Tactics {
 	
@@ -52,6 +54,26 @@ public class Tactics {
 			}
 		}
 	}
+	public static void getHelp(RobotController rc, MapLocation targetLoc) throws GameActionException {
+		int help_channel=3;
+		int helpWithin=5;
+		Message help=Comms.ReadMessage(rc,help_channel);
+		if(help!=null){
+			//if( ((help.val+helpWithin) < (Clock.getRoundNum()%16) )||(Clock.getRoundNum()%16 ==0)){
+			if( targetLoc !=rc.senseEnemyHQLocation()){
+				//System.out.println("help:" + rc.getLocation() + " help.val:" + help.val + " clock:" + (Clock.getRoundNum())%16);
+				//broadcast for help.   Lets make other bots run at the enemy.
+				Comms.BroadcastMessage(rc,help_channel,
+						Comms.Message.create(Comms.Type.HELP, targetLoc, Clock.getRoundNum()%16, rc.getRobot().getID())
+						);
+			}
+		}else{	//no msg existed yet
+			Comms.BroadcastMessage(rc,help_channel,
+					Comms.Message.create(Comms.Type.HELP, rc.getLocation(), Clock.getRoundNum()%16, rc.getRobot().getID())
+					);
+
+		}
+	}
 	public static void fightOrFlight(RobotController rc, RobotInfo info) throws GameActionException {
 		int r = info.type.sensorRadiusSquared;
 		Team et = info.team.opponent();
@@ -62,26 +84,13 @@ ideas for here:
 I want to make it 'hold' a target to skip computation and just fire for n loops before re-assessing.
 When re-assessing see if theres more friendlies or enemies nearby.  Run to friendlies if outnumbered?
 maybe even when we're getting shot we just want that soldier to yell help and run away.
-i.e.
-while(target){
-	if(every 3 turns){
-		if(enemy > friendlies){
-			suicidetarget=checkCloseSquaresToSuicide
-			if(suicideTarget){ suicide}else{
-				backAway
-			}
-		}else{
-			//we outnumber the enemy.
-			set the target as the lowest health target we can shoot?
-		}
-	}
-}
 
 */
 
 		Robot enemies[] = rc.senseNearbyGameObjects(Robot.class, loc, r, et);
 		Robot friendlies[] = rc.senseNearbyGameObjects(Robot.class, loc, r, rc.getTeam());
 		while(enemies.length >0){
+		
 			boolean allClear = enemies.length == 0;
 			double lowestEH=100000;
 			MapLocation targetLoc=null;
@@ -100,6 +109,7 @@ while(target){
 						//so here the tloc & lowestEH should be set.
 					if(targetLoc!=null){
 						if (rc.canAttackSquare(targetLoc)) {
+							getHelp(rc, targetLoc);
 							rc.attackSquare(targetLoc);
 						}
 					}
@@ -108,11 +118,15 @@ while(target){
 					for (int i = 0; i < enemies.length; i++) {
 						targetLoc=rc.senseRobotInfo(enemies[i]).location;
 						Direction awayFromE=rc.getLocation().directionTo(targetLoc).opposite();
-						if(rc.canMove(awayFromE)){
-							if(rc.isActive()){
+						if(rc.isActive()){
+							getHelp(rc, targetLoc);
+							if(rc.canMove(awayFromE)){
 								rc.move(awayFromE);
+							}else{
+								if (rc.canAttackSquare(targetLoc)) {
+									rc.attackSquare(targetLoc);
+								}
 							}
-							break;
 						}
 					}
 				}

@@ -1,7 +1,7 @@
-package sound02;
+package sound03;
 
-import sound02.Comms.Message;
-import sound02.Navigation.Move;
+import sound03.Comms.Message;
+import sound03.Navigation.Move;
 
 import java.util.Deque;
 import java.util.Random;
@@ -40,6 +40,16 @@ public class AttackStrategy implements Strategy {
 		if((Clock.getRoundNum()%3)==0){	//save operations for only some turns.
 			dest = Abilities.ClosestPastr(rc, rc.getLocation(), ENEMY);
 		}
+		// insert code here to look for things calling for help; set that as dest.
+		int helpChannel=3;
+		int helpWithin=500;
+		Message help=Comms.ReadMessage(rc,helpChannel);
+		if(help!=null){
+			if((help.val + helpWithin) > Clock.getRoundNum()){
+				dest=help.loc;
+			}
+		}
+
 		if(rc.getHealth()<(rc.getType().maxHealth/2)){
 			if(rc.isActive()){
 				dest=rc.senseHQLocation();	//run away!

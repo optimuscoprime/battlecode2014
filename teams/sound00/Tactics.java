@@ -69,7 +69,7 @@ public class Tactics {
 						
 						if (ei.type != RobotType.HQ) {
 							if (!backup) {
-								Comms.BroadcastMessage(rc, Comms.Message.create(Comms.Type.CONVERGE, eloc, 0, rc.getRobot().getID()));
+								Comms.BroadcastMessage(rc, 0,Comms.Message.create(Comms.Type.CONVERGE, eloc, 0, rc.getRobot().getID()));
 								backup = true;
 							}
 							if (rc.canAttackSquare(eloc)) {
