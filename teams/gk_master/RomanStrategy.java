@@ -17,7 +17,7 @@ public class RomanStrategy implements Strategy {
 	MapLocation target;
 	LocalSurvey local;
 	int patience;
-	static final int FORTITUDE = 5;
+	static final int FORTITUDE = 3;
 	
 	public RomanStrategy(RobotController rc) {
 		super();
@@ -56,10 +56,8 @@ public class RomanStrategy implements Strategy {
 				if (local.enemies.length == 0) {
 					//move towards target
 					Navigation.stepToward(rc, local.current.directionTo(target));
-					patience = FORTITUDE;
 				} else if (local.powerBalance < 0) {
 					Navigation.stepToward(rc, local.current.directionTo(HQ));
-					patience = FORTITUDE;
 				} else {
 					//attack
 					if (!local.attack()) {
