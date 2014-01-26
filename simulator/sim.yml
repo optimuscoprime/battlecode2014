@@ -3,8 +3,8 @@ app_dir: /Applications/Battlecode2014
 debug: true
 
 bots_can_play_self: false
-score_win: 3
-score_tie: 1
+score_win: 1
+score_tie: 0
 score_loss: 0
 
 # only looks at 'custom_teams' if 'use_all_teams' is false

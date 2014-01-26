@@ -163,3 +163,5 @@ end
 
 
 scores.print_overall_scores
+
+scores.write_map_report("/Users/stevec/output.html")
