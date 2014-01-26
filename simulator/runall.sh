@@ -2,6 +2,11 @@
 
 TMP_FILE_LOCATION=tmp.tmp.tmp
 
+# would like to do this:
+#
+# rm *.class
+# javac GameRunner.java
+
 javac Overlord.java
 
 java Overlord | tee $TMP_FILE_LOCATION

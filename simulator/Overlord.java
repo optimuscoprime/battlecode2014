@@ -10,26 +10,55 @@ public class Overlord {
 		
 		ArrayList<String> maps = new ArrayList<String>();
 		ArrayList<String> teams = new ArrayList<String>();
-		
+
 		maps.add("backdoor.xml");
 		maps.add("bakedpotato.xml");
+		maps.add("blocky.xml");
 		maps.add("castles.xml");
+		maps.add("desolation.xml");
 		maps.add("divide.xml");
+		maps.add("donut.xml");
+		maps.add("flagsoftheworld.xml");
+		maps.add("flytrap.xml");
+		maps.add("friendly.xml");
+		maps.add("fuzzy.xml");
+		maps.add("itsatrap.xml");
+		maps.add("magnetism.xml");
+		maps.add("meander.xml");
 		maps.add("neighbors.xml");
 		maps.add("onramp.xml");
+		maps.add("overcast.xml");
 		maps.add("reticle.xml");
 		maps.add("rushlane.xml");
+		maps.add("siege.xml");
 		maps.add("simple.xml");
+		maps.add("smiles.xml");
+		maps.add("steamedbuns.xml");
 		maps.add("stitch.xml");
+		maps.add("sweetspot.xml");
+		maps.add("temple.xml");
+		maps.add("terra.xml");
+		maps.add("traffic.xml");
+		maps.add("troll.xml");
+		maps.add("valve.xml");
+		maps.add("ventilation.xml");
 
+		teams.add("frank");
 		teams.add("micro");
 		teams.add("gk_roman");
 		teams.add("gk_attack");
 		teams.add("gk_master");
+		teams.add("networkmaker4");
 		teams.add("hubertTheFraternal");
+		teams.add("paulTheConqueror");
+		teams.add("watson");
+		teams.add("sc01");
 		teams.add("sc02");
+		teams.add("sound00");
 		teams.add("sound01");
+		teams.add("sound02");
 		teams.add("sound03");
+		teams.add("sound04");
 
 		int total_games_to_play = (teams.size() * teams.size() - teams.size()) * maps.size();
 
@@ -55,7 +84,7 @@ public class Overlord {
 
 class GameRunner implements Runnable {
 
-	public static final String APP_DIR = "/Applications/Battlecode2014";
+	public static final String APP_DIR = "/home/rupert/projects/battlecode2014/;
 	
 	String map;
 	String teamA;
@@ -75,11 +104,15 @@ class GameRunner implements Runnable {
 		String uuid = UUID.randomUUID().toString();
 		String dir = "/tmp/battlecode2014/" + uuid + "-" + teamA + "-" + teamB + "-" + map;
 
-		puts("mkdir");
-		runCommand("mkdir -p " + dir);
+		String command;
+
+		command = "mkdir -p " + dir;
+		puts(command);
+		runCommand(command);
 								
-		puts("cp");
-		runCommand("cp -r " + APP_DIR + "/* " + dir + "/");
+		command = "cp -r " + APP_DIR + "/* " + dir + "/";
+		puts(command);
+		runCommand(command);
 		
 		puts("set config");
 		runCommand("cat " + dir + "/bc.conf " +

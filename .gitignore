@@ -49,3 +49,5 @@ replays
 
 # you must create this yourself, based on sim.conf.example
 simulator/sim.conf
+
+*.class
