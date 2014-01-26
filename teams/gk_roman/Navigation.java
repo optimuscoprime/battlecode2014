@@ -85,6 +85,18 @@ public class Navigation {
 		}
 		return false;
 	}
+	public static boolean sneakToward(RobotController rc, Direction d) throws GameActionException {
+		for (int i : AROUND) {
+			Direction dc = Direction.values()[(d.ordinal() + i + DS) % DS]; 
+			if (rc.canMove(dc)) {
+				rc.sneak(dc);
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	
 	
 	/**
 	 * move to a location, will give up on first obstacle, or after max steps
@@ -132,6 +144,50 @@ public class Navigation {
 						Move existing = locs.get(n);
 						float delta = (d.isDiagonal()) ? 1.4f : 1;
 						float distance = top.distance + delta;
+						Move move = new Move(n, distance, distance + manhattanDistance(n, dest), top, d);
+						if (existing == null || move.cost < existing.cost) {
+							if (existing != null) {
+								next.remove(existing);
+							}
+							locs.put(n, move);
+							next.add(move);
+						}
+					}
+				}
+			}
+			Move end = been.get(dest);
+			while (end != null && end.direction != null) {
+				path.addLast(end);
+				end = end.prev;
+			}
+		}
+		return path;
+	}
+	public static Deque<Move> pathAStarAvoid(RobotController rc, MapLocation dest, MapLocation avoid, int r2) throws GameActionException {
+		Deque<Move> path = new LinkedList<Move>();
+		TerrainTile destTile = rc.senseTerrainTile(dest);
+		if (destTile.isTraversableAtHeight(RobotLevel.ON_GROUND)) {
+			Map<MapLocation, Move> been = new HashMap<MapLocation, Move>();
+			
+			PriorityQueue<Move> next = new PriorityQueue<Move>();
+			Map<MapLocation, Move> locs = new HashMap<MapLocation, Move>();
+			
+			MapLocation loc = rc.getLocation();
+			Move first = Move.Create(loc, 0, manhattanDistance(loc, dest), null, null);
+			next.add(first);
+			while(!been.containsKey(dest) && !next.isEmpty()) {
+				Move top = next.remove();
+				been.put(top.loc, top);
+				for (Direction d : DIRECTIONS) {
+					MapLocation n = top.loc.add(d);
+					TerrainTile tile = rc.senseTerrainTile(n);
+					if (tile.isTraversableAtHeight(RobotLevel.ON_GROUND)) {
+						Move existing = locs.get(n);
+						float cost = (d.isDiagonal()) ? 1.4f : 1;
+						if (top.loc.distanceSquaredTo(avoid) <= r2) {
+							cost += 4;
+						}
+						float distance = top.distance + cost;
 						Move move = new Move(n, distance, distance + manhattanDistance(n, dest), top, d);
 						if (existing == null || move.cost < existing.cost) {
 							if (existing != null) {

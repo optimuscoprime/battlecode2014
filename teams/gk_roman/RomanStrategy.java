@@ -1,5 +1,8 @@
 package gk_roman;
 
+import gk_roman.Navigation.Move;
+
+import java.util.Deque;
 import java.util.Random;
 
 import battlecode.common.GameActionException;
@@ -16,6 +19,7 @@ public class RomanStrategy implements Strategy {
 	final Team ENEMY_TEAM;
 	final int SENSOR_RADIUS;
 	final MapLocation HQ;
+	final MapLocation ENEMY_HQ;
 	MapLocation target;
 	LocalSurvey local;
 	Random rand;
@@ -37,34 +41,33 @@ public class RomanStrategy implements Strategy {
 		HQ = rc.senseHQLocation();
 		
 		this.rc = rc;
-		target = rc.senseEnemyHQLocation();
+		ENEMY_HQ = rc.senseEnemyHQLocation();
+		target = ENEMY_HQ;
 		local = new LocalSurvey(rc);
 		
 		patience = 0;
 		bravery = PERSISTENCE;
 	}
 	
-	public void findTarget() {
+	public void findTarget() throws GameActionException {
 		if (bravery == 0 || local.current.equals(target)) {
 			MapLocation newTarget; 
 			MapLocation[] loc = rc.sensePastrLocations(ENEMY_TEAM);
 			if (loc.length > 0) {
 				newTarget = loc[0];
 			} else {
-				newTarget = rc.senseEnemyHQLocation();
+				newTarget = ENEMY_HQ;
 			}
 			
 			if (newTarget.equals(target)) {
-				int dy = Math.abs(target.y - local.current.y);
-				int dx = Math.abs(target.x - local.current.x);
-				if (dx > dy) {
-					target = target.add(rand.nextInt(20) - 10, 0);					
-				} else {
-					target = target.add(0, rand.nextInt(20) - 10);
-				}
-			} else {
-				target = newTarget;
+				//need to navigate to target
+//				rc.setIndicatorString(2, "ASSASSIN");
+//				Deque<Move> path = Navigation.pathAStarAvoid(rc, target, ENEMY_HQ, RobotType.HQ.attackRadiusMaxSquared);
+//				while(Navigation.attackMoveOnPath(rc, path, SENSOR_RADIUS, ENEMY_TEAM)) {
+//					break;
+//				}
 			}
+			target = newTarget;
 			bravery = PERSISTENCE;
 		} 
 	}
@@ -84,21 +87,21 @@ public class RomanStrategy implements Strategy {
 			boolean unhealthy = rc.getHealth() < RobotType.SOLDIER.maxHealth * 0.5;
 			if (unhealthy) {
 				if (rand.nextBoolean()) {
-					Navigation.stepToward(rc, local.current.directionTo(HQ));					
+					Navigation.sneakToward(rc, local.current.directionTo(HQ));					
 				} else {
-					Navigation.stepToward(rc, local.current.directionTo(target).opposite());
+					Navigation.sneakToward(rc, local.current.directionTo(target).opposite());
 				}
 				rc.setIndicatorString(2, "run");
 			} else {
 				if (local.enemies.length == 0) {
 					//move towards target
-					Navigation.stepToward(rc, local.current.directionTo(target));
+					Navigation.sneakToward(rc, local.current.directionTo(target));
 					rc.setIndicatorString(2, "move");
 				} else if (local.powerBalance < 0) {
 					if (rand.nextBoolean()) {
-						Navigation.stepToward(rc, local.current.directionTo(HQ));					
+						Navigation.sneakToward(rc, local.current.directionTo(HQ));					
 					} else {
-						Navigation.stepToward(rc, local.current.directionTo(target).opposite());
+						Navigation.sneakToward(rc, local.current.directionTo(target).opposite());
 					}
 					bravery--;
 					rc.setIndicatorString(2, "avoid");
@@ -106,7 +109,7 @@ public class RomanStrategy implements Strategy {
 					//attack
 					if (!local.attack()) {
 						if (patience <= 0) {
-							Navigation.stepToward(rc, local.current.directionTo(target));	
+							Navigation.sneakToward(rc, local.current.directionTo(target));	
 							patience = FORTITUDE;
 							rc.setIndicatorString(2, "lock step");
 						} else {
