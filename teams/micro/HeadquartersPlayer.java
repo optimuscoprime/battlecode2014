@@ -15,6 +15,9 @@ public class HeadquartersPlayer extends BasicPlayer implements Player  {
 	public void playOneTurn() {
 		if (rc.isActive()) {
 			tryToSpawn();
+			//while (true) {
+				//spin
+			//}
 		}
 	}
 	
