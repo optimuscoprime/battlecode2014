@@ -9,17 +9,18 @@ import battlecode.common.RobotType;
 public class RobotPlayer {
 	public static void run(RobotController rc) {
 		try {
-			Random rand = new Random(rc.getRobot().getID());
+//			Random rand = new Random(rc.getRobot().getID());
 			RobotType type = rc.getType();
-			
+
+			Strategy strategy = null;
 			if (type == RobotType.HQ) {
-				SpawnStrategy spawnStrategy = new SpawnStrategy(rc);
-				playSingleStrategy(rc, spawnStrategy);
-				
+				strategy = new SpawnStrategy(rc);
 			} else if (type == RobotType.SOLDIER) {
-				AttackStrategy attackStrategy = new AttackStrategy(rc, rand);
-				playSingleStrategy(rc, attackStrategy);
+				strategy = new RomanStrategy(rc);
+			} else {
 			}
+
+			playSingleStrategy(rc, strategy);
 		} catch(GameActionException e) {
 			throw new RuntimeException(e);
 		}
