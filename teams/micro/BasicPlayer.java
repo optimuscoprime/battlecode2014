@@ -36,7 +36,7 @@ public abstract class BasicPlayer implements Player {
 		gameMap = new GameMap(robot, robotType, rc);
 	}
 	
-	public abstract void playOneTurn();
+	public abstract void playOneTurn() throws GameActionException;
 	
     protected boolean attackNearbyEnemies() {
         boolean didAttack = false;
@@ -55,8 +55,9 @@ public abstract class BasicPlayer implements Player {
         if (nearbyEnemies.length > 0) {
             // idea: attack the nearby enemy that is the furthest away from our position
             // (because they might retreat)
-
-            MapLocation[] nearbyEnemyLocations = new MapLocation[nearbyEnemies.length];
+        	
+            List<MapLocation> nearbyEnemyLocations = new ArrayList<MapLocation>();
+            
             for (int i=0; i < nearbyEnemies.length; i++) {
                 // copy across the location
                 RobotInfo info = null;
@@ -65,25 +66,31 @@ public abstract class BasicPlayer implements Player {
                 } catch (GameActionException e) {
                     die(e);
                 }
-                nearbyEnemyLocations[i] = info.location;
+                // never attack HQ
+                if (info.type != RobotType.HQ) {
+                	nearbyEnemyLocations.add(info.location);
+                }
             }
-
-            sortLocationsByDistanceDescending(nearbyEnemyLocations, location);
-
-            try {
-                rc.attackSquare(nearbyEnemyLocations[0]);
-            } catch (GameActionException e) {
-                die(e);
+            
+            if (nearbyEnemyLocations.size() > 0) {
+	
+	            sortLocationsByDistanceDescending(nearbyEnemyLocations, location);
+	
+	            try {
+	                rc.attackSquare(nearbyEnemyLocations.get(0));
+	            } catch (GameActionException e) {
+	                die(e);
+	            }
+	
+	            didAttack = true;
             }
-
-            didAttack = true;
         }
 
         return didAttack;
     }	
 
-    private static void sortLocationsByDistanceDescending(MapLocation[] locations, final MapLocation from) {
-        Arrays.sort(locations, new Comparator<MapLocation>() {
+    private static void sortLocationsByDistanceDescending(List<MapLocation> locations, final MapLocation from) {
+        Collections.sort(locations, new Comparator<MapLocation>() {
             public int compare(final MapLocation a, final MapLocation b) {
                 return new Integer(from.distanceSquaredTo(b)).compareTo(from.distanceSquaredTo(a));
             }

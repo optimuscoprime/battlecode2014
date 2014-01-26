@@ -1,22 +1,33 @@
 package micro;
 
 import java.util.*;
+
 import battlecode.common.*;
 import static micro.Util.*;
 
 public class SoldierPlayer extends BasicPlayer implements Player {
 
 	private MapLocation waypoint = null;
-	private Deque<MapLocation> path = null;
+	private List<MapLocation> path = null;
 	private MapLocation next = null;
+	private int i = 0;
+	private boolean reverse = false;
 	
 	public SoldierPlayer(Robot robot, RobotType robotType, RobotController rc) {
 		super(robot, robotType, rc);
 	}
 
 	@Override
-	public void playOneTurn() {
+	public void playOneTurn() throws GameActionException {
 		
+		int numSoldiers = rc.senseNearbyGameObjects(Robot.class, 999999, rc.getTeam()).length - 1;
+		
+		// first soldiers builds a pastr
+		if (rc.isActive() && numSoldiers == 1) {
+			rc.construct(RobotType.PASTR);
+			rc.yield();
+		}
+			
 		if (rc.isActive()) {
 			attackNearbyEnemies();
 		}
@@ -24,18 +35,46 @@ public class SoldierPlayer extends BasicPlayer implements Player {
 		MapLocation from = rc.getLocation();
 		
 		if (waypoint == null) {
-			waypoint = new MapLocation(rc.getMapWidth()-from.x, rc.getMapHeight()-from.y);
+			
+			boolean found = false;
+			
+			int randomX;
+			int randomY;
+			
+			do {
+				randomX = Util.random.nextInt(rc.getMapWidth());
+				randomY = Util.random.nextInt(rc.getMapHeight());
+				if (gameMap.map1x1[randomX][randomY] != TerrainTile.VOID) {
+					found = true;
+				}
+			} while (!found);
+			
+			waypoint = new MapLocation(randomX, randomY);
 		}
 	
 		if (waypoint != null && path == null) {
 			// go there
-			path = gameMap.generatePath(from, waypoint);
+			path = new ArrayList<MapLocation>(gameMap.generatePath(from, waypoint));
 		}
 		
-		if (next != null || (path != null && !path.isEmpty())) {
-			
+		
+		if (path != null) {
+				
 			if (next == null) {
-				next = path.remove();
+				next = path.get(i);
+				if (reverse) {
+					i--;
+				} else {
+					i++;
+				}
+				if (i >= path.size()) {
+					reverse = true;	
+					i--;
+				}
+				if (i < 0) {
+					reverse = false;
+					i++;
+				}				
 			}
 			
 //			log(robot, robotType, "got real path");
