@@ -2,6 +2,8 @@
 
 TMP_FILE_LOCATION=tmp.tmp.tmp
 
+javac Overlord.java
+
 java Overlord | tee $TMP_FILE_LOCATION
 
 cat $TMP_FILE_LOCATION | ruby tally_overlord_output.rb
