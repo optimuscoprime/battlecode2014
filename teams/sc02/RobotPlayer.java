@@ -1,4 +1,4 @@
-package sc02;;
+package sc02;
 
 import battlecode.common.*;
 import java.util.*;
