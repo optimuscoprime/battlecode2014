@@ -46,3 +46,6 @@ haters
 replays
 
 *.conf.backup
+
+# you must create this yourself, based on sim.conf.example
+simulator/sim.conf
