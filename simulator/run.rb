@@ -151,11 +151,13 @@ teams.each do |teamA|
       # run the match
       content = `ant file`
       
-      if content =~ /tiebreakers/
-        puts "TIE"
-        team_scores[teamA] += SCORE_TIE
-        team_scores[teamB] += SCORE_TIE
-      elsif content =~ /\(A\) wins/
+      #if content =~ /tiebreakers/
+      #  puts "TIE"
+      #  team_scores[teamA] += SCORE_TIE
+      #  team_scores[teamB] += SCORE_TIE
+      #els
+      
+      if content =~ /\(A\) wins/
         puts "#{teamA} wins"
         team_scores[teamA] += SCORE_WIN
         team_scores[teamB] += SCORE_LOSS
