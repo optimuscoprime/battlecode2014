@@ -18,11 +18,11 @@ DEBUG = false
 
 # warning: don't put team085 as a custom team
 
-custom_list_of_teams = [ "gk_attack", "gk_master", "hubertTheFraternal", "sc01", "sc02", "sound00", "sound01", "sound02", "sound03" ]
+custom_list_of_teams = [ "micro", "gk_attack", "hubertTheFraternal", "sc02", "sound01", "sound03" ]
 # custom_list_of_teams = [ ]
 
-custom_list_of_maps = [ "bakedpotato" ]
-# custom_list_of_maps = [] 
+# custom_list_of_maps = [ "bakedpotato" ]
+custom_list_of_maps = [] 
 
 # -- where you installed the app (this folder contains the maps, teams, etc folders)
 
