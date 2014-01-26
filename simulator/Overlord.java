@@ -84,7 +84,7 @@ public class Overlord {
 
 class GameRunner implements Runnable {
 
-	public static final String APP_DIR = "/home/rupert/projects/battlecode2014/;
+	public static final String APP_DIR = "/home/rupert/projects/battlecode2014/";
 	
 	String map;
 	String teamA;
