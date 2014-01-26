@@ -40,6 +40,6 @@ public class Util {
     }
 
     protected static void die (String message, Exception e) {
-        throw new RuntimeException(message, e);
+        //throw new RuntimeException(message, e);
     }	
 }
