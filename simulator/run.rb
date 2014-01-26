@@ -18,8 +18,7 @@ DEBUG = false
 
 # warning: don't put team085 as a custom team
 
-custom_list_of_teams = [ "micro", "frank", "gk_roman", "gk_attack", "gk_master", "sc01", "sc02", "hubertTheFraternal", "sound00", "sound01", "sound02", "sound03", 
-"sound04", "watson", "paulTheConqueror", "networkmaker4", "coarsenerPlayer" ]
+custom_list_of_teams = [ "micro", "frank", "gk_roman", "gk_attack", "gk_master", "sc01", "sc02", "hubertTheFraternal", "sound00", "sound01", "sound02", "sound03", "sound04", "watson", "paulTheConqueror", "networkmaker4" ]
 # custom_list_of_teams = [ ]
 
 # custom_list_of_maps = [ "bakedpotato" ]
