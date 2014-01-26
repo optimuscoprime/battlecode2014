@@ -9,7 +9,7 @@ public class NoiseTowerPlayer extends BasicPlayer implements Player {
 	}
 
 	@Override
-	public void playOneTurn() {
+	public void playOneTurn() throws GameActionException {
 		// TODO Auto-generated method stub
 		
 	}

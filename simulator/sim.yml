@@ -11,6 +11,7 @@ score_loss: 0
 use_all_teams: false
 custom_teams: 
  - micro
+ - gk_roman
  - gk_attack
  - gk_master
  - hubertTheFraternal
