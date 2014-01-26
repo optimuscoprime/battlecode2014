@@ -18,11 +18,11 @@ DEBUG = false
 
 # warning: don't put team085 as a custom team
 
-custom_list_of_teams = [ "examplefuncsplayer", "frank", "gk_attack", "gk_master", "hubertTheFraternal", "networkmaker4", "paulTheConqueror", "sc01", "sc02", "sound00", "sound01", "sound02", "sound03", "watson" ]
+custom_list_of_teams = [ "micro", "gk_attack", "hubertTheFraternal", "sc02", "sound01", "sound03" ]
 # custom_list_of_teams = [ ]
 
-custom_list_of_maps = [ "simple", "bakedpotato" ]
-# custom_list_of_maps = [] 
+# custom_list_of_maps = [ "bakedpotato" ]
+custom_list_of_maps = [] 
 
 # -- where you installed the app (this folder contains the maps, teams, etc folders)
 
@@ -181,7 +181,7 @@ end
 
 # print out final scores
 puts "========================================"
-team_scores.each do |team, score|
+team_scores.sort_by{ |team, score| score }.each do |team, score|
   puts "Team '#{team}' scored '#{score}' overall"
 end
 puts "========================================"
