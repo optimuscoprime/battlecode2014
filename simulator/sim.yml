@@ -1,5 +1,4 @@
 ---
-app_dir: /home/rupert/projects/battlecode2014/
 debug: true
 
 bots_can_play_self: false

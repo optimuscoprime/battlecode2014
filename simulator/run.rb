@@ -9,7 +9,9 @@ require 'ScoreKeeper.rb'
 
 config = YAML.load_file("sim.yml")
 
-APP_DIR = config['app_dir']
+APP_DIR = Dir.pwd + '/..'
+# config['app_dir']
+
 DEBUG   = config['debug']
 
 # ----------------------------------------
@@ -164,4 +166,9 @@ end
 
 scores.print_overall_scores
 
-scores.write_map_report("/home/rupert/output.html")
+reportFilename = "latest-report.html"
+
+puts("")
+puts("HTML report at: " + reportFilename)
+
+scores.write_map_report(reportFilename)
