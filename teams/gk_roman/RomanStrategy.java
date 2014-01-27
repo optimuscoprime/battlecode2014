@@ -1,13 +1,9 @@
 package gk_roman;
 
-import gk_roman.Navigation.Move;
-
-import java.util.Deque;
 import java.util.Random;
 
 import battlecode.common.GameActionException;
 import battlecode.common.MapLocation;
-import battlecode.common.Robot;
 import battlecode.common.RobotController;
 import battlecode.common.RobotType;
 import battlecode.common.Team;
@@ -27,10 +23,12 @@ public class RomanStrategy implements Strategy {
 	int patience;
 	int bravery;
 	
-	//time to wait for enemy to get near
-	static final int FORTITUDE = 3;
-	//times to get near stronger forces before chaning target
-	static final int PERSISTENCE = 4;
+	//time to hold position while enemy is in sight before advancing
+	static final int DISIPLINE = 3;
+	//time to hold ground against powerful foe before regrouping
+	static final int FORTITUDE = 2;
+	//fraction of health where the robot breaks rank and runs home
+	static final double MORAL = 0.5;
 	
 	public RomanStrategy(RobotController rc) {
 		super();
@@ -45,8 +43,8 @@ public class RomanStrategy implements Strategy {
 		target = ENEMY_HQ;
 		local = new LocalSurvey(rc);
 		
-		patience = 0;
-		bravery = PERSISTENCE;
+		patience = DISIPLINE;
+		bravery = FORTITUDE;
 	}
 	
 	public void findTarget() throws GameActionException {
@@ -58,17 +56,7 @@ public class RomanStrategy implements Strategy {
 			} else {
 				newTarget = ENEMY_HQ;
 			}
-			
-			if (newTarget.equals(target)) {
-				//need to navigate to target
-//				rc.setIndicatorString(2, "ASSASSIN");
-//				Deque<Move> path = Navigation.pathAStarAvoid(rc, target, ENEMY_HQ, RobotType.HQ.attackRadiusMaxSquared);
-//				while(Navigation.attackMoveOnPath(rc, path, SENSOR_RADIUS, ENEMY_TEAM)) {
-//					break;
-//				}
-			}
 			target = newTarget;
-			bravery = PERSISTENCE;
 		} 
 	}
 
@@ -84,41 +72,42 @@ public class RomanStrategy implements Strategy {
 		
 		if (rc.isActive()) {
 			rc.setIndicatorString(2, "");
-			boolean unhealthy = rc.getHealth() < RobotType.SOLDIER.maxHealth * 0.5;
+			boolean unhealthy = rc.getHealth() < RobotType.SOLDIER.maxHealth * MORAL;
 			if (unhealthy) {
-				if (rand.nextBoolean()) {
-					Navigation.sneakToward(rc, local.current.directionTo(HQ));					
-				} else {
-					Navigation.sneakToward(rc, local.current.directionTo(target).opposite());
-				}
+				Navigation.stepToward(rc, local.current.directionTo(HQ));
 				rc.setIndicatorString(2, "run");
 			} else {
 				if (local.enemies.length == 0) {
 					//move towards target
-					Navigation.sneakToward(rc, local.current.directionTo(target));
+					Navigation.stepToward(rc, local.current.directionTo(target));
 					rc.setIndicatorString(2, "move");
 				} else if (local.powerBalance < 0) {
-					if (rand.nextBoolean()) {
-						Navigation.sneakToward(rc, local.current.directionTo(HQ));					
+					if (bravery <= 0 || !local.attack()) {
+						//back away from target
+						Navigation.stepToward(rc, local.current.directionTo(HQ));
+						rc.setIndicatorString(2, "avoid");
 					} else {
-						Navigation.sneakToward(rc, local.current.directionTo(target).opposite());
+						//attacked enemy
+						rc.setIndicatorString(2, "hold the line");
+						bravery--;
 					}
-					bravery--;
-					rc.setIndicatorString(2, "avoid");
 				} else {
-					//attack
-					if (!local.attack()) {
+					bravery = FORTITUDE;
+					if (local.attack()) {
+						//attack enemy
+						patience = DISIPLINE;
+						rc.setIndicatorString(2, "attack + wait");
+					} else {
 						if (patience <= 0) {
-							Navigation.sneakToward(rc, local.current.directionTo(target));	
-							patience = FORTITUDE;
+							//move in
+							Navigation.stepToward(rc, local.current.directionTo(target));	
+							patience = DISIPLINE;
 							rc.setIndicatorString(2, "lock step");
 						} else {
+							//hold
 							patience--;
-							rc.setIndicatorString(2, "wait");
+							rc.setIndicatorString(2, "hold to fire");
 						}
-					} else {
-						patience = FORTITUDE;
-						rc.setIndicatorString(2, "attack + wait");
 					}
 				}
 			}
