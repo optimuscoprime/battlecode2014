@@ -11,28 +11,51 @@ public class Overlord {
 		ArrayList<String> maps = new ArrayList<String>();
 		ArrayList<String> teams = new ArrayList<String>();
 
+		// run ./generate_maps_imports.sh to get this list
+
+		maps.add("almsman.xml");
 		maps.add("backdoor.xml");
 		maps.add("bakedpotato.xml");
 		maps.add("blocky.xml");
+		maps.add("cadmic.xml");
 		maps.add("castles.xml");
+		maps.add("corners.xml");
 		maps.add("desolation.xml");
 		maps.add("divide.xml");
 		maps.add("donut.xml");
+		maps.add("fenced.xml");
+		maps.add("filling.xml");
 		maps.add("flagsoftheworld.xml");
 		maps.add("flytrap.xml");
 		maps.add("friendly.xml");
 		maps.add("fuzzy.xml");
+		maps.add("gilgamesh.xml");
+		maps.add("highschool.xml");
+		maps.add("highway.xml");
+		maps.add("house.xml");
+		maps.add("hydratropic.xml");
+		maps.add("hyperfine.xml");
+		maps.add("intermeningeal.xml");
 		maps.add("itsatrap.xml");
+		maps.add("librarious.xml");
 		maps.add("magnetism.xml");
 		maps.add("meander.xml");
+		maps.add("moba.xml");
+		maps.add("moo.xml");
 		maps.add("neighbors.xml");
+		maps.add("oasis.xml");
 		maps.add("onramp.xml");
 		maps.add("overcast.xml");
+		maps.add("pipes.xml");
+		maps.add("race.xml");
 		maps.add("reticle.xml");
 		maps.add("rushlane.xml");
+		maps.add("s1.xml");
 		maps.add("siege.xml");
 		maps.add("simple.xml");
 		maps.add("smiles.xml");
+		maps.add("spots.xml");
+		maps.add("spyglass.xml");
 		maps.add("steamedbuns.xml");
 		maps.add("stitch.xml");
 		maps.add("sweetspot.xml");
@@ -40,6 +63,7 @@ public class Overlord {
 		maps.add("terra.xml");
 		maps.add("traffic.xml");
 		maps.add("troll.xml");
+		maps.add("unself.xml");
 		maps.add("valve.xml");
 		maps.add("ventilation.xml");
 
