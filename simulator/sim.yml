@@ -10,22 +10,12 @@ score_loss: 0
 # only looks at 'custom_teams' if 'use_all_teams' is false
 use_all_teams: false
 custom_teams: 
- - sc01
  - sc02
- - sound00
  - sound04
- - sound02
  - sound01
- - sound03
  - gk_roman
- - gk_attack
- - gk_master
- - frank
  - micro
  - hubertTheFraternal
- - watson
- - paulTheConqueror
- - networkmaker4
 
 # only looks at 'custom_teams' if 'use_all_maps' is false
 use_all_maps: true
