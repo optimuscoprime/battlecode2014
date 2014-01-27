@@ -7,12 +7,15 @@ import java.util.Map;
 import java.util.PriorityQueue;
 import java.util.Random;
 
+import com.sun.tools.hat.internal.server.HistogramQuery;
+
 import battlecode.common.Direction;
 import battlecode.common.GameActionException;
 import battlecode.common.MapLocation;
 import battlecode.common.RobotController;
 import battlecode.common.RobotInfo;
 import battlecode.common.RobotLevel;
+import battlecode.common.RobotType;
 import battlecode.common.Team;
 import battlecode.common.TerrainTile;
 
@@ -73,7 +76,20 @@ public class Navigation {
 		return false;
 	}
 	
-	public static final int[] AROUND = new int[]{0,1,-1,2,-2,3,-3};
+	public static boolean stepOnPath(RobotController rc, Deque<Move> path, int attackRadius, Team enemyTeam) throws GameActionException {
+		if (!path.isEmpty()) {
+			Move top = path.removeLast();
+			MapLocation current = rc.getLocation();
+			boolean moved = stepToward(rc, current.directionTo(top.loc));
+			if (!moved) {
+				path.addLast(top);
+			}
+			return moved;
+		}
+		return false;
+	}
+	
+	public static final int[] AROUND = new int[]{0,1,-1,2,-2};
 	public static final int DS = Direction.values().length;
 	public static boolean stepToward(RobotController rc, Direction d) throws GameActionException {
 		for (int i : AROUND) {
@@ -163,49 +179,26 @@ public class Navigation {
 		}
 		return path;
 	}
-	public static Deque<Move> pathAStarAvoid(RobotController rc, MapLocation dest, MapLocation avoid, int r2) throws GameActionException {
-		Deque<Move> path = new LinkedList<Move>();
-		TerrainTile destTile = rc.senseTerrainTile(dest);
-		if (destTile.isTraversableAtHeight(RobotLevel.ON_GROUND)) {
-			Map<MapLocation, Move> been = new HashMap<MapLocation, Move>();
-			
-			PriorityQueue<Move> next = new PriorityQueue<Move>();
-			Map<MapLocation, Move> locs = new HashMap<MapLocation, Move>();
-			
-			MapLocation loc = rc.getLocation();
-			Move first = Move.Create(loc, 0, manhattanDistance(loc, dest), null, null);
-			next.add(first);
-			while(!been.containsKey(dest) && !next.isEmpty()) {
-				Move top = next.remove();
-				been.put(top.loc, top);
-				for (Direction d : DIRECTIONS) {
-					MapLocation n = top.loc.add(d);
-					TerrainTile tile = rc.senseTerrainTile(n);
-					if (tile.isTraversableAtHeight(RobotLevel.ON_GROUND)) {
-						Move existing = locs.get(n);
-						float cost = (d.isDiagonal()) ? 1.4f : 1;
-						if (top.loc.distanceSquaredTo(avoid) <= r2) {
-							cost += 4;
-						}
-						float distance = top.distance + cost;
-						Move move = new Move(n, distance, distance + manhattanDistance(n, dest), top, d);
-						if (existing == null || move.cost < existing.cost) {
-							if (existing != null) {
-								next.remove(existing);
-							}
-							locs.put(n, move);
-							next.add(move);
-						}
-					}
-				}
+	public static void bugWalk(RobotController rc, MapLocation dest) throws GameActionException {
+		MapLocation loc = rc.getLocation();
+		Direction d = loc.directionTo(dest);
+		
+		StringBuilder b = new StringBuilder();
+		StringBuilder c = new StringBuilder();
+		int i = Direction.values().length;
+		while (true) {
+			if (i == 0) {
+				break;
 			}
-			Move end = been.get(dest);
-			while (end != null && end.direction != null) {
-				path.addLast(end);
-				end = end.prev;
+			if (!rc.canMove(d)) {
+				d = d.rotateLeft();
+				continue;
 			}
+			break;
 		}
-		return path;
+		if (i > 0) {
+			rc.move(d);
+		} 
 	}
 	
 	public static class Move implements Comparable<Move> {

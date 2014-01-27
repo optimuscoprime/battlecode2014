@@ -79,11 +79,13 @@ public class RomanStrategy implements Strategy {
 			} else {
 				if (local.enemies.length == 0) {
 					//move towards target
-					Navigation.stepToward(rc, local.current.directionTo(target));
+					Navigation.bugWalk(rc, target);
+//					Navigation.stepToward(rc, local.current.directionTo(target));
 					rc.setIndicatorString(2, "move");
 				} else if (local.powerBalance < 0) {
 					if (bravery <= 0 || !local.attack()) {
 						//back away from target
+//						Navigation.bugWalk(rc, HQ);
 						Navigation.stepToward(rc, local.current.directionTo(HQ));
 						rc.setIndicatorString(2, "avoid");
 					} else {
@@ -98,7 +100,7 @@ public class RomanStrategy implements Strategy {
 						patience = DISIPLINE;
 						rc.setIndicatorString(2, "attack + wait");
 					} else {
-						if (patience <= 0) {
+						if (patience <= 0 || local.banzai) {
 							//move in
 							Navigation.stepToward(rc, local.current.directionTo(target));	
 							patience = DISIPLINE;

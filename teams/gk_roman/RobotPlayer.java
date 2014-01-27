@@ -16,12 +16,16 @@ public class RobotPlayer {
 			if (type == RobotType.HQ) {
 				strategy = new SpawnStrategy(rc);
 			} else if (type == RobotType.SOLDIER) {
-				if (rc.senseRobotCount() == 1 || rand.nextInt(10) == 0) {
+				int n = rand.nextInt(20);
+				if (rc.senseRobotCount() == 1) {
+					strategy = new PartisanStrategy(rc);
+				} else if (n <= 0) {
 					strategy = new FarmStrategy(rc);
 				} else {
 					strategy = new RomanStrategy(rc);
 				}
 			} else {
+				strategy = new PartisanStrategy(rc);
 			}
 
 			playSingleStrategy(rc, strategy);

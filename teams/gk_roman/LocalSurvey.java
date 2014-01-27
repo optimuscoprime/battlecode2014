@@ -23,6 +23,7 @@ public class LocalSurvey {
 	RobotInfo[] enemyInfo;
 	RobotInfo[] friendInfo;
 	
+	boolean banzai;
 	int powerBalance;
 	
 	public LocalSurvey(RobotController rc) {
@@ -65,7 +66,8 @@ public class LocalSurvey {
 	}
 	
 	public void CalculatePowerBalance() {
-		if (NearEnemyHQ()) {
+		banzai = friends.length > 5;
+		if (NearEnemyHQ() && !banzai) {
 			powerBalance = -1;
 		} else {
 			if (enemyInfo == null) {
@@ -99,7 +101,7 @@ public class LocalSurvey {
 		for (Robot enemy : enemies) {
 			if (rc.canSenseObject(enemy)) {
 				RobotInfo info = rc.senseRobotInfo(enemy);
-				if (info.type != RobotType.HQ) {
+				if (info.type != RobotType.HQ && info.type != RobotType.NOISETOWER) {
 					if (rc.canAttackSquare(info.location)) {
 						rc.attackSquare(info.location);
 						return true;
