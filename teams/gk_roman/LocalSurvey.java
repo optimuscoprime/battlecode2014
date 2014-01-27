@@ -109,6 +109,17 @@ public class LocalSurvey {
 				}
 			}
 		}
+		for (Robot enemy : enemies) {
+			if (rc.canSenseObject(enemy)) {
+				RobotInfo info = rc.senseRobotInfo(enemy);
+				if (info.type != RobotType.HQ) {
+					if (rc.canAttackSquare(info.location)) {
+						rc.attackSquare(info.location);
+						return true;
+					}
+				}
+			}
+		}
 		return false;
 	}
 }

@@ -86,7 +86,9 @@ public class RomanStrategy implements Strategy {
 					if (bravery <= 0 || !local.attack()) {
 						//back away from target
 //						Navigation.bugWalk(rc, HQ);
-						Navigation.stepToward(rc, local.current.directionTo(HQ));
+						if (!Navigation.stepToward(rc, local.current.directionTo(HQ))) {
+							local.attack();
+						}
 						rc.setIndicatorString(2, "avoid");
 					} else {
 						//attacked enemy
