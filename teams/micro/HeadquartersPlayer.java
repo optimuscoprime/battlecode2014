@@ -12,8 +12,14 @@ public class HeadquartersPlayer extends BasicPlayer implements Player  {
 	}
 
 	@Override
-	public void playOneTurn() {
+	public void playOneTurn() throws GameActionException {
+		boolean didAttack = false;
+		
 		if (rc.isActive()) {
+			didAttack = attackNearbyEnemies();
+		}
+		
+		if (rc.isActive() && !didAttack) {
 			tryToSpawn();
 		}
 	}

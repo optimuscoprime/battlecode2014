@@ -1,50 +1,45 @@
 #!/usr/bin/ruby
 
-require 'fileutils'
-require('rubygems')
-require('parseconfig')
+$:.unshift File.dirname(__FILE__)
 
-config = ParseConfig.new('./sim.conf')
-APP_DIR =  config['APP_DIR']
+require 'fileutils'
+require 'rubygems'
+require 'yaml'
+require 'ScoreKeeper.rb'
+
+config = YAML.load_file("sim.yml")
+
+APP_DIR = config['app_dir']
+DEBUG   = config['debug']
 
 # ----------------------------------------
 # C O N F I G   S E C T I O N
 
-# -- print more messages with DEBUG = true
-DEBUG = false
-
 # -- specify a custom list of teams to all play each other
 # -- Leave this as empty (which is '[]') to make all teams in 'teams/' directory play each other.
 
-# warning: don't put team085 as a custom team
-
-custom_list_of_teams = [ "micro", "gk_attack", "gk_master", "hubertTheFraternal", "sc02", "sound01", "sound03" ]
-# custom_list_of_teams = [ ]
-
-# custom_list_of_maps = [ "bakedpotato" ]
-custom_list_of_maps = [] 
-
-# -- where you installed the app (this folder contains the maps, teams, etc folders)
-
 # -- overall scoring of match results
-SCORE_WIN = 3
-SCORE_TIE = 1
-SCORE_LOSS = 0
+SCORE_WIN = config['score_win']
+SCORE_TIE = config['score_tie']
+SCORE_LOSS = config['score_loss']
 
 # -- if you want to log game recordings to a timestamped file (true), or pipe to /dev/null (false)
 SAVE_GAME_RECORD = false
 
 # -- set to true to make bots be able to play themselves
-BOTS_CAN_PLAY_SELF = false
+BOTS_CAN_PLAY_SELF = config['bots_can_play_self']
 
 # END CONFIG SECTION
 # ----------------------------------------
 
+
+
 # get a list of teams together
 teams = []
-if custom_list_of_teams.count > 0
-  teams = custom_list_of_teams
+unless config['use_all_teams']
+  teams = config['custom_teams']
 else
+  puts "Using all teams" if DEBUG
   teams_dir = File.join(APP_DIR, "teams")
   Dir.foreach(teams_dir) do |f|
     f = File.expand_path(File.join(teams_dir, f))    
@@ -55,30 +50,22 @@ else
     end
   end
 end
-
 if DEBUG
   puts "Found these teams:"
   teams.each do |t|
-    puts t
+    puts "  #{t}"
   end
 else
   puts "Found #{teams.count} teams"
 end
 
 
-# set everyone's overall score to zero
-team_scores = {}
-teams.each do |t|
-  team_scores[t] = 0
-end
-# ----------
-
-
 # get a list of the maps in the map dir
 maps = []
-if custom_list_of_maps.count > 0
-  maps = custom_list_of_maps
+unless config['use_all_maps']
+  maps = config['custom_maps']
 else
+  puts "Using all maps" if DEBUG
   maps_dir = File.join(APP_DIR, "maps")
 
   Dir.foreach(maps_dir) do |f|
@@ -89,17 +76,17 @@ else
     end
   end
 end
-
 if DEBUG
   puts "Found these maps:"
   maps.each do |m|
-    puts m
+    puts "  #{m}"
   end
 else
   puts "Found #{maps.count} maps."
 end
 
-# ----------
+
+scores = ScoreKeeper.new
 
 
 counter = 0
@@ -151,18 +138,14 @@ teams.each do |teamA|
       # run the match
       content = `ant file`
       
-      if content =~ /tiebreakers/
-        puts "TIE"
-        team_scores[teamA] += SCORE_TIE
-        team_scores[teamB] += SCORE_TIE
-      elsif content =~ /\(A\) wins/
+      if content =~ /\(A\) wins/
         puts "#{teamA} wins"
-        team_scores[teamA] += SCORE_WIN
-        team_scores[teamB] += SCORE_LOSS
+        scores.add_result(map, teamA, SCORE_WIN)
+        scores.add_result(map, teamB, SCORE_LOSS)
       elsif content =~ /\(B\) wins/
         puts "#{teamB} wins"
-        team_scores[teamA] += SCORE_LOSS
-        team_scores[teamB] += SCORE_WIN
+        scores.add_result(map, teamA, SCORE_LOSS)
+        scores.add_result(map, teamB, SCORE_WIN)
       else
         puts "Unknown match result (please add code to catch this)"
         puts "content=#{content}"
@@ -179,9 +162,6 @@ end
 
 
 
-# print out final scores
-puts "========================================"
-team_scores.sort_by{ |team, score| score }.each do |team, score|
-  puts "Team '#{team}' scored '#{score}' overall"
-end
-puts "========================================"
+scores.print_overall_scores
+
+scores.write_map_report("/home/rupert/output.html")
