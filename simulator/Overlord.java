@@ -67,14 +67,15 @@ public class Overlord {
 		maps.add("valve.xml");
 		maps.add("ventilation.xml");
 
+		teams.add("nano");
 		teams.add("micro");
 		teams.add("gk_roman");
 		teams.add("hubertTheFraternal");
 		teams.add("sc02");
-		teams.add("sound01");
 		teams.add("sound04");
-		
-		//teams.add("team085");
+
+		// teams.add("sound01");		
+		// teams.add("team085");
 
 		int total_games_to_play = (teams.size() * teams.size() - teams.size()) * maps.size();
 

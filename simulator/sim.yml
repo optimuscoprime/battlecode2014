@@ -9,11 +9,11 @@ score_loss: 0
 # only looks at 'custom_teams' if 'use_all_teams' is false
 use_all_teams: false
 custom_teams: 
+ - nano
+ - micro
  - sc02
  - sound04
- - sound01
  - gk_roman
- - micro
  - hubertTheFraternal
 
 # only looks at 'custom_teams' if 'use_all_maps' is false
