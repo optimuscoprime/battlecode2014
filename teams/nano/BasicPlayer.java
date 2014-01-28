@@ -6,6 +6,7 @@ import battlecode.common.*;
 
 import java.util.*;
 
+import nano.Util;
 import static nano.Util.*;
 
 public abstract class BasicPlayer implements Player {
@@ -35,7 +36,10 @@ public abstract class BasicPlayer implements Player {
         WEST,
         SOUTH
     };
-	
+    
+    public Direction[] randomDirections = allDirections.clone();
+
+    
 	public BasicPlayer(Robot robot, int robotId, Team team, RobotType robotType, RobotController rc) {
 		this.myRobot = robot;
 		this.myRobotId = robotId;
@@ -125,12 +129,20 @@ public abstract class BasicPlayer implements Player {
         
         return didAttack;
     }	
-
-    private static void sortLocationsByDistanceDescending(List<MapLocation> locations, final MapLocation from) {
-        Collections.sort(locations, new Comparator<MapLocation>() {
-            public int compare(final MapLocation a, final MapLocation b) {
-                return new Integer(from.distanceSquaredTo(b)).compareTo(from.distanceSquaredTo(a));
-            }
-        });
+    
+    protected void moveRandomly() {
+		// let's try moving randomly
+		shuffle(randomDirections);
+		for (Direction randomDirection: allDirections) {
+			if (rc.canMove(randomDirection)) {
+				try	{
+					log("moving randomly");
+					rc.move(randomDirection);
+					break;
+				} catch (GameActionException e) {
+					die(e);
+				}
+			}
+		} 	
     }
 }

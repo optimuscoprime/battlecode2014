@@ -9,6 +9,8 @@ import static battlecode.common.Direction.*;
 
 public class SoldierPlayer extends BasicPlayer implements Player {
 	
+	private MapLocation pastrConstructionMapLocation;
+
 	public SoldierPlayer(Robot robot, int robotId, Team team, RobotType robotType, RobotController rc) {
 		super(robot, robotId, team, robotType, rc);
 	}
@@ -30,12 +32,12 @@ public class SoldierPlayer extends BasicPlayer implements Player {
 			// check the broadcasts
 			int intPastrTowerLocation = rc.readBroadcast(RADIO_CHANNEL_REQUEST_PASTR);
 			if (intPastrTowerLocation != 0) {
-				MapLocation pastrMapLocation = intToLocation(intPastrTowerLocation);
-				if (myLocation.equals(pastrMapLocation)) {
+				pastrConstructionMapLocation = intToLocation(intPastrTowerLocation);
+				if (myLocation.equals(pastrConstructionMapLocation)) {
 					rc.construct(PASTR);
 				} else {
 					log("Going to pastr location");
-					gotoLocation(pastrMapLocation);
+					gotoLocation(pastrConstructionMapLocation);
 				}
 				constructingPastr = true;
 			}					
@@ -56,15 +58,41 @@ public class SoldierPlayer extends BasicPlayer implements Player {
 				}
 				
 				if (!constructingNoiseTower) {
-					// do something
+					
+					friendlyRobots = rc.senseNearbyGameObjects(Robot.class, HUGE_RADIUS, myTeam);
+												
+					// make a random move for now
+					if (random.nextDouble() < 0.1) {
+						moveRandomly();
+					} else if (friendlyRobots.length > 8) {
+						//if (pastrConstructionMapLocation != null) {
+						//	gotoLocation(pastrConstructionMapLocation);
+						//} else {
+							//if (random.nextDouble() < 0.9) {
+							//	MapLocation hqLocation = rc.senseHQLocation();
+							//	gotoLocation(hqLocation);
+							//} else{
+								MapLocation hqLocation = rc.senseEnemyHQLocation();
+								gotoLocation(hqLocation);
+							//}
+						//}
+					}
+					
 				}
 			}
-			
-	
 		}	
 	}
 
-	private void gotoLocation(MapLocation noiseTowerMapLocation) {
-		// TODO Auto-generated method stub
+	private void gotoLocation(MapLocation location) {
+		Direction direction = myLocation.directionTo(location);
+		if (rc.canMove(direction)) {
+			try	{
+				rc.move(direction);
+			} catch (GameActionException e) {
+				die(e);
+			}
+		} else {
+			moveRandomly();
+		}
 	}
 }

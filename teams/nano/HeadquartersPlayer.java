@@ -9,9 +9,7 @@ import static battlecode.common.RobotType.*;
 
 
 public class HeadquartersPlayer extends BasicPlayer implements Player  {
-		
-    public Direction[] randomDirections = allDirections.clone();
-    
+		    
 	private MapLocation pastrConstructionLocation;
 	private MapLocation noiseTowerConstructionLocation;
 	
@@ -56,11 +54,17 @@ public class HeadquartersPlayer extends BasicPlayer implements Player  {
 		
 		friendlyRobots = rc.senseNearbyGameObjects(Robot.class, HUGE_RADIUS, myTeam);
 		
-		maybeAskForPastr();
+		//if (friendlyRobots.length > 16) {
 		
-		maybeAskForNoiseTower();
+		if (Clock.getRoundNum() > 1000) {
+			
+			maybeAskForPastr();
 		
-		maybeCreateExploringWaypoint();
+			maybeAskForNoiseTower();
+		
+			maybeCreateExploringWaypoint();
+		
+		}
 
 	}
 
@@ -69,15 +73,18 @@ public class HeadquartersPlayer extends BasicPlayer implements Player  {
 		// requirement: "behind" our spawn
 		// requirement: open space
 						
-		boolean havePastr = false;
+		int numPastrs = 0;
 		
 		for (Robot friendlyRobot: friendlyRobots) {
 			RobotInfo info = rc.senseRobotInfo(friendlyRobot);
 			if (info.type == PASTR) {
-				havePastr = true;
-				rc.broadcast(RADIO_CHANNEL_REQUEST_PASTR, 0);
-				break;
+				numPastrs++;
 			}
+		}
+		
+		boolean havePastr = false;
+		if (numPastrs > 1) {
+			havePastr = true;
 		}
 		
 		if (!havePastr && pastrConstructionLocation != null) {
@@ -90,7 +97,9 @@ public class HeadquartersPlayer extends BasicPlayer implements Player  {
 			}
 		}
 		
-		if (!havePastr) {			
+		if (havePastr) {
+			rc.broadcast(RADIO_CHANNEL_REQUEST_PASTR, 0);
+		} else {		
 			pastrConstructionLocation = findGoodConstructionLocation();
 			if (pastrConstructionLocation != null) {
 				rc.broadcast(RADIO_CHANNEL_REQUEST_PASTR, locationToInt(pastrConstructionLocation));
@@ -104,15 +113,18 @@ public class HeadquartersPlayer extends BasicPlayer implements Player  {
 		// requirement: "behind" our spawn
 		// requirement: open space
 						
-		boolean haveNoiseTower = false;
+		int numNoiseTowers = 0;
 		
 		for (Robot friendlyRobot: friendlyRobots) {
 			RobotInfo info = rc.senseRobotInfo(friendlyRobot);
 			if (info.type == NOISETOWER) {
-				haveNoiseTower = true;
-				rc.broadcast(RADIO_CHANNEL_REQUEST_NOISETOWER, 0);
-				break;
+				numNoiseTowers++;
 			}
+		}
+		
+		boolean haveNoiseTower = false;
+		if (numNoiseTowers > 0) {
+			haveNoiseTower = true;
 		}
 
 		if (!haveNoiseTower && noiseTowerConstructionLocation != null) {
@@ -125,7 +137,9 @@ public class HeadquartersPlayer extends BasicPlayer implements Player  {
 			}
 		}		
 		
-		if (!haveNoiseTower) {			
+		if (haveNoiseTower) {
+			rc.broadcast(RADIO_CHANNEL_REQUEST_NOISETOWER, 0);
+		} else {		
 			noiseTowerConstructionLocation = findGoodConstructionLocation();
 			if (noiseTowerConstructionLocation != null) {
 				rc.broadcast(RADIO_CHANNEL_REQUEST_NOISETOWER, locationToInt(noiseTowerConstructionLocation));				
@@ -173,7 +187,7 @@ public class HeadquartersPlayer extends BasicPlayer implements Player  {
 					}
 				}
 			}			
-			if (goodTiles > 4) {
+			if (goodTiles > 6) {
 				boolean canBuild = true;
 				
 				// check if there is a construction there
