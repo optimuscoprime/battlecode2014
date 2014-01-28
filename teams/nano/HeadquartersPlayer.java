@@ -12,6 +12,7 @@ public class HeadquartersPlayer extends BasicPlayer implements Player  {
 		    
 	private MapLocation pastrConstructionLocation;
 	private MapLocation noiseTowerConstructionLocation;
+	private int waypointRound;
 	
 	
 	public HeadquartersPlayer(Robot robot, int robotId, Team team, RobotType robotType, RobotController rc) {
@@ -56,7 +57,7 @@ public class HeadquartersPlayer extends BasicPlayer implements Player  {
 		
 		//if (friendlyRobots.length > 16) {
 		
-		if (Clock.getRoundNum() > 1000) {
+		if (Clock.getRoundNum() > 200) {
 			
 			maybeAskForPastr();
 		
@@ -187,7 +188,7 @@ public class HeadquartersPlayer extends BasicPlayer implements Player  {
 					}
 				}
 			}			
-			if (goodTiles > 6) {
+			if (goodTiles > 5) {
 				boolean canBuild = true;
 				
 				// check if there is a construction there
@@ -211,14 +212,28 @@ public class HeadquartersPlayer extends BasicPlayer implements Player  {
 		return goodLocation;
 	}
 	
-    private void maybeCreateExploringWaypoint() {
-		// every 100 or 200 rounds or so, create a new waypoint for our team to go to
+    private void maybeCreateExploringWaypoint() throws GameActionException {
+    	// idea: create waypoint based on cows?
     	
-    	// idea:
-    	// go to a square with good cow growth
-    	// go to a square with enemy pastr
-    	// go to a random square
+    	//if (Clock.getRoundNum() - waypointRound > 50) {
+    		
+    	boolean found = false;
     	
+    	MapLocation waypointLocation;
+    	
+    	if (pastrConstructionLocation != null && random.nextDouble() < 0.5) {
+    		waypointLocation = pastrConstructionLocation;
+    	} else {
+	    	while (!found) {
+				waypointLocation = new MapLocation(myLocation.x + random.nextInt(gameMap.width/2), myLocation.y + random.nextInt(gameMap.height/2));
+	
+	    		if (gameMap.isTraversable(waypointLocation.x,  waypointLocation.y)) {
+	    			rc.broadcast(RADIO_CHANNEL_WAYPOINT, locationToInt(waypointLocation));
+	    			waypointRound = Clock.getRoundNum();
+	    			found = true;
+	    		}
+	    	}
+    	}
 	}	
 
 	private void tryToSpawn () {

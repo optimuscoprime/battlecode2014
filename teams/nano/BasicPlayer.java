@@ -133,11 +133,11 @@ public abstract class BasicPlayer implements Player {
     protected void moveRandomly() {
 		// let's try moving randomly
 		shuffle(randomDirections);
-		for (Direction randomDirection: allDirections) {
+		for (Direction randomDirection: randomDirections) {
 			if (rc.canMove(randomDirection)) {
 				try	{
-					log("moving randomly");
-					rc.move(randomDirection);
+					log("sneaking randomly");
+					rc.sneak(randomDirection);
 					break;
 				} catch (GameActionException e) {
 					die(e);

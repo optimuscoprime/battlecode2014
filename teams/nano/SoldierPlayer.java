@@ -10,22 +10,28 @@ import static battlecode.common.Direction.*;
 public class SoldierPlayer extends BasicPlayer implements Player {
 	
 	private MapLocation pastrConstructionMapLocation;
+	private MapLocation noiseTowerConstructionMapLocation;
+
+	private MapLocation hqLocation;
+	private MapLocation waypointLocation;
+	private int waypointRound;
 
 	public SoldierPlayer(Robot robot, int robotId, Team team, RobotType robotType, RobotController rc) {
 		super(robot, robotId, team, robotType, rc);
+		hqLocation = rc.senseHQLocation();
 	}
 
 	@Override
 	public void playOneTurn() throws GameActionException {
 		boolean didAttack = false;
 		
+		myLocation = rc.getLocation();
+		
 		if (rc.isActive()) {
 			didAttack = attackNearbyEnemies();
 		}
 		
 		if (!didAttack && rc.isActive()) {
-			
-			myLocation = rc.getLocation();
 			
 			boolean constructingPastr = false;
 			
@@ -47,12 +53,15 @@ public class SoldierPlayer extends BasicPlayer implements Player {
 				// check the broadcasts
 				int intNoiseTowerLocation = rc.readBroadcast(RADIO_CHANNEL_REQUEST_NOISETOWER);
 				if (intNoiseTowerLocation != 0) {
-					MapLocation noiseTowerMapLocation = intToLocation(intNoiseTowerLocation);
-					if (myLocation.equals(noiseTowerMapLocation)) {
+					noiseTowerConstructionMapLocation = intToLocation(intNoiseTowerLocation);
+					if (myLocation.equals(noiseTowerConstructionMapLocation)) {
 						rc.construct(NOISETOWER);
 					} else {
+						// check if another robot is there
+						//Robot robot = rc.senseObjectAtLocation(noiseTowerConstructionMapLocation);
+						
 						log("Going to noisetower location");
-						gotoLocation(noiseTowerMapLocation);
+						gotoLocation(noiseTowerConstructionMapLocation);
 					}
 					constructingNoiseTower = true;
 				}
@@ -61,21 +70,28 @@ public class SoldierPlayer extends BasicPlayer implements Player {
 					
 					friendlyRobots = rc.senseNearbyGameObjects(Robot.class, HUGE_RADIUS, myTeam);
 												
-					// make a random move for now
-					if (random.nextDouble() < 0.1) {
-						moveRandomly();
-					} else if (friendlyRobots.length > 8) {
-						//if (pastrConstructionMapLocation != null) {
-						//	gotoLocation(pastrConstructionMapLocation);
-						//} else {
-							//if (random.nextDouble() < 0.9) {
-							//	MapLocation hqLocation = rc.senseHQLocation();
-							//	gotoLocation(hqLocation);
-							//} else{
-								MapLocation hqLocation = rc.senseEnemyHQLocation();
-								gotoLocation(hqLocation);
-							//}
-						//}
+					if (waypointLocation == null && Clock.getRoundNum() - waypointRound > 25) {
+						// try to read a waypoint
+						int intWaypointLocation = rc.readBroadcast(RADIO_CHANNEL_WAYPOINT);
+						if (intWaypointLocation != 0) {
+							waypointLocation = intToLocation(intWaypointLocation);
+							waypointRound = Clock.getRoundNum();
+						}
+					}
+					
+					if (waypointLocation != null && myLocation.equals(waypointLocation)) {
+						waypointLocation = null;
+					}
+					
+					if (waypointLocation != null && friendlyRobots.length > 4) {
+						gotoLocation(waypointLocation);
+					} else {
+						// make a random move for now
+						if (random.nextDouble() < 0.25) {
+							moveRandomly();
+						} else {
+							gotoLocation(hqLocation);
+						}
 					}
 					
 				}
@@ -83,11 +99,19 @@ public class SoldierPlayer extends BasicPlayer implements Player {
 		}	
 	}
 
-	private void gotoLocation(MapLocation location) {
-		Direction direction = myLocation.directionTo(location);
+	private void gotoLocation(MapLocation toLocation) {
+		Direction direction = myLocation.directionTo(toLocation);
 		if (rc.canMove(direction)) {
+			int newDistanceToHq = hqLocation.distanceSquaredTo(toLocation);
+			int currentDistanceToHq = hqLocation.distanceSquaredTo(myLocation);
 			try	{
-				rc.move(direction);
+				if (newDistanceToHq < currentDistanceToHq) {
+					// moving closer to HQ
+					rc.move(direction);
+				} else {
+					// don't disturb cattle
+					rc.sneak(direction);
+				}
 			} catch (GameActionException e) {
 				die(e);
 			}

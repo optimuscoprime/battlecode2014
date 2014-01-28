@@ -15,6 +15,8 @@ public class Util {
 	public static int RADIO_CHANNEL_REQUEST_PASTR = 20;
 
 	//public static int RADIO_CHANNEL_BUILDING_PASTR = 21;
+	
+	public static int RADIO_CHANNEL_WAYPOINT = 30;
 
 	
 	public static Random random;
