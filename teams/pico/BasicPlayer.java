@@ -56,7 +56,7 @@ public abstract class BasicPlayer implements Player {
 	public abstract void playOneTurn() throws GameActionException;
 	
     protected boolean attackNearbyEnemies() throws GameActionException {
-    	log("Started attackNearbyEnemies()...");
+    	//log("Started attackNearbyEnemies()...");
     	
         boolean didAttack = false;
         
@@ -125,7 +125,7 @@ public abstract class BasicPlayer implements Player {
         	}
         }
 
-        log("Finished attackNearbyEnemies().");
+        //log("Finished attackNearbyEnemies().");
         
         return didAttack;
     }	
@@ -136,7 +136,7 @@ public abstract class BasicPlayer implements Player {
 		for (Direction randomDirection: randomDirections) {
 			if (rc.canMove(randomDirection)) {
 				try	{
-					log("sneaking randomly");
+					//log("sneaking randomly");
 					rc.sneak(randomDirection);
 					break;
 				} catch (GameActionException e) {

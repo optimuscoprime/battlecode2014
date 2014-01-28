@@ -11,8 +11,13 @@ public class GameMap {
 	private RobotController rc;
 	
 	public TerrainTile[][] map;
+	public int[][] floodedMap = null;
+	public MapLocation cachedToLocation = null;
 	public int width;
 	public int height;
+	private Deque<MapLocation> toVisit = null;
+
+	private boolean finishedCaching = false;
 	
     public static Direction[] allDirections = new Direction[] {
     	// prefer diagonal directions
@@ -36,7 +41,7 @@ public class GameMap {
 		
 		this.map = new TerrainTile[width][height];
 		
-		log("Started sensing terrain tiles...");
+		//log("Started sensing terrain tiles...");
 		
 		for (int y = 0; y < height; y++) {
 			for (int x = 0; x < width; x++) {	
@@ -44,13 +49,13 @@ public class GameMap {
 			}
 		}
 		
-		log("Finished sensing terrain tiles.");
+		//log("Finished sensing terrain tiles.");
 		
-		printMap(map);
+		//printMap(map);
 	}
 	
 	private void printMap(TerrainTile[][] map) {
-		log("Started printing map...");
+		//log("Started printing map...");
 		
 		int width = map.length;
 		int height = map[0].length;
@@ -79,7 +84,7 @@ public class GameMap {
 		System.out.printf("==================================================================\n");
 		System.out.printf("\n");
 		
-		log("Finished printing map.");
+		//log("Finished printing map.");
 
 	}
 	
@@ -89,5 +94,79 @@ public class GameMap {
 				y >= 0 &&
 				y < height &&
 				map[x][y] != VOID);
+	}
+
+	public Direction nextDirectionTo(MapLocation myLocation, MapLocation toLocation) {
+		
+		if (!toLocation.equals(cachedToLocation)) {
+			// do the flood fill
+
+			floodedMap = new int[width][height];
+			
+			// init
+			for (int x=0; x < width; x++) {
+				for (int y=0; y < height; y++) {
+					floodedMap[x][y] = -1;
+				}
+			}
+			
+			//int expectedFlooded = width*height;
+			
+			floodedMap[toLocation.x][toLocation.y] = 0;
+			toVisit = new ArrayDeque<MapLocation>();
+			for (Direction direction: allDirections) {
+				MapLocation newLocation = toLocation.add(direction);
+				if (isTraversable(newLocation.x, newLocation.y)) {
+					toVisit.add(newLocation);
+					floodedMap[newLocation.x][newLocation.y] = 1;
+				}
+			}
+			
+			cachedToLocation = toLocation;
+			finishedCaching = false;
+		}
+		
+		if (!finishedCaching) {
+			
+			while (!toVisit.isEmpty()) {
+				MapLocation currentLocation = toVisit.remove();
+				int thisScore = floodedMap[currentLocation.x][currentLocation.y];
+				for (Direction direction: allDirections) {
+					MapLocation newLocation = currentLocation.add(direction);								
+					if (isTraversable(newLocation.x, newLocation.y) && floodedMap[newLocation.x][newLocation.y] == -1) {
+						floodedMap[newLocation.x][newLocation.y] = thisScore + 1;
+						toVisit.add(newLocation);
+					}
+				}				
+				if (Clock.getBytecodesLeft() < 1000) {
+					log("Used too many bytecodes");
+					break;
+				}
+			}
+			
+			if (toVisit.isEmpty()) {
+				log("finished caching");
+				finishedCaching = true;
+			}
+		}
+		
+		Direction nextDirection = null;
+		
+		if (finishedCaching) {
+			int lowestScore = Integer.MAX_VALUE;
+			
+			for (Direction direction: allDirections) {
+				MapLocation testLocation = myLocation.add(direction);
+				if (isTraversable(testLocation.x, testLocation.y)) {
+					int thisScore = floodedMap[testLocation.x][testLocation.y];
+					if (thisScore < lowestScore) {
+						lowestScore = thisScore;
+						nextDirection = direction;
+					}
+				}
+			}		
+		}
+
+		return nextDirection;
 	}
 }

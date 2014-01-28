@@ -57,15 +57,17 @@ public class HeadquartersPlayer extends BasicPlayer implements Player  {
 		
 		//if (friendlyRobots.length > 16) {
 		
-		if (Clock.getRoundNum() > 200) {
+		if (Clock.getRoundNum() > 500) {
 			
 			maybeAskForPastr();
 		
 			maybeAskForNoiseTower();
 		
-			maybeCreateExploringWaypoint();
-		
 		}
+		
+		//if (Clock.getRoundNum() > 500) {
+		maybeCreateExploringWaypoint();	
+		//}
 
 	}
 
@@ -84,7 +86,7 @@ public class HeadquartersPlayer extends BasicPlayer implements Player  {
 		}
 		
 		boolean havePastr = false;
-		if (numPastrs > 1) {
+		if (numPastrs > 0) {
 			havePastr = true;
 		}
 		
@@ -217,22 +219,37 @@ public class HeadquartersPlayer extends BasicPlayer implements Player  {
     	
     	//if (Clock.getRoundNum() - waypointRound > 50) {
     		
-    	boolean found = false;
+    	MapLocation waypointLocation = null;
     	
-    	MapLocation waypointLocation;
+    	MapLocation[] enemyPastrLocations = rc.sensePastrLocations(opponentTeam);
     	
-    	if (pastrConstructionLocation != null && random.nextDouble() < 0.5) {
-    		waypointLocation = pastrConstructionLocation;
+    	if (enemyPastrLocations.length > 0) {
+    		
+    		waypointLocation = enemyPastrLocations[0];
+    		log("created pastr waypoint");
+    		
     	} else {
-	    	while (!found) {
-				waypointLocation = new MapLocation(myLocation.x + random.nextInt(gameMap.width/2), myLocation.y + random.nextInt(gameMap.height/2));
-	
-	    		if (gameMap.isTraversable(waypointLocation.x,  waypointLocation.y)) {
-	    			rc.broadcast(RADIO_CHANNEL_WAYPOINT, locationToInt(waypointLocation));
-	    			waypointRound = Clock.getRoundNum();
-	    			found = true;
-	    		}
-	    	}
+    		
+    		waypointLocation = myLocation;
+    		
+    	}
+    	
+//    	} else {
+//        	boolean found = false;
+//    		
+//	    	while (!found) {
+//				waypointLocation = new MapLocation(gameMap.width/4 + random.nextInt(gameMap.width/2), gameMap.height/4 + random.nextInt(gameMap.height/2));
+//	    		if (gameMap.isTraversable(waypointLocation.x,  waypointLocation.y)) {
+//	    			found = true;
+//	    		}
+//	    	}
+//    	}
+    	
+    	if (waypointLocation != null) {
+    		rc.broadcast(RADIO_CHANNEL_WAYPOINT, locationToInt(waypointLocation));
+    	} else {
+    		rc.broadcast(RADIO_CHANNEL_WAYPOINT, 0);
+ 
     	}
 	}	
 

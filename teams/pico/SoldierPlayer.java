@@ -70,20 +70,17 @@ public class SoldierPlayer extends BasicPlayer implements Player {
 					
 					friendlyRobots = rc.senseNearbyGameObjects(Robot.class, HUGE_RADIUS, myTeam);
 												
-					if (waypointLocation == null && Clock.getRoundNum() - waypointRound > 25) {
-						// try to read a waypoint
-						int intWaypointLocation = rc.readBroadcast(RADIO_CHANNEL_WAYPOINT);
-						if (intWaypointLocation != 0) {
-							waypointLocation = intToLocation(intWaypointLocation);
-							waypointRound = Clock.getRoundNum();
-						}
+					int intWaypointLocation = rc.readBroadcast(RADIO_CHANNEL_WAYPOINT);
+					if (intWaypointLocation != 0) {
+						waypointLocation = intToLocation(intWaypointLocation);
 					}
 					
-					if (waypointLocation != null && myLocation.equals(waypointLocation)) {
+					if (myLocation.equals(waypointLocation)) {
 						waypointLocation = null;
 					}
 					
-					if (waypointLocation != null && friendlyRobots.length > 4) {
+					if (waypointLocation != null && friendlyRobots.length > 3) {
+						log("going to waypoint");
 						gotoLocation(waypointLocation);
 					} else {
 						// make a random move for now
@@ -100,23 +97,33 @@ public class SoldierPlayer extends BasicPlayer implements Player {
 	}
 
 	private void gotoLocation(MapLocation toLocation) {
-		Direction direction = myLocation.directionTo(toLocation);
-		if (rc.canMove(direction)) {
-			int newDistanceToHq = hqLocation.distanceSquaredTo(toLocation);
-			int currentDistanceToHq = hqLocation.distanceSquaredTo(myLocation);
-			try	{
-				if (newDistanceToHq < currentDistanceToHq) {
-					// moving closer to HQ
-					rc.move(direction);
-				} else {
-					// don't disturb cattle
-					rc.sneak(direction);
+		
+		//log("started nextDirectionTo...");
+		
+		// idea: return to spawn before doing a messy calculation
+		// idea: do the flood fill in parallel (use many robots?) - for big maps
+		
+		Direction direction = gameMap.nextDirectionTo(myLocation,toLocation);		
+	    //log("finished nextDirectionTo.");
+	    
+	    if (direction != null) {
+			if (rc.canMove(direction)) {
+				int newDistanceToHq = hqLocation.distanceSquaredTo(toLocation);
+				int currentDistanceToHq = hqLocation.distanceSquaredTo(myLocation);
+				try	{
+					if (newDistanceToHq < currentDistanceToHq) {
+						// moving closer to HQ
+						rc.move(direction);
+					} else {
+						// don't disturb cattle
+						rc.sneak(direction);
+					}
+				} catch (GameActionException e) {
+					die(e);
 				}
-			} catch (GameActionException e) {
-				die(e);
+			} else {
+				moveRandomly();
 			}
-		} else {
-			moveRandomly();
-		}
+	    }
 	}
 }
