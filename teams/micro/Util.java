@@ -39,7 +39,10 @@ public class Util {
     	die("I'm melting, melting. Ohhhhh, what a world, what a world...", e);
     }
 
-    protected static void die (String message, Exception e) {
-        //throw new RuntimeException(message, e);
+    protected static void die (String message, Exception e) {    	
+    	if (e != null) {
+    		e.printStackTrace();
+    	}
+		//throw new RuntimeException(message, e);
     }	
 }

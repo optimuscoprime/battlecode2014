@@ -2,6 +2,7 @@ package micro;
 
 import java.util.*;
 import battlecode.common.*;
+import static micro.Util.*;
 
 public class RobotPlayer {
 	public static void run(RobotController rc) {
@@ -13,6 +14,7 @@ public class RobotPlayer {
 		
 		Player player = null;
 		RobotType robotType = rc.getType();
+		
 		switch (robotType) {
 			case HQ:
 				player = new HeadquartersPlayer(robot, robotType, rc);
@@ -32,7 +34,7 @@ public class RobotPlayer {
 			try {
 				player.playOneTurn();
 			} catch (GameActionException e) {
-				e.printStackTrace();
+				die(e);
 			}
 			rc.yield();
 		}

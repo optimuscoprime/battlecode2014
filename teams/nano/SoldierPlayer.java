@@ -4,121 +4,67 @@ import java.util.*;
 
 import battlecode.common.*;
 import static nano.Util.*;
+import static battlecode.common.RobotType.*;
+import static battlecode.common.Direction.*;
 
 public class SoldierPlayer extends BasicPlayer implements Player {
-
-	private MapLocation waypoint = null;
-	private List<MapLocation> path = null;
-	private MapLocation next = null;
-	private int i = 0;
-	private boolean reverse = false;
 	
-	public SoldierPlayer(Robot robot, RobotType robotType, RobotController rc) {
-		super(robot, robotType, rc);
+	public SoldierPlayer(Robot robot, int robotId, Team team, RobotType robotType, RobotController rc) {
+		super(robot, robotId, team, robotType, rc);
 	}
 
 	@Override
 	public void playOneTurn() throws GameActionException {
+		boolean didAttack = false;
 		
-		int numSoldiers = rc.senseNearbyGameObjects(Robot.class, 999999, rc.getTeam()).length - 1;
-		
-		// first soldiers builds a pastr
-		if (rc.isActive() && numSoldiers == 1) {
-			rc.construct(RobotType.PASTR);
-			rc.yield();
-		}
-			
 		if (rc.isActive()) {
-			attackNearbyEnemies();
+			didAttack = attackNearbyEnemies();
 		}
 		
-		MapLocation from = rc.getLocation();
-		
-		if (waypoint == null) {
+		if (!didAttack && rc.isActive()) {
 			
-			boolean found = false;
+			myLocation = rc.getLocation();
 			
-			int randomX;
-			int randomY;
+			boolean constructingPastr = false;
 			
-			do {
-				randomX = Util.random.nextInt(rc.getMapWidth());
-				randomY = Util.random.nextInt(rc.getMapHeight());
-				if (gameMap.map1x1[randomX][randomY] != TerrainTile.VOID) {
-					found = true;
+			// check the broadcasts
+			int intPastrTowerLocation = rc.readBroadcast(RADIO_CHANNEL_REQUEST_PASTR);
+			if (intPastrTowerLocation != 0) {
+				MapLocation pastrMapLocation = intToLocation(intPastrTowerLocation);
+				if (myLocation.equals(pastrMapLocation)) {
+					rc.construct(PASTR);
+				} else {
+					log("Going to pastr location");
+					gotoLocation(pastrMapLocation);
 				}
-			} while (!found);
+				constructingPastr = true;
+			}					
 			
-			waypoint = new MapLocation(randomX, randomY);
-		}
-	
-		if (waypoint != null && path == null) {
-			// go there
-			path = new ArrayList<MapLocation>(gameMap.generatePath(from, waypoint));
-		}
-		
-		
-		if (path != null) {
+			if (!constructingPastr) {
+				boolean constructingNoiseTower = false;
+				// check the broadcasts
+				int intNoiseTowerLocation = rc.readBroadcast(RADIO_CHANNEL_REQUEST_NOISETOWER);
+				if (intNoiseTowerLocation != 0) {
+					MapLocation noiseTowerMapLocation = intToLocation(intNoiseTowerLocation);
+					if (myLocation.equals(noiseTowerMapLocation)) {
+						rc.construct(NOISETOWER);
+					} else {
+						log("Going to noisetower location");
+						gotoLocation(noiseTowerMapLocation);
+					}
+					constructingNoiseTower = true;
+				}
 				
-			if (next == null) {
-				next = path.get(i);
-				if (reverse) {
-					i--;
-				} else {
-					i++;
+				if (!constructingNoiseTower) {
+					// do something
 				}
-				if (i >= path.size()) {
-					reverse = true;	
-					i--;
-				}
-				if (i < 0) {
-					reverse = false;
-					i++;
-				}				
 			}
 			
-//			log(robot, robotType, "got real path");
-//			// print path
-//			while (!path.isEmpty()) {
-//				MapLocation current = path.remove();
-//				System.out.printf("[%d,%d]\n", current.x, current.y);
-//			}
-//			System.out.printf("Path done!\n");
-//			rc.breakpoint();
-			
-			if (rc.isActive()) {
-				Direction direction = from.directionTo(next);
-				//System.out.printf("%s from\n", from);
-				//System.out.printf("%s next\n", next);
-				//System.out.printf("%s\n", direction);
-				if (rc.canMove(direction)) {
-					try	{
-						rc.move(direction);
-						next = null;
-					} catch (GameActionException e) {
-						die(e);
-					}
-				} else {
-					// let's try moving randomly
-					shuffle(allDirections);
-					for (Direction randomDirection: allDirections) {
-						if (rc.canMove(randomDirection)) {
-							try	{
-								log(robot, robotType, "moving randomly");
-								rc.move(randomDirection);
-								break;
-							} catch (GameActionException e) {
-								die(e);
-							}
-						}
-					}
-					//System.out.printf("Can't move\n");
-				}
-			} else {
-				//System.out.printf("Not active\n");
-			}
-		}
+	
+		}	
 	}
-	
-	
+
+	private void gotoLocation(MapLocation noiseTowerMapLocation) {
+		// TODO Auto-generated method stub
+	}
 }

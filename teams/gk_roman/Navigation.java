@@ -7,8 +7,6 @@ import java.util.Map;
 import java.util.PriorityQueue;
 import java.util.Random;
 
-import com.sun.tools.hat.internal.server.HistogramQuery;
-
 import battlecode.common.Direction;
 import battlecode.common.GameActionException;
 import battlecode.common.MapLocation;
