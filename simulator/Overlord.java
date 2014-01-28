@@ -73,6 +73,8 @@ public class Overlord {
 		teams.add("sc02");
 		teams.add("sound01");
 		teams.add("sound04");
+		
+		//teams.add("team085");
 
 		int total_games_to_play = (teams.size() * teams.size() - teams.size()) * maps.size();
 
