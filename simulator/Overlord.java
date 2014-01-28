@@ -69,6 +69,7 @@ public class Overlord {
 
 		//teams.add("micro");
 		//teams.add("frank");
+		// nano
 		
 		teams.add("pico");
 		teams.add("gk_roman");

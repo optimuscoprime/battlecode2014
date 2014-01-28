@@ -10,7 +10,6 @@ score_loss: 0
 use_all_teams: false
 custom_teams: 
  - pico
- - nano
  - sc02
  - sound04
  - gk_roman
