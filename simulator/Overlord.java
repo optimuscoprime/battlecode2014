@@ -67,18 +67,21 @@ public class Overlord {
 		maps.add("valve.xml");
 		maps.add("ventilation.xml");
 
-		//teams.add("micro");
-		//teams.add("frank");
-		// nano
-		
-		teams.add("pico");
+                teams.add("frank");
+		teams.add("micro");
+		teams.add("nano");
+		teams.add("pico");		
+		teams.add("gk_attack");
+		teams.add("gk_master");
 		teams.add("gk_roman");
-		teams.add("hubertTheFraternal");
+		teams.add("sc01");
 		teams.add("sc02");
+		teams.add("sound00");
+		teams.add("sound01");
+		teams.add("sound02");
+		teams.add("sound03");
 		teams.add("sound04");
-
-		// teams.add("sound01");		
-		// teams.add("team085");
+		teams.add("hubertTheFraternal");
 
 		int total_games_to_play = (teams.size() * teams.size() - teams.size()) * maps.size();
 
