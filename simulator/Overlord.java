@@ -67,7 +67,9 @@ public class Overlord {
 		maps.add("valve.xml");
 		maps.add("ventilation.xml");
 
-		teams.add("nano");
+		//teams.add("micro");
+		//teams.add("frank");
+		
 		teams.add("pico");
 		teams.add("gk_roman");
 		teams.add("hubertTheFraternal");
