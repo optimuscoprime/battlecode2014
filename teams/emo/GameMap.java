@@ -139,13 +139,13 @@ public class GameMap {
 					}
 				}				
 				if (Clock.getBytecodesLeft() < 1000) {
-					log("Used too many bytecodes");
+					//log("Used too many bytecodes");
 					break;
 				}
 			}
 			
 			if (toVisit.isEmpty()) {
-				log("finished caching");
+				//log("finished caching");
 				finishedCaching = true;
 			}
 		}

@@ -23,7 +23,11 @@ public abstract class BasicPlayer implements Player {
 
 	protected Robot myRobot;
 	protected MapLocation myLocation;
-	protected Robot[] friendlyRobots;
+	
+	protected MapLocation enemyHqLocation;
+	protected MapLocation myHqLocation;
+	
+	//protected Robot[] friendlyRobots;
 	
     public final Direction[] allDirections = new Direction[] {
     	// prefer diagonal directions
@@ -51,9 +55,16 @@ public abstract class BasicPlayer implements Player {
 		
 		// every player builds their own map
 		gameMap = new GameMap(robotId, team, robotType, rc);
+		
+		this.enemyHqLocation = rc.senseEnemyHQLocation();
+		this.myHqLocation = rc.senseHQLocation();
+		this.myLocation = rc.getLocation();
 	}
 	
-	public abstract void playOneTurn() throws GameActionException;
+	public void playOneTurn() throws GameActionException {
+		// keep this up to date
+		myLocation = rc.getLocation();
+	}
 	
     protected boolean attackNearbyEnemies() throws GameActionException {
     	//log("Started attackNearbyEnemies()...");
@@ -134,7 +145,19 @@ public abstract class BasicPlayer implements Player {
 		// let's try moving randomly
 		shuffle(randomDirections);
 		for (Direction randomDirection: randomDirections) {
-			if (rc.canMove(randomDirection)) {
+			boolean canMove = rc.canMove(randomDirection);
+			
+			if (canMove) {
+				MapLocation toLocation = myLocation.add(randomDirection);
+	
+				int newDistanceToEnemyHq = enemyHqLocation.distanceSquaredTo(toLocation);
+				if (newDistanceToEnemyHq <= RobotType.HQ.attackRadiusMaxSquared) {
+					log("can't move");
+					canMove = false;
+				}
+			}
+			
+			if (canMove) {
 				try	{
 					//log("sneaking randomly");
 					rc.sneak(randomDirection);
@@ -143,6 +166,6 @@ public abstract class BasicPlayer implements Player {
 					die(e);
 				}
 			}
-		} 	
+		} 			
     }
 }

@@ -6,23 +6,26 @@ import battlecode.common.*;
 import static emo.Util.*;
 import static battlecode.common.RobotType.*;
 import static battlecode.common.Direction.*;
+import static emo.Util.*;
 
 public class SoldierPlayer extends BasicPlayer implements Player {
 	
 	private MapLocation pastrConstructionMapLocation;
 	private MapLocation noiseTowerConstructionMapLocation;
 
-	private MapLocation hqLocation;
 	private MapLocation waypointLocation;
 	private int waypointRound;
 
 	public SoldierPlayer(Robot robot, int robotId, Team team, RobotType robotType, RobotController rc) {
 		super(robot, robotId, team, robotType, rc);
-		hqLocation = rc.senseHQLocation();
+		myHqLocation = rc.senseHQLocation();
+		enemyHqLocation = rc.senseEnemyHQLocation();
 	}
 
 	@Override
 	public void playOneTurn() throws GameActionException {
+		super.playOneTurn();
+		
 		boolean didAttack = false;
 		
 		myLocation = rc.getLocation();
@@ -68,7 +71,9 @@ public class SoldierPlayer extends BasicPlayer implements Player {
 				
 				if (!constructingNoiseTower) {
 					
-					friendlyRobots = rc.senseNearbyGameObjects(Robot.class, HUGE_RADIUS, myTeam);
+					Robot[] nearbyFriendlyRobots = rc.senseNearbyGameObjects(Robot.class, myRobotType.sensorRadiusSquared, myTeam);
+					
+					int numNearbyFriendlySoldiers = countSoldiers(nearbyFriendlyRobots, rc);
 												
 					int intWaypointLocation = rc.readBroadcast(RADIO_CHANNEL_WAYPOINT);
 					if (intWaypointLocation != 0) {
@@ -79,15 +84,15 @@ public class SoldierPlayer extends BasicPlayer implements Player {
 						waypointLocation = null;
 					}
 					
-					if (waypointLocation != null && friendlyRobots.length > 3) {
-						log("going to waypoint");
+					if (waypointLocation != null && numNearbyFriendlySoldiers > 2) {
+						//log("going to waypoint");
 						gotoLocation(waypointLocation);
 					} else {
 						// make a random move for now
 						if (random.nextDouble() < 0.25) {
 							moveRandomly();
 						} else {
-							gotoLocation(hqLocation);
+							gotoLocation(myHqLocation);
 						}
 					}
 					
@@ -107,12 +112,22 @@ public class SoldierPlayer extends BasicPlayer implements Player {
 	    //log("finished nextDirectionTo.");
 	    
 	    if (direction != null) {
-			if (rc.canMove(direction)) {
-				int newDistanceToHq = hqLocation.distanceSquaredTo(toLocation);
-				int currentDistanceToHq = hqLocation.distanceSquaredTo(myLocation);
+
+	    	boolean canMove = rc.canMove(direction);
+	    	
+	    	if (canMove) {
+				int newDistanceToEnemyHq = enemyHqLocation.distanceSquaredTo(toLocation);
+				if (newDistanceToEnemyHq <= RobotType.HQ.attackRadiusMaxSquared) {
+					canMove = false;
+				}
+	    	}
+	    	
+			if (canMove) {
+				int newDistanceToMyHq = myHqLocation.distanceSquaredTo(toLocation);
+				int currentDistanceToMyHq = myHqLocation.distanceSquaredTo(myLocation);
 				try	{
-					if (newDistanceToHq < currentDistanceToHq) {
-						// moving closer to HQ
+					if (newDistanceToMyHq < currentDistanceToMyHq) {
+						// moving closer to our HQ
 						rc.move(direction);
 					} else {
 						// don't disturb cattle

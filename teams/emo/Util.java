@@ -1,5 +1,7 @@
 package emo;
 
+import static battlecode.common.RobotType.SOLDIER;
+
 import java.util.*;
 
 import battlecode.common.*;
@@ -152,5 +154,18 @@ public class Util {
 			}
 		}			
 		System.out.printf("All tests passed!");
-	}    
+	}   
+	
+	public static int countSoldiers (Robot[] robots, RobotController rc) throws GameActionException {
+		int numSoldiers = 0;
+		for (Robot robot: robots) {
+			if (rc.canSenseObject(robot)) {
+				RobotInfo info = rc.senseRobotInfo(robot);
+				if (info.type == SOLDIER) {
+					numSoldiers++;
+				}
+			}
+		}
+		return numSoldiers;
+	}
 }

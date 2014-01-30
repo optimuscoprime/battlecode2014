@@ -11,6 +11,8 @@ public class PastrPlayer extends BasicPlayer implements Player {
 
 	@Override
 	public void playOneTurn() throws GameActionException {
+		super.playOneTurn();
+		
 		// TODO Auto-generated method stub
 		
 	}

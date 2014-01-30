@@ -13,7 +13,9 @@ public class HeadquartersPlayer extends BasicPlayer implements Player  {
 	private MapLocation pastrConstructionLocation;
 	private MapLocation noiseTowerConstructionLocation;
 	private int waypointRound;
-	
+	private Robot[] allFriendlyRobots;
+	private Robot[] nearbyFriendlyRobots;
+
 	
 	public HeadquartersPlayer(Robot robot, int robotId, Team team, RobotType robotType, RobotController rc) {
 		super(robot, robotId, team, robotType, rc);
@@ -21,6 +23,7 @@ public class HeadquartersPlayer extends BasicPlayer implements Player  {
 
 	@Override
 	public void playOneTurn() throws GameActionException {
+		super.playOneTurn();
 		
 		// evaluate strategy
 		
@@ -53,11 +56,14 @@ public class HeadquartersPlayer extends BasicPlayer implements Player  {
 			tryToSpawn();
 		}
 		
-		friendlyRobots = rc.senseNearbyGameObjects(Robot.class, HUGE_RADIUS, myTeam);
+		allFriendlyRobots = rc.senseNearbyGameObjects(Robot.class, HUGE_RADIUS, myTeam);
+		nearbyFriendlyRobots = rc.senseNearbyGameObjects(Robot.class, myRobotType.sensorRadiusSquared, myTeam);
+		
+		int nearbyFriendlySoldiers = countSoldiers(nearbyFriendlyRobots, rc);
 		
 		//if (friendlyRobots.length > 16) {
 		
-		if (Clock.getRoundNum() > 500) {
+		if (nearbyFriendlySoldiers > 4) {
 			
 			maybeAskForPastr();
 		
@@ -78,7 +84,7 @@ public class HeadquartersPlayer extends BasicPlayer implements Player  {
 						
 		int numPastrs = 0;
 		
-		for (Robot friendlyRobot: friendlyRobots) {
+		for (Robot friendlyRobot: allFriendlyRobots) {
 			RobotInfo info = rc.senseRobotInfo(friendlyRobot);
 			if (info.type == PASTR) {
 				numPastrs++;
@@ -118,7 +124,7 @@ public class HeadquartersPlayer extends BasicPlayer implements Player  {
 						
 		int numNoiseTowers = 0;
 		
-		for (Robot friendlyRobot: friendlyRobots) {
+		for (Robot friendlyRobot: allFriendlyRobots) {
 			RobotInfo info = rc.senseRobotInfo(friendlyRobot);
 			if (info.type == NOISETOWER) {
 				numNoiseTowers++;
@@ -190,7 +196,7 @@ public class HeadquartersPlayer extends BasicPlayer implements Player  {
 					}
 				}
 			}			
-			if (goodTiles > 5) {
+			if (goodTiles > 4) {
 				boolean canBuild = true;
 				
 				// check if there is a construction there
@@ -226,7 +232,7 @@ public class HeadquartersPlayer extends BasicPlayer implements Player  {
     	if (enemyPastrLocations.length > 0) {
     		
     		waypointLocation = enemyPastrLocations[0];
-    		log("created pastr waypoint");
+    		//log("created pastr waypoint");
     		
     	} else {
     		
