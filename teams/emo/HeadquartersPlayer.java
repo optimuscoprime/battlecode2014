@@ -82,7 +82,7 @@ public class HeadquartersPlayer extends BasicPlayer implements Player  {
 		}
 		
 		//if (Clock.getRoundNum() > 500) {
-		maybeCreateExploringWaypoint();	
+		//maybeCreateExploringWaypoint();	
 		//}
 		 
 		rc.yield();
@@ -222,7 +222,7 @@ public class HeadquartersPlayer extends BasicPlayer implements Player  {
 				}
 			}
 			
-			if (freeTiles > 3) {
+			if (freeTiles > 4) {
 				boolean canBuild = true;
 				
 				// check if there is a construction there
@@ -243,7 +243,7 @@ public class HeadquartersPlayer extends BasicPlayer implements Player  {
 			
 			i++;
 	
-			if (bestFreeTiles > 5 || i > 16) {
+			if (bestFreeTiles > 6 || i > 16) {
 				break;
 			}			
 			
@@ -251,48 +251,6 @@ public class HeadquartersPlayer extends BasicPlayer implements Player  {
 		
 		return bestLocation;
 	}
-	
-    private void maybeCreateExploringWaypoint() throws GameActionException {
-    	// idea: create waypoint based on cows?
-    	
-    	//if (Clock.getRoundNum() - waypointRound > 50) {
-    		
-    	MapLocation waypointLocation = null;
-    	
-    	MapLocation[] enemyPastrLocations = rc.sensePastrLocations(opponentTeam);
-    	
-    	//if (numNearbyFriendlySoldiers > 3 && enemyPastrLocations.length > 0) {
-        		
-    		// if we have some defenders, and there are enemy pastrs, then allow soldiers to go to their nearest pastr
-    		
-    		
-    	//} else {
-    		
-    		//waypointLocation = myHqLocation;
-	
-    	//}    		
-    	
-    	
-
-    	
-//    	} else {
-//        	boolean found = false;
-//    		
-//	    	while (!found) {
-//				waypointLocation = new MapLocation(gameMap.width/4 + random.nextInt(gameMap.width/2), gameMap.height/4 + random.nextInt(gameMap.height/2));
-//	    		if (gameMap.isTraversable(waypointLocation.x,  waypointLocation.y)) {
-//	    			found = true;
-//	    		}
-//	    	}
-//    	}
-    	
-    	if (waypointLocation != null) {
-    		rc.broadcast(RADIO_CHANNEL_WAYPOINT, locationToInt(waypointLocation));
-    	} else {
-    		rc.broadcast(RADIO_CHANNEL_WAYPOINT, 0);
- 
-    	}
-	}	
 
 	private boolean tryToSpawn () {
         // check surrounding squares

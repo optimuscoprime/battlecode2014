@@ -11,6 +11,7 @@ public class NoiseTowerPlayer extends BasicPlayer implements Player {
 	private MapLocation focusLocation = null;
 	private int i = 0;
 	private int n = 0;
+	private double[][] allCowGrowth;
 	
 	public NoiseTowerPlayer(Robot robot, int robotId, Team team, RobotType robotType, RobotController rc) {
 		super(robot, robotId, team, robotType, rc);
@@ -35,6 +36,8 @@ public class NoiseTowerPlayer extends BasicPlayer implements Player {
 		//focusLocation = myLocation;
 		
 		i = 0;
+		
+		allCowGrowth = rc.senseCowGrowth();
 	}
 	
 	private void sortTargets() {
@@ -69,7 +72,14 @@ public class NoiseTowerPlayer extends BasicPlayer implements Player {
 			
 			while (!rc.isActive()) {
 				rc.yield();
-			} 
+			} 			
+			
+			//if (allCowGrowth[pulseLocation.x][pulseLocation.y] < 0.5) {
+			//	// small chance we just skip it
+			//	if (Util.random.nextDouble() < 0.5) {
+			//		playOneTurn();
+			//	}
+			//}
 			
 			double surroundingCows = 0;
 			
