@@ -7,7 +7,6 @@ import static battlecode.common.Direction.*;
 import static emo.Util.*;
 import static battlecode.common.RobotType.*;
 
-
 public class HeadquartersPlayer extends BasicPlayer implements Player  {
 		    
 	private MapLocation pastrConstructionLocation;
@@ -15,7 +14,9 @@ public class HeadquartersPlayer extends BasicPlayer implements Player  {
 	private int waypointRound;
 	private Robot[] allFriendlyRobots;
 	private Robot[] nearbyFriendlyRobots;
-	private int nearbyFriendlySoldiers;
+	private int numNearbyFriendlySoldiers;
+	
+	
 
 	
 	public HeadquartersPlayer(Robot robot, int robotId, Team team, RobotType robotType, RobotController rc) {
@@ -54,7 +55,7 @@ public class HeadquartersPlayer extends BasicPlayer implements Player  {
 		allFriendlyRobots = rc.senseNearbyGameObjects(Robot.class, HUGE_RADIUS, myTeam);
 		nearbyFriendlyRobots = rc.senseNearbyGameObjects(Robot.class, myRobotType.sensorRadiusSquared, myTeam);
 		
-		nearbyFriendlySoldiers = countSoldiers(nearbyFriendlyRobots, rc);		
+		numNearbyFriendlySoldiers = countSoldiers(nearbyFriendlyRobots, rc);		
 		
 		boolean didAttack = false;
 		
@@ -72,7 +73,7 @@ public class HeadquartersPlayer extends BasicPlayer implements Player  {
 		
 		//if (friendlyRobots.length > 16) {
 		
-		if (nearbyFriendlySoldiers > 4) {
+		if (numNearbyFriendlySoldiers > 2) {
 			
 			maybeAskForPastr();
 		
@@ -247,22 +248,10 @@ public class HeadquartersPlayer extends BasicPlayer implements Player  {
     	
     	MapLocation[] enemyPastrLocations = rc.sensePastrLocations(opponentTeam);
     	
-    	
-    	if (nearbyFriendlySoldiers > 4 && enemyPastrLocations.length > 0) {
+    	if (numNearbyFriendlySoldiers > 2 && enemyPastrLocations.length > 0) {
         		
-    		// pick the pastr location that is closest to our hq
+    		// if we have some defenders, and there are enemy pastrs, then allow soldiers to go to their nearest pastr
     		
-    		sort(enemyPastrLocations, new Comparator<MapLocation>() {
-
-				@Override
-				public int compare(MapLocation o1, MapLocation o2) {
-					return new Integer(myHqLocation.distanceSquaredTo(o1)).compareTo(myHqLocation.distanceSquaredTo(o2));
-				}
-    			
-    		});
-    		
-    		waypointLocation = enemyPastrLocations[0];
-    		//log("created pastr waypoint");
     		
     	} else {
     		

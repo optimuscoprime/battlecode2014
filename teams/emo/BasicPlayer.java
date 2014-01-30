@@ -68,7 +68,7 @@ public abstract class BasicPlayer implements Player {
 	
     protected boolean attackNearbyEnemies() throws GameActionException {
     	
-    	log("Started attackNearbyEnemies()...");
+    	//log("Started attackNearbyEnemies()...");
     	
         boolean didAttack = false;
         
@@ -143,7 +143,7 @@ public abstract class BasicPlayer implements Player {
         	}
         }
 
-        log("Finished attackNearbyEnemies().");
+        //log("Finished attackNearbyEnemies().");
         
         return didAttack;
     }	
@@ -185,6 +185,14 @@ public abstract class BasicPlayer implements Player {
 		
 		Direction direction = gameMap.nextDirectionTo(myLocation,toLocation);		
 	    //log("finished nextDirectionTo.");
+		
+		// just try going there, if we are still waiting for the perfect map
+		if (direction == null) {
+			direction = myLocation.directionTo(toLocation);
+			//if (!rc.canMove(direction)) {
+			//	direction = null;
+			//}
+		}
 	    
 	    if (direction != null) {
 

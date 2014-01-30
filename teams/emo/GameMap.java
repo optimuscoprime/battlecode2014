@@ -7,19 +7,116 @@ import static emo.Util.*;
 import static battlecode.common.Direction.*;
 import static battlecode.common.TerrainTile.*;
 
+class CachedFloodedMap {
+    public static Direction[] allDirections = new Direction[] {
+    	// prefer diagonal directions
+    	NORTH_EAST,
+    	NORTH_WEST,
+    	SOUTH_WEST,
+    	SOUTH_EAST,
+        EAST,
+        NORTH,
+        WEST,
+        SOUTH,
+    };		
+	
+	public Double[][] floodedMap;
+	public MapLocation fromLocation;
+	public MapLocation toLocation;
+	public PriorityQueue<MapLocation> toVisit;
+	public boolean finishedCaching = false;
+	private GameMap gameMap;
+	
+	public CachedFloodedMap(final GameMap gameMap, final int width, final int height, final MapLocation fromLocation, final MapLocation toLocation) {
+		this.gameMap = gameMap;
+		this.fromLocation = fromLocation;
+		this.toLocation = toLocation;
+		this.finishedCaching = false;
+		this.floodedMap = new Double[width][height];
+		
+		// init
+		for (int x=0; x < width; x++) {
+			for (int y=0; y < height; y++) {
+				floodedMap[x][y] = null;
+			}
+		}
+		
+		this.toVisit = new PriorityQueue<MapLocation>(100, new Comparator<MapLocation>() {
+			public int compare(MapLocation o1, MapLocation o2) {
+				// prefer locations closer to the to location
+				return new Integer(toLocation.distanceSquaredTo(o1)).compareTo(toLocation.distanceSquaredTo(o2));
+			}
+		});
+		
+		floodedMap[toLocation.x][toLocation.y] = 0.0;
+		
+		toVisit.add(toLocation);
+	}
+	
+	public void continueCaching() {
+			
+		log("still caching map");
+		
+		while (!finishedCaching && !toVisit.isEmpty()) {
+			MapLocation currentLocation = toVisit.remove();
+			
+			if (currentLocation.equals(fromLocation)) {
+				
+				finishedCaching = true;
+				break;
+				
+			} else {
+				
+				double thisScore = floodedMap[currentLocation.x][currentLocation.y];
+				for (Direction direction: allDirections) {
+					MapLocation newLocation = currentLocation.add(direction);								
+					if (gameMap.isTraversable(newLocation.x, newLocation.y) && floodedMap[newLocation.x][newLocation.y] == null) {
+						floodedMap[newLocation.x][newLocation.y] = thisScore + 1; //getTileScore(newLocation, direction);
+						toVisit.add(newLocation);
+					}
+				}				
+				if (Clock.getBytecodesLeft() < 1000) {
+					//log("Used too many bytecodes");
+					break;
+				}		
+				
+			}
+		}
+		
+		if (toVisit.isEmpty()) {
+			finishedCaching = true;
+		}
+		
+		if (finishedCaching) {
+			log("finished caching map");
+		}
+	
+	}
+//	
+//	private void printFloodedMap() {
+//		for (int x=0; x < width; x++) {
+//			for (int y =0; y < height; y++) {
+//				if (floodedMap[x][y] == null) {
+//					System.out.printf("      ");
+//				} else {
+//					System.out.printf("%02.1f  ", floodedMap[x][y]);
+//				}
+//			}
+//			System.out.printf("\n");
+//		}
+//	}	
+}
+
+
 public class GameMap {
 	private RobotController rc;
 	
 	public TerrainTile[][] map;
-	public Double[][] floodedMap = null;
-	public MapLocation cachedToLocation = null;
 	public int width;
 	public int height;
-	private Deque<MapLocation> toVisit = null;
 
-	private boolean finishedCaching = false;
-
-	private boolean reachedFromLocation = false;
+	// <to,map>
+	public Map<MapLocation, CachedFloodedMap> cachedFloodedMaps = new HashMap<MapLocation, CachedFloodedMap>();
 	
     public static Direction[] allDirections = new Direction[] {
     	// prefer diagonal directions
@@ -98,94 +195,45 @@ public class GameMap {
 				map[x][y] != VOID);
 	}
 
-	public Direction nextDirectionTo(MapLocation fromLocation, MapLocation toLocation) {
+	public Direction nextDirectionTo(final MapLocation fromLocation, final MapLocation toLocation) {
 		
-		if (fromLocation.distanceSquaredTo(toLocation) > 2000) {
+		//if (fromLocation.distanceSquaredTo(toLocation) > 500) {
 			// no point calculating a map
 			// just try moving
-			return fromLocation.directionTo(toLocation);
-		}
+		//	return fromLocation.directionTo(toLocation);
+		//}
 		
 		if (fromLocation == toLocation) {
 			return Direction.NONE;
 		}
 		
-		if (!toLocation.equals(cachedToLocation)) {
-			// do the flood fill
-
-			floodedMap = new Double[width][height];
-			
-			// init
-			for (int x=0; x < width; x++) {
-				for (int y=0; y < height; y++) {
-					floodedMap[x][y] = null;
-				}
-			}
-			
-			//int expectedFlooded = width*height;
-			
-			floodedMap[toLocation.x][toLocation.y] = 0.0;
-			
-			toVisit = new ArrayDeque<MapLocation>();
-			toVisit.add(toLocation);
-			
-			cachedToLocation = toLocation;
-			finishedCaching = false;
-		}
+		// check if we have a cached map
 		
+		CachedFloodedMap cachedFloodedMap = cachedFloodedMaps.get(toLocation);
+		if (cachedFloodedMap == null) {
+			cachedFloodedMap = new CachedFloodedMap(this, height, height, fromLocation, toLocation);
+			cachedFloodedMaps.put(toLocation,  cachedFloodedMap);
+		}
+
 		// check if from location is in the cached map
 		// if not, need to keep flooding
-		if (floodedMap[fromLocation.x][fromLocation.y] == null) {
-			finishedCaching = false;
-			reachedFromLocation = false;
+		if (cachedFloodedMap.floodedMap[fromLocation.x][fromLocation.y] == null) {
+			cachedFloodedMap.finishedCaching = false;
 		}
 		
-		if (!finishedCaching) {
-			
-			log("still caching map");
-			
-			while (!reachedFromLocation && !toVisit.isEmpty()) {
-				MapLocation currentLocation = toVisit.remove();
-				if (currentLocation.equals(fromLocation)) {
-					reachedFromLocation = true;
-					break;
-				} else {
-					double thisScore = floodedMap[currentLocation.x][currentLocation.y];
-					for (Direction direction: allDirections) {
-						MapLocation newLocation = currentLocation.add(direction);								
-						if (isTraversable(newLocation.x, newLocation.y) && floodedMap[newLocation.x][newLocation.y] == null) {
-							floodedMap[newLocation.x][newLocation.y] = thisScore + 1; //getTileScore(newLocation, direction);
-							toVisit.add(newLocation);
-						}
-					}				
-					if (Clock.getBytecodesLeft() < 1000) {
-						//log("Used too many bytecodes");
-						break;
-					}					
-				}
-			}
-			
-			if (reachedFromLocation || toVisit.isEmpty()) {
-				//log("finished caching");
-				finishedCaching = true;
-				log("finished caching map");
-				
-				// print it and then die
-				
-				//printFloodedMap();
-				//rc.breakpoint();
-			}
+		if (!cachedFloodedMap.finishedCaching) {
+			cachedFloodedMap.continueCaching();
 		}
 		
 		Direction nextDirection = null;
 		
-		if (finishedCaching) {
+		if (cachedFloodedMap.finishedCaching) {
 			double lowestScore = Integer.MAX_VALUE;
 			
 			for (Direction direction: allDirections) {
 				MapLocation testLocation = fromLocation.add(direction);
 				if (isTraversable(testLocation.x, testLocation.y)) {
-					Double thisScore = floodedMap[testLocation.x][testLocation.y];
+					Double thisScore = cachedFloodedMap.floodedMap[testLocation.x][testLocation.y];
 					if (thisScore != null) {
 						if (direction.isDiagonal()) {
 							thisScore += 0.3; // discourage diagonal directions unless they save time
@@ -200,19 +248,6 @@ public class GameMap {
 		}
 
 		return nextDirection;
-	}
-
-	private void printFloodedMap() {
-		for (int x=0; x < width; x++) {
-			for (int y =0; y < height; y++) {
-				if (floodedMap[x][y] == null) {
-					System.out.printf("      ");
-				} else {
-					System.out.printf("%02.1f  ", floodedMap[x][y]);
-				}
-			}
-			System.out.printf("\n");
-		}
 	}
 
 	// lower is better

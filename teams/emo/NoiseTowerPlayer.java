@@ -18,7 +18,7 @@ public class NoiseTowerPlayer extends BasicPlayer implements Player {
 		pulseLocations = new ArrayList<MapLocation>();
 		
 		for (int x = 0; x < gameMap.width; x += 1) {
-			for (int y =0; y < gameMap.height; y += 1) {
+			for (int y = 0; y < gameMap.height; y += 1) {
 				MapLocation pulseLocation = new MapLocation(x,y);
 				int attackDistance = myLocation.distanceSquaredTo(pulseLocation);
 				if (gameMap.isTraversable(pulseLocation.x, pulseLocation.y) && 
