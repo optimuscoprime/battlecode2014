@@ -1,4 +1,4 @@
-package sound04;
+package brute01;
 
 import battlecode.common.GameActionException;
 import battlecode.common.MapLocation;
@@ -9,7 +9,7 @@ import battlecode.common.RobotType;
 import battlecode.common.Team;
 import battlecode.common.Direction;
 import battlecode.common.Clock;
-import sound04.Comms.Message;
+import brute01.Comms.Message;
 
 public class Tactics {
 	
@@ -144,10 +144,10 @@ maybe even when we're getting shot we just want that soldier to yell help and ru
 			MapLocation targetLoc=null;
 			if(rc.isActive()){
 						//we have strength.
+				Robot friendlies[] = rc.senseNearbyGameObjects(Robot.class, loc, r, rc.getTeam());
 				for (int i = enemies.length; --i >= 0;) {
 					Robot e = enemies[i];
 					RobotInfo ei = rc.senseRobotInfo(e);
-					Robot friendlies[] = rc.senseNearbyGameObjects(Robot.class, ei.location, r, rc.getTeam());
 					if((enemies.length<friendlies.length)&&(rc.getHealth()>(rc.getType().maxHealth/4)) ){
 						if(ei.health<lowestEH){	//pickoff weakest .. also skips hq.
 							targetLoc = ei.location;
