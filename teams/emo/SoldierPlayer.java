@@ -45,7 +45,7 @@ public class SoldierPlayer extends BasicPlayer implements Player {
 				if (myLocation.equals(pastrConstructionMapLocation)) {
 					rc.construct(PASTR);
 				} else {
-					log("Going to pastr location");
+					rc.setIndicatorString(0,  "going to pastr location");
 					gotoLocation(pastrConstructionMapLocation);
 				}
 				constructingPastr = true;
@@ -63,7 +63,7 @@ public class SoldierPlayer extends BasicPlayer implements Player {
 						// check if another robot is there
 						//Robot robot = rc.senseObjectAtLocation(noiseTowerConstructionMapLocation);
 						
-						log("Going to noisetower location");
+						rc.setIndicatorString(0,  "going to noisetower location");
 						gotoLocation(noiseTowerConstructionMapLocation);
 					}
 					constructingNoiseTower = true;
@@ -86,12 +86,15 @@ public class SoldierPlayer extends BasicPlayer implements Player {
 					
 					if (waypointLocation != null && numNearbyFriendlySoldiers > 2) {
 						//log("going to waypoint");
+						rc.setIndicatorString(0,  "going to waypoint");
 						gotoLocation(waypointLocation);
 					} else {
 						// make a random move for now
 						if (random.nextDouble() < 0.25) {
+							rc.setIndicatorString(0,  "moving randomly");
 							moveRandomly();
 						} else {
+							rc.setIndicatorString(0, "going to hq");
 							gotoLocation(myHqLocation);
 						}
 					}
@@ -101,44 +104,5 @@ public class SoldierPlayer extends BasicPlayer implements Player {
 		}	
 	}
 
-	private void gotoLocation(MapLocation toLocation) {
-		
-		//log("started nextDirectionTo...");
-		
-		// idea: return to spawn before doing a messy calculation
-		// idea: do the flood fill in parallel (use many robots?) - for big maps
-		
-		Direction direction = gameMap.nextDirectionTo(myLocation,toLocation);		
-	    //log("finished nextDirectionTo.");
-	    
-	    if (direction != null) {
 
-	    	boolean canMove = rc.canMove(direction);
-	    	
-	    	if (canMove) {
-				int newDistanceToEnemyHq = enemyHqLocation.distanceSquaredTo(toLocation);
-				if (newDistanceToEnemyHq <= RobotType.HQ.attackRadiusMaxSquared) {
-					canMove = false;
-				}
-	    	}
-	    	
-			if (canMove) {
-				int newDistanceToMyHq = myHqLocation.distanceSquaredTo(toLocation);
-				int currentDistanceToMyHq = myHqLocation.distanceSquaredTo(myLocation);
-				try	{
-					if (newDistanceToMyHq < currentDistanceToMyHq) {
-						// moving closer to our HQ
-						rc.move(direction);
-					} else {
-						// don't disturb cattle
-						rc.sneak(direction);
-					}
-				} catch (GameActionException e) {
-					die(e);
-				}
-			} else {
-				moveRandomly();
-			}
-	    }
-	}
 }

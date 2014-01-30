@@ -18,6 +18,8 @@ public class GameMap {
 	private Deque<MapLocation> toVisit = null;
 
 	private boolean finishedCaching = false;
+
+	private boolean reachedFromLocation = false;
 	
     public static Direction[] allDirections = new Direction[] {
     	// prefer diagonal directions
@@ -96,7 +98,17 @@ public class GameMap {
 				map[x][y] != VOID);
 	}
 
-	public Direction nextDirectionTo(MapLocation myLocation, MapLocation toLocation) {
+	public Direction nextDirectionTo(MapLocation fromLocation, MapLocation toLocation) {
+		
+		if (fromLocation.distanceSquaredTo(toLocation) > 750) {
+			// no point calculating a map
+			// just try moving
+			return fromLocation.directionTo(toLocation);
+		}
+		
+		if (fromLocation == toLocation) {
+			return Direction.NONE;
+		}
 		
 		if (!toLocation.equals(cachedToLocation)) {
 			// do the flood fill
@@ -126,10 +138,23 @@ public class GameMap {
 			finishedCaching = false;
 		}
 		
+		// check if from location is in the cached map
+		// if not, need to keep flooding
+		if (floodedMap[fromLocation.x][fromLocation.y] == -1) {
+			finishedCaching = false;
+			reachedFromLocation = false;
+		}
+		
 		if (!finishedCaching) {
 			
-			while (!toVisit.isEmpty()) {
+			log("still caching map");
+			
+			while (!reachedFromLocation && !toVisit.isEmpty()) {
 				MapLocation currentLocation = toVisit.remove();
+				if (currentLocation.equals(fromLocation)) {
+					reachedFromLocation = true;
+					break;
+				}
 				int thisScore = floodedMap[currentLocation.x][currentLocation.y];
 				for (Direction direction: allDirections) {
 					MapLocation newLocation = currentLocation.add(direction);								
@@ -144,9 +169,10 @@ public class GameMap {
 				}
 			}
 			
-			if (toVisit.isEmpty()) {
+			if (reachedFromLocation || toVisit.isEmpty()) {
 				//log("finished caching");
 				finishedCaching = true;
+				log("finished caching map");
 			}
 		}
 		
@@ -156,7 +182,7 @@ public class GameMap {
 			int lowestScore = Integer.MAX_VALUE;
 			
 			for (Direction direction: allDirections) {
-				MapLocation testLocation = myLocation.add(direction);
+				MapLocation testLocation = fromLocation.add(direction);
 				if (isTraversable(testLocation.x, testLocation.y)) {
 					int thisScore = floodedMap[testLocation.x][testLocation.y];
 					if (thisScore < lowestScore) {

@@ -41,14 +41,14 @@ public class NoiseTowerPlayer extends BasicPlayer implements Player {
 	public void playOneTurn() throws GameActionException {
 		super.playOneTurn();
 		
-		//int n = 0;
+		int n = 0;
 		while (true) {
-			//n++;
+			n++;
 			for (int i=0; i < pulseLocations.size(); i++) {
 				
-				//if (i % 3 != n % 3) {
-				//	continue;
-				//}				
+				if (i % 6 != n % 6) {
+					continue;
+				}				
 				
 				MapLocation pulseLocation = pulseLocations.get(i);
 				
@@ -59,9 +59,7 @@ public class NoiseTowerPlayer extends BasicPlayer implements Player {
 				double surroundingCows = 0;
 				
 				boolean canSense = false;
-				
-				log("begin sensing");
-				
+								
 				for (Direction direction: allDirections) {
 					MapLocation surroundingLocation = pulseLocation.add(direction);
 					if (rc.canSenseSquare(surroundingLocation)) {
@@ -69,14 +67,12 @@ public class NoiseTowerPlayer extends BasicPlayer implements Player {
 						canSense = true;
 					}
 				}
-				
-				log("end sensing");
-				
+								
 				if (!canSense) {
-					log("can't sense, attacking blind");
+					rc.setIndicatorString(0, "can't sense, attacking blind");
 					rc.attackSquare(pulseLocation);
 				} else if (surroundingCows > 10) {
-					log("has some cows, attacking");
+					rc.setIndicatorString(0,  "has some cows, attacking");
 					rc.attackSquare(pulseLocation);
 				} else {
 					log("no cows, not attacking");

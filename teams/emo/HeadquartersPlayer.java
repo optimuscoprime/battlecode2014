@@ -15,6 +15,7 @@ public class HeadquartersPlayer extends BasicPlayer implements Player  {
 	private int waypointRound;
 	private Robot[] allFriendlyRobots;
 	private Robot[] nearbyFriendlyRobots;
+	private int nearbyFriendlySoldiers;
 
 	
 	public HeadquartersPlayer(Robot robot, int robotId, Team team, RobotType robotType, RobotController rc) {
@@ -45,6 +46,10 @@ public class HeadquartersPlayer extends BasicPlayer implements Player  {
 		// 3. spawn a new robot
 		// if not attacking
 		
+		allFriendlyRobots = rc.senseNearbyGameObjects(Robot.class, HUGE_RADIUS, myTeam);
+		nearbyFriendlyRobots = rc.senseNearbyGameObjects(Robot.class, myRobotType.sensorRadiusSquared, myTeam);
+		
+		nearbyFriendlySoldiers = countSoldiers(nearbyFriendlyRobots, rc);		
 		
 		boolean didAttack = false;
 		
@@ -52,14 +57,13 @@ public class HeadquartersPlayer extends BasicPlayer implements Player  {
 			didAttack = attackNearbyEnemies();
 		}
 		
+		boolean didSpawn = false;
+		
 		if (!didAttack && rc.isActive()) {
-			tryToSpawn();
+			didSpawn = tryToSpawn();
 		}
 		
-		allFriendlyRobots = rc.senseNearbyGameObjects(Robot.class, HUGE_RADIUS, myTeam);
-		nearbyFriendlyRobots = rc.senseNearbyGameObjects(Robot.class, myRobotType.sensorRadiusSquared, myTeam);
-		
-		int nearbyFriendlySoldiers = countSoldiers(nearbyFriendlyRobots, rc);
+
 		
 		//if (friendlyRobots.length > 16) {
 		
@@ -167,12 +171,20 @@ public class HeadquartersPlayer extends BasicPlayer implements Player  {
 		Deque<MapLocation> possibleLocations = new ArrayDeque<MapLocation>();
 		Set<MapLocation> visitedLocations = new HashSet<MapLocation>();
 		
-		myLocation = rc.senseHQLocation();
 		visitedLocations.add(myLocation);
 		
-		shuffle(randomDirections); 
 		
-		for (Direction direction: randomDirections) {
+		// sort by distance to enemy HQ
+		// prefer bigger distances
+		Direction[] sortedDirections = allDirections.clone();
+		sort(sortedDirections, new Comparator<Direction>() {
+			public int compare(Direction o1, Direction o2) {
+				return new Integer(myLocation.add(o2).distanceSquaredTo(enemyHqLocation)).compareTo(myLocation.add(o1).distanceSquaredTo(enemyHqLocation));
+			}
+			
+		}); 
+		
+		for (Direction direction: sortedDirections) {
 			MapLocation possibleLocation = myLocation.add(direction);
 			if (gameMap.isTraversable(possibleLocation.x, possibleLocation.y)) {
 				possibleLocations.add(possibleLocation);
@@ -186,7 +198,7 @@ public class HeadquartersPlayer extends BasicPlayer implements Player  {
 			
 			int goodTiles = 0;
 			
-			for (Direction direction: randomDirections) {
+			for (Direction direction: sortedDirections) {
 				MapLocation possibleLocation = currentLocation.add(direction);
 				if (gameMap.isTraversable(possibleLocation.x, possibleLocation.y)) {					
 					goodTiles++;
@@ -229,16 +241,20 @@ public class HeadquartersPlayer extends BasicPlayer implements Player  {
     	
     	MapLocation[] enemyPastrLocations = rc.sensePastrLocations(opponentTeam);
     	
-    	if (enemyPastrLocations.length > 0) {
-    		
+    	
+    	if (nearbyFriendlySoldiers > 4 && enemyPastrLocations.length > 0) {
+        		
     		waypointLocation = enemyPastrLocations[0];
     		//log("created pastr waypoint");
     		
     	} else {
     		
-    		waypointLocation = myLocation;
-    		
-    	}
+    		waypointLocation = myHqLocation;
+	
+    	}    		
+    	
+    	
+
     	
 //    	} else {
 //        	boolean found = false;
@@ -259,9 +275,11 @@ public class HeadquartersPlayer extends BasicPlayer implements Player  {
     	}
 	}	
 
-	private void tryToSpawn () {
+	private boolean tryToSpawn () {
         // check surrounding squares
         // spawn in one of them
+		
+		boolean spawned = false;
     	
     	shuffle(randomDirections); 
 
@@ -271,11 +289,14 @@ public class HeadquartersPlayer extends BasicPlayer implements Player  {
                 	log("Trying to spawn...");
                     rc.spawn(direction);
                     log("Spwaned");
+                    spawned = true;
                     break;
                 } catch (GameActionException e) {
                     die(e);
                 }
             }
         }
+        
+        return spawned;
     }	
 }

@@ -67,7 +67,8 @@ public abstract class BasicPlayer implements Player {
 	}
 	
     protected boolean attackNearbyEnemies() throws GameActionException {
-    	//log("Started attackNearbyEnemies()...");
+    	
+    	log("Started attackNearbyEnemies()...");
     	
         boolean didAttack = false;
         
@@ -76,7 +77,7 @@ public abstract class BasicPlayer implements Player {
         Robot[] nearbyEnemies = rc.senseNearbyGameObjects(
             Robot.class,
             myLocation,
-            myRobotType.attackRadiusMaxSquared,
+            HUGE_RADIUS,
             opponentTeam
         );
 
@@ -128,15 +129,21 @@ public abstract class BasicPlayer implements Player {
         	// try to attack one of them as long as it isn't the HQ
         	for (Robot nearbyEnemyRobot: nearbyEnemies) {
         		RobotInfo info = allRobotInfo.get(nearbyEnemyRobot);
-        		if (info.type != HQ && rc.canAttackSquare(info.location)) {
-        			rc.attackSquare(info.location);
-        			didAttack = true;
-        			break;
+        		if (info.type != HQ) {
+        			if (rc.canAttackSquare(info.location)) {
+	        			rc.attackSquare(info.location);
+	        			didAttack = true;
+	        			break;
+	        		} else if (myRobotType == SOLDIER) {
+	        			gotoLocation(info.location);
+	        			didAttack = true;
+	        			break;
+	        		}
         		}
         	}
         }
 
-        //log("Finished attackNearbyEnemies().");
+        log("Finished attackNearbyEnemies().");
         
         return didAttack;
     }	
@@ -168,4 +175,45 @@ public abstract class BasicPlayer implements Player {
 			}
 		} 			
     }
+    
+	protected void gotoLocation(MapLocation toLocation) {
+		
+		//log("started nextDirectionTo...");
+		
+		// idea: return to spawn before doing a messy calculation
+		// idea: do the flood fill in parallel (use many robots?) - for big maps
+		
+		Direction direction = gameMap.nextDirectionTo(myLocation,toLocation);		
+	    //log("finished nextDirectionTo.");
+	    
+	    if (direction != null) {
+
+	    	boolean canMove = rc.canMove(direction);
+	    	
+	    	if (canMove) {
+				int newDistanceToEnemyHq = enemyHqLocation.distanceSquaredTo(toLocation);
+				if (newDistanceToEnemyHq <= RobotType.HQ.attackRadiusMaxSquared) {
+					canMove = false;
+				}
+	    	}
+	    	
+			if (canMove) {
+				int newDistanceToMyHq = myHqLocation.distanceSquaredTo(toLocation);
+				int currentDistanceToMyHq = myHqLocation.distanceSquaredTo(myLocation);
+				try	{
+					if (newDistanceToMyHq < currentDistanceToMyHq) {
+						// moving closer to our HQ
+						rc.move(direction);
+					} else {
+						// don't disturb cattle
+						rc.sneak(direction);
+					}
+				} catch (GameActionException e) {
+					die(e);
+				}
+			} else {
+				moveRandomly();
+			}
+	    }
+	}   
 }
