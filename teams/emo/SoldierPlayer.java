@@ -86,7 +86,7 @@ public class SoldierPlayer extends BasicPlayer implements Player {
 					
 					if (waypointLocation != null && numNearbyFriendlySoldiers > 2) {
 						//log("going to waypoint");
-						rc.setIndicatorString(0,  "going to waypoint");
+						rc.setIndicatorString(0,  "going to waypoint: " + waypointLocation);
 						gotoLocation(waypointLocation);
 					} else {
 						// make a random move for now

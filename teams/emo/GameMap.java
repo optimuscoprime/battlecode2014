@@ -11,7 +11,7 @@ public class GameMap {
 	private RobotController rc;
 	
 	public TerrainTile[][] map;
-	public int[][] floodedMap = null;
+	public Double[][] floodedMap = null;
 	public MapLocation cachedToLocation = null;
 	public int width;
 	public int height;
@@ -100,7 +100,7 @@ public class GameMap {
 
 	public Direction nextDirectionTo(MapLocation fromLocation, MapLocation toLocation) {
 		
-		if (fromLocation.distanceSquaredTo(toLocation) > 750) {
+		if (fromLocation.distanceSquaredTo(toLocation) > 2000) {
 			// no point calculating a map
 			// just try moving
 			return fromLocation.directionTo(toLocation);
@@ -113,26 +113,21 @@ public class GameMap {
 		if (!toLocation.equals(cachedToLocation)) {
 			// do the flood fill
 
-			floodedMap = new int[width][height];
+			floodedMap = new Double[width][height];
 			
 			// init
 			for (int x=0; x < width; x++) {
 				for (int y=0; y < height; y++) {
-					floodedMap[x][y] = -1;
+					floodedMap[x][y] = null;
 				}
 			}
 			
 			//int expectedFlooded = width*height;
 			
-			floodedMap[toLocation.x][toLocation.y] = 0;
+			floodedMap[toLocation.x][toLocation.y] = 0.0;
+			
 			toVisit = new ArrayDeque<MapLocation>();
-			for (Direction direction: allDirections) {
-				MapLocation newLocation = toLocation.add(direction);
-				if (isTraversable(newLocation.x, newLocation.y)) {
-					toVisit.add(newLocation);
-					floodedMap[newLocation.x][newLocation.y] = 1;
-				}
-			}
+			toVisit.add(toLocation);
 			
 			cachedToLocation = toLocation;
 			finishedCaching = false;
@@ -140,7 +135,7 @@ public class GameMap {
 		
 		// check if from location is in the cached map
 		// if not, need to keep flooding
-		if (floodedMap[fromLocation.x][fromLocation.y] == -1) {
+		if (floodedMap[fromLocation.x][fromLocation.y] == null) {
 			finishedCaching = false;
 			reachedFromLocation = false;
 		}
@@ -154,18 +149,19 @@ public class GameMap {
 				if (currentLocation.equals(fromLocation)) {
 					reachedFromLocation = true;
 					break;
-				}
-				int thisScore = floodedMap[currentLocation.x][currentLocation.y];
-				for (Direction direction: allDirections) {
-					MapLocation newLocation = currentLocation.add(direction);								
-					if (isTraversable(newLocation.x, newLocation.y) && floodedMap[newLocation.x][newLocation.y] == -1) {
-						floodedMap[newLocation.x][newLocation.y] = thisScore + 1;
-						toVisit.add(newLocation);
-					}
-				}				
-				if (Clock.getBytecodesLeft() < 1000) {
-					//log("Used too many bytecodes");
-					break;
+				} else {
+					double thisScore = floodedMap[currentLocation.x][currentLocation.y];
+					for (Direction direction: allDirections) {
+						MapLocation newLocation = currentLocation.add(direction);								
+						if (isTraversable(newLocation.x, newLocation.y) && floodedMap[newLocation.x][newLocation.y] == null) {
+							floodedMap[newLocation.x][newLocation.y] = thisScore + 1; //getTileScore(newLocation, direction);
+							toVisit.add(newLocation);
+						}
+					}				
+					if (Clock.getBytecodesLeft() < 1000) {
+						//log("Used too many bytecodes");
+						break;
+					}					
 				}
 			}
 			
@@ -173,26 +169,69 @@ public class GameMap {
 				//log("finished caching");
 				finishedCaching = true;
 				log("finished caching map");
+				
+				// print it and then die
+				
+				//printFloodedMap();
+				//rc.breakpoint();
 			}
 		}
 		
 		Direction nextDirection = null;
 		
 		if (finishedCaching) {
-			int lowestScore = Integer.MAX_VALUE;
+			double lowestScore = Integer.MAX_VALUE;
 			
 			for (Direction direction: allDirections) {
 				MapLocation testLocation = fromLocation.add(direction);
 				if (isTraversable(testLocation.x, testLocation.y)) {
-					int thisScore = floodedMap[testLocation.x][testLocation.y];
-					if (thisScore < lowestScore) {
-						lowestScore = thisScore;
-						nextDirection = direction;
+					Double thisScore = floodedMap[testLocation.x][testLocation.y];
+					if (thisScore != null) {
+						if (direction.isDiagonal()) {
+							thisScore += 0.3; // discourage diagonal directions unless they save time
+						}
+						if (thisScore < lowestScore) {
+							lowestScore = thisScore;
+							nextDirection = direction;
+						}
 					}
 				}
 			}		
 		}
 
 		return nextDirection;
+	}
+
+	private void printFloodedMap() {
+		for (int x=0; x < width; x++) {
+			for (int y =0; y < height; y++) {
+				if (floodedMap[x][y] == null) {
+					System.out.printf("      ");
+				} else {
+					System.out.printf("%02.1f  ", floodedMap[x][y]);
+				}
+			}
+			System.out.printf("\n");
+		}
+	}
+
+	// lower is better
+	private Double getTileScore(MapLocation location, Direction direction) {
+		Double tileScore = null;
+		
+		TerrainTile tile = map[location.x][location.y];
+		if (tile == ROAD) {
+			tileScore = 0.5;
+		} else if (tile == NORMAL) {
+			tileScore = 1.0;
+		}
+				
+		if (tileScore != null) {
+			if (direction.isDiagonal()) {
+				tileScore = tileScore * 1.4; 
+			}
+		}
+		
+		return tileScore;
 	}
 }

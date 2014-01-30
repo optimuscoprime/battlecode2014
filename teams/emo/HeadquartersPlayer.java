@@ -26,6 +26,11 @@ public class HeadquartersPlayer extends BasicPlayer implements Player  {
 	public void playOneTurn() throws GameActionException {
 		super.playOneTurn();
 		
+		//while (true) {
+		//	gameMap.nextDirectionTo(myHqLocation, enemyHqLocation);
+		//}
+		
+	
 		// evaluate strategy
 		
 		// things we can do:
@@ -78,6 +83,9 @@ public class HeadquartersPlayer extends BasicPlayer implements Player  {
 		//if (Clock.getRoundNum() > 500) {
 		maybeCreateExploringWaypoint();	
 		//}
+		 
+		
+		 
 
 	}
 
@@ -163,9 +171,7 @@ public class HeadquartersPlayer extends BasicPlayer implements Player  {
 	private MapLocation findGoodConstructionLocation() throws GameActionException {
 		// want a location near the HQ
 		// that doesn't have many voids around it
-		
-		// TODO Auto-generated method stub
-		
+				
 		MapLocation goodLocation = null;
 		
 		Deque<MapLocation> possibleLocations = new ArrayDeque<MapLocation>();
@@ -244,6 +250,17 @@ public class HeadquartersPlayer extends BasicPlayer implements Player  {
     	
     	if (nearbyFriendlySoldiers > 4 && enemyPastrLocations.length > 0) {
         		
+    		// pick the pastr location that is closest to our hq
+    		
+    		sort(enemyPastrLocations, new Comparator<MapLocation>() {
+
+				@Override
+				public int compare(MapLocation o1, MapLocation o2) {
+					return new Integer(myHqLocation.distanceSquaredTo(o1)).compareTo(myHqLocation.distanceSquaredTo(o2));
+				}
+    			
+    		});
+    		
     		waypointLocation = enemyPastrLocations[0];
     		//log("created pastr waypoint");
     		
