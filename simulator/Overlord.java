@@ -70,6 +70,8 @@ public class Overlord {
                 //teams.add("frank");
 		//teams.add("micro");
 		//teams.add("nano");
+		//teams.add("pico");		
+
 		//teams.add("gk_attack");
 		//teams.add("gk_master");
 		//teams.add("sc01");
@@ -77,7 +79,6 @@ public class Overlord {
 		//teams.add("sound01");
 		//teams.add("sound02");
 		//teams.add("sound03");
-		//teams.add("pico");		
 
 		teams.add("emo");		
 		teams.add("fredo");		
