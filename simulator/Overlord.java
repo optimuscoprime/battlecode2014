@@ -13,6 +13,9 @@ public class Overlord {
 
 		// run ./generate_maps_imports.sh to get this list
 
+		// ian's map
+		maps.add("deimos.xml");
+
 		maps.add("almsman.xml");
 		maps.add("backdoor.xml");
 		maps.add("bakedpotato.xml");
@@ -85,6 +88,7 @@ public class Overlord {
 		teams.add("gk_roman");
 		teams.add("sc02");
 		teams.add("sound04");
+		teams.add("brute01");
 		teams.add("hubertTheFraternal");
 
 		int total_games_to_play = (teams.size() * teams.size() - teams.size()) * maps.size();
