@@ -257,23 +257,25 @@ public class HeadquartersPlayer extends BasicPlayer implements Player  {
         // spawn in one of them
 		
 		boolean spawned = false;
-    	
-    	shuffle(randomDirections); 
-
-        for (Direction direction: randomDirections) {
-            if (rc.canMove(direction)) {
-                try {
-                	log("Trying to spawn...");
-                    rc.spawn(direction);
-                    log("Spwaned");
-                    spawned = true;
-                    break;
-                } catch (GameActionException e) {
-                    die(e);
-                }
-            }
-        }
-        
+		
+		if (allFriendlyRobots.length < GameConstants.MAX_ROBOTS) {
+	    	shuffle(randomDirections); 
+	
+	        for (Direction direction: randomDirections) {
+	            if (rc.canMove(direction)) {
+	                try {
+	                	log("Trying to spawn...");
+	                    rc.spawn(direction);
+	                    log("Spwaned");
+	                    spawned = true;
+	                    break;
+	                } catch (GameActionException e) {
+	                    die(e);
+	                }
+	            }
+	        }
+		}
+		
         return spawned;
     }	
 }
