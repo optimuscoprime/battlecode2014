@@ -16,6 +16,8 @@ public class SoldierPlayer extends BasicPlayer implements Player {
 	private MapLocation waypointLocation;
 	private int waypointRound;
 	private int lastWaypointRoundNum = 0;
+	
+	private boolean kamikaze = false;
 
 	public SoldierPlayer(Robot robot, int robotId, Team team, RobotType robotType, RobotController rc) {
 		super(robot, robotId, team, robotType, rc);
@@ -27,52 +29,75 @@ public class SoldierPlayer extends BasicPlayer implements Player {
 	public void playOneTurn() throws GameActionException {
 		super.playOneTurn();
 		
-		boolean didAttack = false;
+		Robot[] allFriendlyRobots = rc.senseNearbyGameObjects(Robot.class, HUGE_RADIUS, myTeam);
 		
-		myLocation = rc.getLocation();
+		Robot[] nearbyFriendlyRobots = rc.senseNearbyGameObjects(Robot.class, myRobotType.sensorRadiusSquared*2, myTeam);
+
+		int numFriendlySoldiers = countSoldiers(allFriendlyRobots, rc);
+		int numNearbyFriendlySoldiers = countSoldiers(nearbyFriendlyRobots, rc);
+		
+		boolean didAttack = false;
 		
 		if (rc.isActive()) {
 			didAttack = attackNearbyEnemies();
 		}
 		
 		if (!didAttack && rc.isActive()) {
+			if (numFriendlySoldiers > 5) {
+				// small chance of going kamikaze
+				if (Util.random.nextDouble() < 0.1) {
+					kamikaze = true;
+				}
+			}
+		}
+		
+		if (!didAttack && kamikaze && rc.isActive()) {
+			gotoLocation(enemyHqLocation);
+		}
+		
+		if (!didAttack && !kamikaze && rc.isActive()) {
 			
-			boolean constructingPastr = false;
+			// prefer to construct noise towers
 			
+			boolean constructingNoiseTower = false;
 			// check the broadcasts
-			int intPastrTowerLocation = rc.readBroadcast(RADIO_CHANNEL_REQUEST_PASTR);
-			if (intPastrTowerLocation != 0) {
-				pastrConstructionMapLocation = intToLocation(intPastrTowerLocation);
-				if (myLocation.equals(pastrConstructionMapLocation)) {
-					rc.construct(PASTR);
-				} else {
-					rc.setIndicatorString(0,  "going to pastr location");
-					gotoLocation(pastrConstructionMapLocation);
-				}
-				constructingPastr = true;
-			}					
-			
-			if (!constructingPastr) {
-				boolean constructingNoiseTower = false;
-				// check the broadcasts
-				int intNoiseTowerLocation = rc.readBroadcast(RADIO_CHANNEL_REQUEST_NOISETOWER);
-				if (intNoiseTowerLocation != 0) {
-					noiseTowerConstructionMapLocation = intToLocation(intNoiseTowerLocation);
-					if (myLocation.equals(noiseTowerConstructionMapLocation)) {
+			int intNoiseTowerLocation = rc.readBroadcast(RADIO_CHANNEL_REQUEST_NOISETOWER);
+			if (intNoiseTowerLocation != 0) {
+				noiseTowerConstructionMapLocation = intToLocation(intNoiseTowerLocation);
+				if (myLocation.equals(noiseTowerConstructionMapLocation)) {
+					if (numNearbyFriendlySoldiers > 2) {
 						rc.construct(NOISETOWER);
-					} else {
-						// check if another robot is there
-						//Robot robot = rc.senseObjectAtLocation(noiseTowerConstructionMapLocation);
-						
-						rc.setIndicatorString(0,  "going to noisetower location");
-						gotoLocation(noiseTowerConstructionMapLocation);
 					}
-					constructingNoiseTower = true;
-				}
-				
-				if (!constructingNoiseTower) {
+				} else {
+					// check if another robot is there
+					//Robot robot = rc.senseObjectAtLocation(noiseTowerConstructionMapLocation);
 					
-					Robot[] nearbyFriendlyRobots = rc.senseNearbyGameObjects(Robot.class, myRobotType.sensorRadiusSquared, myTeam);
+					rc.setIndicatorString(0,  "going to noisetower location");
+					gotoLocation(noiseTowerConstructionMapLocation);
+				}
+				constructingNoiseTower = true;
+			}
+			
+			if (!constructingNoiseTower) {
+				boolean constructingPastr = false;
+				
+				// check the broadcasts
+				int intPastrTowerLocation = rc.readBroadcast(RADIO_CHANNEL_REQUEST_PASTR);
+				if (intPastrTowerLocation != 0) {
+					pastrConstructionMapLocation = intToLocation(intPastrTowerLocation);
+					if (myLocation.equals(pastrConstructionMapLocation)) {
+						if (numNearbyFriendlySoldiers > 2) {
+							rc.construct(PASTR);
+						}
+					} else {
+						rc.setIndicatorString(0,  "going to pastr location");
+						gotoLocation(pastrConstructionMapLocation);
+					}
+					constructingPastr = true;
+				}					
+			
+				if (!constructingPastr) {
+					
 					
 						
 					// don't listen for waypoints all the time
@@ -80,7 +105,7 @@ public class SoldierPlayer extends BasicPlayer implements Player {
 					
 					int intWaypointLocation = rc.readBroadcast(RADIO_CHANNEL_WAYPOINT);
 					if (intWaypointLocation != 0) {
-						if (thisRoundNum > lastWaypointRoundNum + 50) {
+						if (thisRoundNum > lastWaypointRoundNum + 10) {
 							waypointLocation = intToLocation(intWaypointLocation);
 							lastWaypointRoundNum = thisRoundNum;
 						} else {
@@ -98,22 +123,25 @@ public class SoldierPlayer extends BasicPlayer implements Player {
 					
 					if (waypointLocation == null) {
 						MapLocation[] enemyPastrLocations = rc.sensePastrLocations(opponentTeam);
+						
+						if (enemyPastrLocations.length > 0) {
 			    		
-			    		// pick the pastr location that is closest to us
-			    		
-			    		sort(enemyPastrLocations, new Comparator<MapLocation>() {
-							@Override
-							public int compare(MapLocation o1, MapLocation o2) {
-								return new Integer(myLocation.distanceSquaredTo(o1)).compareTo(myLocation.distanceSquaredTo(o2));
-							}
-			    		});
-			    		
-			    		waypointLocation = enemyPastrLocations[0];
+				    		// pick the pastr location that is closest to us
+				    		
+				    		sort(enemyPastrLocations, new Comparator<MapLocation>() {
+								@Override
+								public int compare(MapLocation o1, MapLocation o2) {
+									return new Integer(myLocation.distanceSquaredTo(o1)).compareTo(myLocation.distanceSquaredTo(o2));
+								}
+				    		});
+				    		
+				    		waypointLocation = enemyPastrLocations[0];
+						}
 					}
 					
-					int numNearbyFriendlySoldiers = countSoldiers(nearbyFriendlyRobots, rc);
+
 					
-					if (waypointLocation != null && numNearbyFriendlySoldiers > 1) {
+					if (waypointLocation != null && numNearbyFriendlySoldiers > 2) {
 						//log("going to waypoint");
 						rc.setIndicatorString(0,  "going to waypoint: " + waypointLocation);
 						gotoLocation(waypointLocation);
@@ -131,6 +159,8 @@ public class SoldierPlayer extends BasicPlayer implements Player {
 				}
 			}
 		}	
+		
+		rc.yield();
 	}
 
 

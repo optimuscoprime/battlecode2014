@@ -53,7 +53,7 @@ public class HeadquartersPlayer extends BasicPlayer implements Player  {
 		// if not attacking
 		
 		allFriendlyRobots = rc.senseNearbyGameObjects(Robot.class, HUGE_RADIUS, myTeam);
-		nearbyFriendlyRobots = rc.senseNearbyGameObjects(Robot.class, myRobotType.sensorRadiusSquared, myTeam);
+		nearbyFriendlyRobots = rc.senseNearbyGameObjects(Robot.class, myRobotType.sensorRadiusSquared*2, myTeam);
 		
 		numNearbyFriendlySoldiers = countSoldiers(nearbyFriendlyRobots, rc);		
 		
@@ -75,9 +75,9 @@ public class HeadquartersPlayer extends BasicPlayer implements Player  {
 		
 		if (numNearbyFriendlySoldiers > 2) {
 			
-			maybeAskForPastr();
-		
 			maybeAskForNoiseTower();
+			
+			maybeAskForPastr();
 		
 		}
 		
@@ -85,7 +85,7 @@ public class HeadquartersPlayer extends BasicPlayer implements Player  {
 		maybeCreateExploringWaypoint();	
 		//}
 		 
-		
+		rc.yield();
 		 
 
 	}
@@ -173,12 +173,9 @@ public class HeadquartersPlayer extends BasicPlayer implements Player  {
 		// want a location near the HQ
 		// that doesn't have many voids around it
 				
-		MapLocation goodLocation = null;
 		
-		Deque<MapLocation> possibleLocations = new ArrayDeque<MapLocation>();
-		Set<MapLocation> visitedLocations = new HashSet<MapLocation>();
-		
-		visitedLocations.add(myLocation);
+		// idea; consider all locations near us
+		// do a fancy sort
 		
 		
 		// sort by distance to enemy HQ
@@ -191,6 +188,11 @@ public class HeadquartersPlayer extends BasicPlayer implements Player  {
 			
 		}); 
 		
+		Deque<MapLocation> possibleLocations = new ArrayDeque<MapLocation>();
+		Set<MapLocation> visitedLocations = new HashSet<MapLocation>();
+		
+		visitedLocations.add(myLocation);		
+		
 		for (Direction direction: sortedDirections) {
 			MapLocation possibleLocation = myLocation.add(direction);
 			if (gameMap.isTraversable(possibleLocation.x, possibleLocation.y)) {
@@ -199,23 +201,28 @@ public class HeadquartersPlayer extends BasicPlayer implements Player  {
 			}
 		}
 		
+		MapLocation bestLocation = null;
+		int bestFreeTiles = 0;
+		
 		boolean found = false;
+		int i =0;
 		while (!found && !possibleLocations.isEmpty()) {
 			MapLocation currentLocation = possibleLocations.remove();
 			
-			int goodTiles = 0;
+			int freeTiles = 0;
 			
 			for (Direction direction: sortedDirections) {
 				MapLocation possibleLocation = currentLocation.add(direction);
 				if (gameMap.isTraversable(possibleLocation.x, possibleLocation.y)) {					
-					goodTiles++;
+					freeTiles++;
 					if (!visitedLocations.contains(possibleLocation)) {
 						possibleLocations.add(possibleLocation);
 						visitedLocations.add(possibleLocation);
 					}
 				}
-			}			
-			if (goodTiles > 4) {
+			}
+			
+			if (freeTiles > 3) {
 				boolean canBuild = true;
 				
 				// check if there is a construction there
@@ -228,15 +235,21 @@ public class HeadquartersPlayer extends BasicPlayer implements Player  {
 					}
 				}
 						
-				if (canBuild) {
-					goodLocation = currentLocation;
-					break;
+				if (canBuild && freeTiles > bestFreeTiles) {
+					bestLocation = currentLocation;
+					bestFreeTiles = freeTiles;
 				}
 			}
 			
+			i++;
+	
+			if (bestFreeTiles > 5 || i > 16) {
+				break;
+			}			
+			
 		}
 		
-		return goodLocation;
+		return bestLocation;
 	}
 	
     private void maybeCreateExploringWaypoint() throws GameActionException {
@@ -248,16 +261,16 @@ public class HeadquartersPlayer extends BasicPlayer implements Player  {
     	
     	MapLocation[] enemyPastrLocations = rc.sensePastrLocations(opponentTeam);
     	
-    	if (numNearbyFriendlySoldiers > 2 && enemyPastrLocations.length > 0) {
+    	//if (numNearbyFriendlySoldiers > 3 && enemyPastrLocations.length > 0) {
         		
     		// if we have some defenders, and there are enemy pastrs, then allow soldiers to go to their nearest pastr
     		
     		
-    	} else {
+    	//} else {
     		
-    		waypointLocation = myHqLocation;
+    		//waypointLocation = myHqLocation;
 	
-    	}    		
+    	//}    		
     	
     	
 

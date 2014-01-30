@@ -14,6 +14,6 @@ public class PastrPlayer extends BasicPlayer implements Player {
 		super.playOneTurn();
 		
 		// TODO Auto-generated method stub
-		
+		rc.yield();
 	}
 }

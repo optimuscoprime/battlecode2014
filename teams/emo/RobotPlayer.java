@@ -38,9 +38,10 @@ public class RobotPlayer {
 				player.playOneTurn();
 			} catch (GameActionException e) {
 				die(e);
+				rc.yield();
 			}
 			// todo: is this really the best place to yield?
-			rc.yield();
+			//rc.yield();
 		}
 		
 	}

@@ -134,12 +134,22 @@ public abstract class BasicPlayer implements Player {
 	        			rc.attackSquare(info.location);
 	        			didAttack = true;
 	        			break;
-	        		} else if (myRobotType == SOLDIER) {
-	        			gotoLocation(info.location);
-	        			didAttack = true;
-	        			break;
 	        		}
         		}
+        	}
+        	
+        	if (!didAttack) {
+	        	// try to attack one of them as long as it isn't the HQ
+	        	for (Robot nearbyEnemyRobot: nearbyEnemies) {
+	        		RobotInfo info = allRobotInfo.get(nearbyEnemyRobot);
+	        		if (info.type != HQ) {
+	        			if (myRobotType == SOLDIER) {
+		        			gotoLocation(info.location);
+		        			didAttack = true;
+		        			break;
+		        		}
+	        		}
+	        	}      	
         	}
         }
 
@@ -198,6 +208,7 @@ public abstract class BasicPlayer implements Player {
 
 	    	boolean canMove = rc.canMove(direction);
 	    	
+	    	// don't go near enemy hq
 	    	if (canMove) {
 				int newDistanceToEnemyHq = enemyHqLocation.distanceSquaredTo(toLocation);
 				if (newDistanceToEnemyHq <= RobotType.HQ.attackRadiusMaxSquared) {
@@ -206,11 +217,15 @@ public abstract class BasicPlayer implements Player {
 	    	}
 	    	
 			if (canMove) {
-				int newDistanceToMyHq = myHqLocation.distanceSquaredTo(toLocation);
-				int currentDistanceToMyHq = myHqLocation.distanceSquaredTo(myLocation);
+				
+				MapLocation focusLocation = myHqLocation;
+								
+				int newDistanceToFocus = focusLocation.distanceSquaredTo(toLocation);
+				int currentDistanceToFocus = focusLocation.distanceSquaredTo(myLocation);
+				
 				try	{
-					if (newDistanceToMyHq < currentDistanceToMyHq) {
-						// moving closer to our HQ
+					if (newDistanceToFocus < currentDistanceToFocus) {
+						// herd cattle
 						rc.move(direction);
 					} else {
 						// don't disturb cattle
@@ -224,4 +239,28 @@ public abstract class BasicPlayer implements Player {
 			}
 	    }
 	}   
+	
+	protected MapLocation getFocusLocation() {
+		MapLocation[] friendlyPastrLocations = rc.sensePastrLocations(myTeam);
+		
+		MapLocation focusLocation;
+		
+		if (friendlyPastrLocations.length > 0) {
+		
+    		// pick the pastr location that is closest to us
+    		
+    		sort(friendlyPastrLocations, new Comparator<MapLocation>() {
+				@Override
+				public int compare(MapLocation o1, MapLocation o2) {
+					return new Integer(myLocation.distanceSquaredTo(o1)).compareTo(myLocation.distanceSquaredTo(o2));
+				}
+    		});
+    		
+    		focusLocation = friendlyPastrLocations[0];
+		} else {
+			focusLocation = myLocation;
+		}
+		
+		return focusLocation;
+	}
 }
