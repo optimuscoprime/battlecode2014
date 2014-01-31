@@ -161,11 +161,11 @@ public class SoldierPlayer extends BasicPlayer implements Player {
 						//}
 						
 						
-						gotoLocation(enemyHqLocation);
+						//gotoLocation(enemyHqLocation);
 						
-						//if (Util.random.nextDouble() < 0.1) {
-						//	moveRandomly();
-						//}
+						if (Util.random.nextDouble() < 0.1) {
+							moveRandomly();
+						}
 						
 						// make a random move for now
 						//if (random.nextDouble() < 0.25) {

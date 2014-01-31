@@ -125,7 +125,7 @@ public class GameMap {
 		
 		CachedFloodedMap cachedFloodedMap = cachedFloodedMaps.get(toLocation);
 		if (cachedFloodedMap == null) {
-			cachedFloodedMap = new CachedFloodedMap(this, width, height, fromLocation, toLocation);
+			cachedFloodedMap = new CachedFloodedMap(this, width, height, fromLocation, toLocation, rc);
 			cachedFloodedMaps.put(toLocation,  cachedFloodedMap);
 		}
 
@@ -222,14 +222,23 @@ class CachedFloodedMap {
 	private MapLocation oldFromLocation = null;
 	private GameMap gameMap;
 
+	private int width;
+	private int height;
+
+	private RobotController rc;
 	
-	public CachedFloodedMap(final GameMap gameMap, final int width, final int height, final MapLocation fromLocation, final MapLocation toLocation) {
+	
+	public CachedFloodedMap(final GameMap gameMap, final int width, final int height, final MapLocation fromLocation, final MapLocation toLocation, final RobotController rc) {
 		this.gameMap = gameMap;
 		//this.fromLocation = fromLocation;
 		this.toLocation = toLocation;
 		this.finishedCaching = false;
 		this.floodedMap = new Double[width][height];
 		this.cacheTurns = 0;
+		this.rc = rc;
+		
+		this.width = width;
+		this.height = height;
 		
 		// init
 		//for (int x=0; x < width; x++) {
@@ -315,22 +324,27 @@ class CachedFloodedMap {
 		
 		if (finishedCaching) {
 			log("finished caching map");
+			//printMap();
+			//rc.breakpoint();
 		}
 		
 		cacheTurns++;
 	
 	}
-//	
-//	private void printFloodedMap() {
-//		for (int x=0; x < width; x++) {
-//			for (int y =0; y < height; y++) {
-//				if (floodedMap[x][y] == null) {
-//					System.out.printf("      ");
-//				} else {
-//					System.out.printf("%02.1f  ", floodedMap[x][y]);
-//				}
-//			}
-//			System.out.printf("\n");
-//		}
-//	}	
+	
+	private void printMap() {
+		for (int i=0; i < 10; i++) {
+			System.out.printf("\n");
+		}
+		for (int y =0; y < height; y++) {
+			for (int x=0; x < width; x++) {
+				if (floodedMap[x][y] == null) {
+					System.out.printf("      ");
+				} else {
+					System.out.printf("%02.1f  ", floodedMap[x][y]);
+				}
+			}
+			System.out.printf("\n");
+		}
+	}	
 }

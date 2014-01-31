@@ -347,9 +347,12 @@ public abstract class BasicPlayer implements Player {
 		
 		// just try going there, if we are still waiting for the perfect map
 		if (direction == null) {
+			rc.setIndicatorString(0, "gotoLocation: " + toLocation + " (using approximate direction)");
 			direction = approximateDirectionTo(myLocation, toLocation);
+		} else {
+			rc.setIndicatorString(0, "gotoLocation: " + toLocation + " (cached direction was not null, = " + direction + ")");
 		}
-	    
+	    		
 	    if (direction != null) {
 	    	MapLocation newLocation = myLocation.add(direction);
 	    	
@@ -357,9 +360,10 @@ public abstract class BasicPlayer implements Player {
 	        
 	    	// don't go near enemy hq
 			if (canMove) {	
-				int newDistanceToEnemyHq = enemyHqLocation.distanceSquaredTo(toLocation);
+				int newDistanceToEnemyHq = enemyHqLocation.distanceSquaredTo(newLocation);
 				if (newDistanceToEnemyHq <= RobotType.HQ.attackRadiusMaxSquared) {
 					//log("can't move");
+					rc.setIndicatorString(2, "too close to enemy HQ");
 					canMove = false;
 				}
 			}
