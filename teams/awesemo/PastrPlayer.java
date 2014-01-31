@@ -33,8 +33,14 @@ public class PastrPlayer extends BasicPlayer implements Player {
 	private void maybeAskForBackup() throws GameActionException {
 
     	MapLocation waypointLocation = null;
+   
+		Robot[] nearbyFriendlyRobots = rc.senseNearbyGameObjects(Robot.class, 35, myTeam);
+		Map<Robot, RobotInfo> nearbyFriendlyRobotInfo = senseAllRobotInfo(nearbyFriendlyRobots);
+		nearbyFriendlyRobots = nearbyFriendlyRobotInfo.keySet().toArray(new Robot[0]);
+		
+		int numNearbyFriendlySoldiers = countSoldiers(nearbyFriendlyRobotInfo);	    	
     	
-    	if (numNearbyFriendlySoldiers < 3 || myHealth < myRobotType.maxHealth) {
+		if (numNearbyFriendlySoldiers < 3 || myHealth < myRobotType.maxHealth) {
     		
     		waypointLocation = myLocation;
 	

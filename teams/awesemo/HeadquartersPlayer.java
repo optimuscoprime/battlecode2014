@@ -12,6 +12,9 @@ public class HeadquartersPlayer extends BasicPlayer implements Player  {
 	private MapLocation pastrConstructionLocation;
 	private MapLocation noiseTowerConstructionLocation;
 	private int waypointRound;
+	private Robot[] allFriendlyRobots;
+	private Map<Robot, RobotInfo> allFriendlyRobotInfo;
+	private int numAllFriendlySoldiers;
 	
 	public HeadquartersPlayer(Robot robot, int robotId, Team team, RobotType robotType, RobotController rc) {
 		super(robot, robotId, team, robotType, rc);
@@ -21,6 +24,12 @@ public class HeadquartersPlayer extends BasicPlayer implements Player  {
 	public void playOneTurn() throws GameActionException {
 		
 		super.playOneTurn();
+		
+		allFriendlyRobots = rc.senseNearbyGameObjects(Robot.class, HUGE_RADIUS, myTeam);
+		allFriendlyRobotInfo = senseAllRobotInfo(allFriendlyRobots);
+		allFriendlyRobotInfo.keySet().toArray(new Robot[0]);
+		
+		numAllFriendlySoldiers = countSoldiers(allFriendlyRobotInfo);		
 		
 		//while (true) {
 		//	gameMap.nextDirectionTo(myHqLocation, enemyHqLocation);
@@ -272,7 +281,9 @@ public class HeadquartersPlayer extends BasicPlayer implements Player  {
 		
 		boolean spawned = false;
 		
-		if (rc.senseRobotCount() < GameConstants.MAX_ROBOTS) {
+		int robotCount = rc.senseRobotCount();
+		
+		if (robotCount < 1 && robotCount < GameConstants.MAX_ROBOTS) {
 	    	shuffle(randomDirections); 
 	
 	        for (Direction direction: randomDirections) {
@@ -292,4 +303,80 @@ public class HeadquartersPlayer extends BasicPlayer implements Player  {
 		
         return spawned;
     }	
+	
+	protected boolean attackNearbyEnemies() throws GameActionException {
+    	
+    	//log("Started attackNearbyEnemies()...");
+    	
+        boolean tookAction = false;
+        
+        MapLocation myLocation = rc.getLocation();
+        
+        Robot[] nearbyEnemies = rc.senseNearbyGameObjects(
+            Robot.class,
+            myLocation,
+            HUGE_RADIUS,
+            opponentTeam
+        );
+        final Map<Robot, RobotInfo> nearbyEnemyInfo = senseAllRobotInfo(nearbyEnemies);
+        nearbyEnemies = nearbyEnemyInfo.keySet().toArray(new Robot[0]);
+        
+        int numNearbyEnemySoldiers = countSoldiers(nearbyEnemyInfo);       
+
+        if (!tookAction && nearbyEnemies.length > 0) {
+        	
+        	sort(nearbyEnemies, new Comparator<Robot>() {
+        		// idea:
+        		// prefer to attack pastrs
+        		// otherwise soldiers
+        		// otherwise noisetowers
+        		// never hqs
+        		
+				@Override
+				public int compare(Robot o1, Robot o2) {
+					RobotInfo info1 = nearbyEnemyInfo.get(o1);
+					RobotInfo info2 = nearbyEnemyInfo.get(o2);
+					
+//					if (info1.type == PASTR && info2.type != PASTR) {
+//						return -1;
+//					} else if (info1.type != PASTR && info2.type == PASTR) {
+//						return 1;
+//					} else if (info1.type == SOLDIER && info2.type != SOLDIER) {
+//						return -1;
+//					} else if (info1.type != SOLDIER && info2.type == SOLDIER) {
+//						return 1;
+//					} else if (info1.type == NOISETOWER && info2.type != NOISETOWER) {
+//						return -1;
+//					} else if (info1.type != NOISETOWER && info2.type == NOISETOWER) {
+//						return 1;
+//					} else if (info1.type == HQ && info2.type != HQ) {
+//						return 1;
+//					} else if (info1.type != HQ && info2.type == HQ) {
+//						return -1;
+//					} else {
+//						// if same type, just sort on health
+					//}
+					
+					return new Double(info1.health).compareTo(info2.health);
+					
+				}
+        	});
+        	        	
+        	// try to attack one of them as long as it isn't the HQ
+        	for (RobotInfo nearbyInfo: nearbyEnemyInfo.values()) {
+        		//if (nearbyInfo.type != HQ && nearbyInfo.type != NOISETOWER) {
+        			if (rc.canAttackSquare(nearbyInfo.location)) {
+	        			rc.attackSquare(nearbyInfo.location);
+	        			tookAction = true;
+	        			break;
+	        		}
+        		//}
+        	}
+        	
+        }
+
+        //log("Finished attackNearbyEnemies().");
+        
+        return tookAction;
+    }		
 }

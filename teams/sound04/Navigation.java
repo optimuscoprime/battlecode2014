@@ -1,8 +1,8 @@
 package sound04;
 
+import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.Map;
 import java.util.PriorityQueue;
 import java.util.Random;
@@ -140,7 +140,7 @@ public class Navigation {
   * note: can be very expensive
   */
 	public static Deque<Move> pathAStar(RobotController rc, MapLocation dest) throws GameActionException {
-		Deque<Move> path = new LinkedList<Move>();
+		Deque<Move> path = new ArrayDeque<Move>();
 		TerrainTile destTile = rc.senseTerrainTile(dest);
 		if (destTile.isTraversableAtHeight(RobotLevel.ON_GROUND)) {
 			Map<MapLocation, Move> been = new HashMap<MapLocation, Move>();
