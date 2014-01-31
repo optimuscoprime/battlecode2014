@@ -87,7 +87,7 @@ public class SoldierPlayer extends BasicPlayer implements Player {
 						//if (thisRoundNum > lastWaypointRoundNum) {
 						waypointLocation = intToLocation(intWaypointLocation);
 						
-						rc.setIndicatorString(1,  "received waypoint");
+						
 						
 						// check if there is a closer friendly soldier
 						
@@ -100,8 +100,14 @@ public class SoldierPlayer extends BasicPlayer implements Player {
 							}
 						}
 						
-						if (closerRobots > 1) {
+						if (closerRobots > 5) {
+							
+							rc.setIndicatorString(1,  "ignoring waypoint: " + waypointLocation);
 							waypointLocation = null; // don't go there
+							
+							
+						} else {
+							rc.setIndicatorString(1,  "received waypoint: " + waypointLocation);
 						}
 						
 						
@@ -148,7 +154,18 @@ public class SoldierPlayer extends BasicPlayer implements Player {
 					} else {
 						
 						//MapLocation rallyPoint = ;
-						gotoLocation(getSoldierCenterLocation());
+						
+						//MapLocation rallyPoint = getSoldierCenterLocation();
+						//if (rallyPoint != null) {
+						//	gotoLocation(myHqLocation);
+						//}
+						
+						
+						gotoLocation(enemyHqLocation);
+						
+						//if (Util.random.nextDouble() < 0.1) {
+						//	moveRandomly();
+						//}
 						
 						// make a random move for now
 						//if (random.nextDouble() < 0.25) {

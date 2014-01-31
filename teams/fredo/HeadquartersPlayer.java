@@ -100,9 +100,15 @@ public class HeadquartersPlayer extends BasicPlayer implements Player  {
 		int numPastrs = 0;
 		
 		for (Robot friendlyRobot: allFriendlyRobots) {
-			RobotInfo info = rc.senseRobotInfo(friendlyRobot);
-			if (info.type == PASTR) {
-				numPastrs++;
+			if (rc.canSenseObject(friendlyRobot)) {
+				try {
+					RobotInfo info = rc.senseRobotInfo(friendlyRobot);
+					if (info.type == PASTR) {
+						numPastrs++;
+					}
+				} catch (GameActionException e) {
+					// ?
+				}
 			}
 		}
 		
@@ -140,9 +146,11 @@ public class HeadquartersPlayer extends BasicPlayer implements Player  {
 		int numNoiseTowers = 0;
 		
 		for (Robot friendlyRobot: allFriendlyRobots) {
-			RobotInfo info = rc.senseRobotInfo(friendlyRobot);
-			if (info.type == NOISETOWER) {
-				numNoiseTowers++;
+			if (rc.canSenseObject(friendlyRobot)) {
+				RobotInfo info = rc.senseRobotInfo(friendlyRobot);
+				if (info.type == NOISETOWER) {
+					numNoiseTowers++;
+				}
 			}
 		}
 		

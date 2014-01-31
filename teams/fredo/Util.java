@@ -172,26 +172,4 @@ public class Util {
 		}
 		return numSoldiers;
 	}
-	
-	public static Direction approximateDirectionTo(MapLocation from, MapLocation to) {
-		Direction exactDirection = from.directionTo(to);
-		Direction approximateDirection = null;
-		
-		if (rc.canMove(exactDirection)) {
-			approximateDirection = exactDirection;
-		} else {
-			approximateDirection = exactDirection.rotateLeft();
-			if (!rc.canMove(approximateDirection)) {
-				approximateDirection = exactDirection.rotateRight();
-				if (!rc.canMove(approximateDirection)) {
-					approximateDirection = exactDirection.rotateLeft().rotateLeft();
-					if (!rc.canMove(approximateDirection)) {
-						approximateDirection = exactDirection.rotateRight().rotateRight();
-					}
-				}
-			}
-		}
-		
-		return approximateDirection;
-	}
 }

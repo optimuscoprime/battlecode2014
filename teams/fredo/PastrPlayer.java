@@ -34,7 +34,7 @@ public class PastrPlayer extends BasicPlayer implements Player {
 
     	MapLocation waypointLocation = null;
     	
-    	if (numNearbyFriendlySoldiers < 2 || myHealth < myRobotType.maxHealth) {
+    	if (numNearbyFriendlySoldiers < 3 || myHealth < myRobotType.maxHealth) {
     		
     		waypointLocation = myLocation;
 	

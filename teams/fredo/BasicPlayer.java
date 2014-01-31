@@ -60,6 +60,8 @@ public abstract class BasicPlayer implements Player {
 	protected Map<Robot, RobotInfo> allFriendlyRobotInfo;
 
 	protected Map<Robot, RobotInfo> nearbyFriendlyRobotInfo;
+
+	protected ArrayDeque<MapLocation> trail;
     
 	public BasicPlayer(Robot robot, int robotId, Team team, RobotType robotType, RobotController rc) {
 		this.myRobot = robot;
@@ -77,6 +79,8 @@ public abstract class BasicPlayer implements Player {
 		this.myHqLocation = rc.senseHQLocation();
 	
 		this.rallyPoint = null;
+		
+		this.trail = new ArrayDeque<MapLocation>();
 		
 		//new MapLocation((int) (2/3.0 * myHqLocation.x + 1/3.0 * enemyHqLocation.x), (int) (2/3.0 * myHqLocation.y + 1/3.0 * enemyHqLocation.y));
 		
@@ -109,6 +113,10 @@ public abstract class BasicPlayer implements Player {
 		rc.setIndicatorString(1, ""); // 
 		
 		rc.setIndicatorString(2, "");
+		
+		if (trail.size() > 10) {
+			trail.remove();
+		}
 	}
 	
     private Map<Robot, RobotInfo> senseAllRobotInfo(Robot[] robots) throws GameActionException {
@@ -117,8 +125,12 @@ public abstract class BasicPlayer implements Player {
     	
     	for (Robot robot: robots) {
     		if (rc.canSenseObject(robot)) {
-    			RobotInfo info = rc.senseRobotInfo(robot);
-    			allInfo.put(robot,  info);
+    			try {
+    				RobotInfo info = rc.senseRobotInfo(robot);
+    				allInfo.put(robot,  info);
+    			} catch (GameActionException e) {
+    				// ?
+    			}
     		}
     	}
 
@@ -285,8 +297,13 @@ public abstract class BasicPlayer implements Player {
 	
 			// handle this elsewhere?
 			
+			MapLocation newLocation = myLocation.add(randomDirection);
+		
+			if (trail.contains(newLocation)) {
+				canMove = false;
+			}
+			
 			if (canMove) {
-				MapLocation newLocation = myLocation.add(randomDirection);
 	
 				int newDistanceToEnemyHq = enemyHqLocation.distanceSquaredTo(newLocation);
 				if (newDistanceToEnemyHq <= RobotType.HQ.attackRadiusMaxSquared) {
@@ -296,9 +313,11 @@ public abstract class BasicPlayer implements Player {
 			}
 			
 			if (canMove) {
+				
 				try	{
 					//log("sneaking randomly");
 					rc.sneak(randomDirection);
+					trail.add(newLocation);
 					break;
 				} catch (GameActionException e) {
 					// we already checked canMove
@@ -362,6 +381,7 @@ public abstract class BasicPlayer implements Player {
 						// don't disturb cattle
 						rc.sneak(direction);
 					}
+					trail.add(newLocation);
 				} catch (GameActionException e) {
 					// don't die here
 					// we already checked canMove
@@ -406,4 +426,27 @@ public abstract class BasicPlayer implements Player {
 		
 		return focusLocation;
 	}
+	
+	public Direction approximateDirectionTo(MapLocation from, MapLocation to) {
+		Direction exactDirection = from.directionTo(to);
+		Direction approximateDirection = exactDirection;
+		
+		
+		if (!trail.contains(from.add(approximateDirection)) & rc.canMove(approximateDirection)) {
+			// good
+		} else {
+			approximateDirection = exactDirection.rotateLeft();
+			if (trail.contains(from.add(approximateDirection)) || !rc.canMove(approximateDirection)) {
+				approximateDirection = exactDirection.rotateRight();
+				if (trail.contains(from.add(approximateDirection)) || !rc.canMove(approximateDirection)) {
+					approximateDirection = exactDirection.rotateLeft().rotateLeft();
+					if (trail.contains(from.add(approximateDirection)) || !rc.canMove(approximateDirection)) {
+						approximateDirection = exactDirection.rotateRight().rotateRight();
+					}
+				}
+			}
+		}
+		
+		return approximateDirection;
+	}	
 }

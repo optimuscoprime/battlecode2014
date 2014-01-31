@@ -16,6 +16,8 @@ public class GameMap {
 
 	// <to,map>
 	public Map<MapLocation, CachedFloodedMap> cachedFloodedMaps = new HashMap<MapLocation, CachedFloodedMap>();
+
+	private MapLocation enemyHqLocation;
 	
     public static Direction[] allDirections = new Direction[] {
     	// prefer diagonal directions
@@ -35,7 +37,7 @@ public class GameMap {
 		this.width = rc.getMapWidth();
 		this.height = rc.getMapHeight();
 		
-		MapLocation enemyHqLocation = rc.senseEnemyHQLocation();
+		this.enemyHqLocation = rc.senseEnemyHQLocation();
 
 		// sense terrain tiles, build a map
 		
@@ -49,9 +51,9 @@ public class GameMap {
 				map[x][y] = rc.senseTerrainTile(currentLocation);
 				
 				// pretend that squares near the enemy hq are not traversible
-				if (currentLocation.distanceSquaredTo(enemyHqLocation) <= RobotType.HQ.attackRadiusMaxSquared) {
-					map[x][y] = VOID;
-				}
+				//if (currentLocation.distanceSquaredTo(enemyHqLocation) <= RobotType.HQ.attackRadiusMaxSquared) {
+				//	map[x][y] = VOID;
+				//}
 			}
 		}
 		
@@ -157,6 +159,12 @@ public class GameMap {
 						if (map[newLocation.x][newLocation.y] == ROAD) {
 							thisScore -= 0.5;
 						}
+						
+						// pretend that squares near the enemy hq are not traversible
+						if (newLocation.distanceSquaredTo(enemyHqLocation) <= RobotType.HQ.attackRadiusMaxSquared) {
+							thisScore += 10000;
+						//	map[x][y] = VOID;
+						}						
 						
 						if (thisScore < lowestScore) {
 							lowestScore = thisScore;
