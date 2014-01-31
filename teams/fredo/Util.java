@@ -95,8 +95,8 @@ public class Util {
     		e.printStackTrace();
     	}
     	
-    	System.out.printf("Breakpoint\n");
-    	rc.breakpoint();
+    	//System.out.printf("Breakpoint\n");
+    	//rc.breakpoint();
     	
     	//throw new RuntimeException(message, e);
     }	
