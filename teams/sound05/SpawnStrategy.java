@@ -1,6 +1,6 @@
-package brute01;
+package sound05;
 
-import brute01.Comms.Message;
+import sound05.Comms.Message;
 
 import battlecode.common.Direction;
 import battlecode.common.GameActionException;
@@ -9,7 +9,7 @@ import battlecode.common.MapLocation;
 import battlecode.common.RobotController;
 import battlecode.common.RobotInfo;
 import battlecode.common.Team;
-//import battlecode.common.Clock;
+import battlecode.common.Clock;
 
 /**
  * HQ - continuous spawn strategy, while attacking nearby enemy robots
@@ -59,7 +59,6 @@ public class SpawnStrategy implements Strategy {
 	}
     
 	public void spawnRobot() throws GameActionException {
-		// I need something in here to never spawn in one direction if the HQ enclosed that direction
 		if (rc.senseRobotCount() < GameConstants.MAX_ROBOTS) {
 			if (rc.canMove(directionToEnemy)) {
 				rc.spawn(directionToEnemy);

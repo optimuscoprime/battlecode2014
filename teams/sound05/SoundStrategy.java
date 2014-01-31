@@ -1,7 +1,7 @@
-package brute01;
+package sound05;
 
-import brute01.Comms.Message;
-//import brute01.Navigation.Move;
+import sound05.Comms.Message;
+import sound05.Navigation.Move;
 
 import java.util.*;
 //import java.util.List;
@@ -50,6 +50,7 @@ public class SoundStrategy implements Strategy {
 				if (rc.isActive()) {
 					currentTarget=new MapLocation(x,y);
 					if(rc.canAttackSquare(currentTarget)){
+
 						targetList.add(currentTarget);
 						//System.out.println("Adding x:" + x + " y:" + y);
 					}
@@ -69,6 +70,11 @@ public class SoundStrategy implements Strategy {
 				}
 				}
 				);
+		targetList.remove(targetList.size() - 1);	//remove last target, it's likely the pasture.
+		targetList.remove(targetList.size() - 1);	//remove last target, it's likely the pasture.
+		targetList.remove(targetList.size() - 1);	//remove last target, it's likely the pasture.
+		targetList.remove(targetList.size() - 1);	//remove last target, it's likely the pasture.
+		targetList.remove(targetList.size() - 1);	//remove last target, it's likely the pasture.
 
 	}
 

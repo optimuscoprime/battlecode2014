@@ -1,7 +1,7 @@
-package brute01;
+package sound05;
 
-import brute01.Comms.Message;
-import brute01.Navigation.Move;
+import sound05.Comms.Message;
+import sound05.Navigation.Move;
 
 import java.util.Deque;
 import java.util.Random;
@@ -17,7 +17,7 @@ import battlecode.common.Team;
 /**
  * Aggressive attack strategy
  *
- * Ian has plans for what happens when retreating -
+ * Ian has plans for what happends when retreating -
  * by shooting out to the side I think single soldiers can perhaps herd a *lot*
  */
 public class AttackStrategy implements Strategy {
@@ -47,8 +47,8 @@ public class AttackStrategy implements Strategy {
 		double maxCows=500;
 		int[] x={-2,-1,0,1,2};
 		int[] y={-2,-1,0,1,2};
-		for (int xi = x.length; --xi >=0;){
-			for(int yi=y.length; --yi >=0; ){
+		for (int xi = 0; xi < x.length; xi++){
+			for(int yi=0; yi< y.length; yi++){
 				currentLoc=center.add(x[xi],y[yi]);
 				curCows=rc.senseCowsAtLocation(currentLoc);
 				if(curCows > maxCows){

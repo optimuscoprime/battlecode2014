@@ -118,13 +118,15 @@ public class Tree {
               
                if (shooter.team == ourTeam) {
                   // our team is the shooter
-                  if (victim.team != shooter.team) {
-                     totalScore++;
+                  if (victim.team != shooter.team) {//TODO and within range
+                     totalScore++; 
+                     // continue; // I think.  We only need to verify theres at least one target.
                   }
                } else {
                   // enemy team is the shooter
                   if (victim.team != shooter.team) {
                      totalScore--;
+                     // continue; // I think.  We only need to verify theres at least one target.
                   }
                }
             }

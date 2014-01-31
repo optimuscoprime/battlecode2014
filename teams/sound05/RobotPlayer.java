@@ -1,6 +1,6 @@
-package brute01;
+package sound05;
 
-import brute01.Comms.Message;
+import sound05.Comms.Message;
 
 
 import java.util.Random;
@@ -10,8 +10,8 @@ import battlecode.common.RobotController;
 import battlecode.common.RobotType;
 import battlecode.common.Robot;
 import battlecode.common.RobotInfo;
-//import battlecode.common.RobotType;
-//import battlecode.common.Clock;
+import battlecode.common.RobotType;
+import battlecode.common.Clock;
 import battlecode.common.MapLocation;
 
 public class RobotPlayer {
@@ -29,22 +29,22 @@ public class RobotPlayer {
 				//make the below looks for coms as to whether a sound tower exists
 				//then whether a pasture exists.
 				// fall back to this logic when a soldier is injured (to rebuild).
-				//int soundChannel=1;
+				int soundChannel=1;
 				int pastrChannel=2;
-				//Message ms = Comms.ReadMessage(rc,soundChannel);
+				Message ms = Comms.ReadMessage(rc,soundChannel);
 				Message mp = Comms.ReadMessage(rc,pastrChannel);
 				
-				//if (ms==null){
-				//		  BuildSoundStrategy soundStrategy = new BuildSoundStrategy(rc, rand);
-				//		  playSingleStrategy(rc, soundStrategy);
-				if((rc.sensePastrLocations(rc.getTeam()).length < 1)&&( mp==null) ){
+				if (ms==null){
+						  BuildSoundStrategy soundStrategy = new BuildSoundStrategy(rc, rand);
+						  playSingleStrategy(rc, soundStrategy);
+				}else if((rc.sensePastrLocations(rc.getTeam()).length < 1)&&( mp==null) ){
 						  BuildPastrStrategy pastrBuildStrategy = new BuildPastrStrategy(rc, rand);
 						  playSingleStrategy(rc, pastrBuildStrategy);
 				}else{
 						  AttackStrategy attackStrategy = new AttackStrategy(rc, rand);
 						  playSingleStrategy(rc, attackStrategy);
 				}
-			} else if (type == RobotType.NOISETOWER){ // TODO should never happen for this bot.
+			} else if (type == RobotType.NOISETOWER){
 					  SoundStrategy soundStrategy = new SoundStrategy(rc, rand);
 					  playSingleStrategy(rc, soundStrategy);
 			}else if (type == RobotType.PASTR){

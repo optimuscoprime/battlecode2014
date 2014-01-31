@@ -1,7 +1,7 @@
-package brute01;
+package sound05;
 
-//import brute01.Comms.Message;
-import brute01.Navigation.Move;
+import sound05.Comms.Message;
+import sound05.Navigation.Move;
 
 import java.util.Deque;
 import java.util.Random;
@@ -14,17 +14,16 @@ import battlecode.common.RobotInfo;
 import battlecode.common.Team;
 
 /**
- * BuildSoundStrategy
+ * BuildPastrStrategy
  *
- * 	I intend to make this adaptation from BuildSoundStrategy build a sound-tower
- * 	Then herd cows towards the HQ.
+ * 	I intend to make this adaptation from BuildSoundStrategy to build a pastr near hq.
  * 	I'll probably make a pasture near the HQ.  
  *	  Then I'll make soldiers retreat to herd if they've got < half life / suicide if they can't run?
  *
 
  */
 import battlecode.common.RobotType;
-public class BuildSoundStrategy implements Strategy {
+public class BuildPastrStrategy implements Strategy {
 	RobotController rc;
 	Random rand;
 	Team enemy;
@@ -34,7 +33,7 @@ public class BuildSoundStrategy implements Strategy {
 	//MapLocation centerLoc;
 	Direction wanderingDirection;
 
-	public BuildSoundStrategy(RobotController rc, Random rand) throws GameActionException {
+	public BuildPastrStrategy(RobotController rc, Random rand) throws GameActionException {
 		this.rc = rc;
 		this.enemy = rc.getTeam().opponent();
 		this.info = rc.senseRobotInfo(rc.getRobot());
@@ -48,7 +47,8 @@ public class BuildSoundStrategy implements Strategy {
 	public void play() throws GameActionException {
 		// set the below to middle of the map ?
 		//MapLocation dest = Abilities.ClosestPastr(rc, rc.getLocation(), enemy);
-		MapLocation dest=myHqLoc.add(myHqLoc.directionTo(enemyHqLoc).opposite() ) ;
+		Direction safeDir=myHqLoc.directionTo(enemyHqLoc).opposite() ;
+		MapLocation dest=myHqLoc.add(safeDir).add(safeDir) ;
 		// for pasture we might use the above but make it another square further.
 		Deque<Move> path = Navigation.pathAStar(rc, dest);
 		while(Navigation.attackMoveOnPath(rc, path, info.type.attackRadiusMaxSquared, enemy)) {
@@ -56,10 +56,10 @@ public class BuildSoundStrategy implements Strategy {
 		}
 		Tactics.killNearbyEnemies(rc, info);
 		if (rc.isActive()) {
-				// deploy sound
-			int sound_channel=1;
-			Comms.BroadcastMessage(rc,sound_channel,Comms.Message.create(Comms.Type.SOUND, rc.getLocation(), 0, rc.getRobot().getID()));
-			rc.construct(RobotType.NOISETOWER);
+			// deploy PASTR
+			int pastr_channel=2;
+			Comms.BroadcastMessage(rc,pastr_channel,Comms.Message.create(Comms.Type.PASTR, rc.getLocation(), 0, rc.getRobot().getID()));
+			rc.construct(RobotType.PASTR);
 		} else {
 			rc.yield();				
 		}
