@@ -133,5 +133,31 @@ public class NoiseTowerPlayer extends BasicPlayer implements Player {
     		rc.broadcast(RADIO_CHANNEL_NOISETOWER_BACKUP, 0);
  
     	}
+	}
+	
+	protected MapLocation getFocusLocation() {
+		//log("getFocusLocation start");
+		
+		MapLocation[] friendlyPastrLocations = rc.sensePastrLocations(myTeam);
+		
+		MapLocation focusLocation = myLocation;
+		
+		if (friendlyPastrLocations.length > 0) {
+		
+    		// pick the pastr location that is closest to us
+    		
+    		sort(friendlyPastrLocations, new Comparator<MapLocation>() {
+				@Override
+				public int compare(MapLocation o1, MapLocation o2) {
+					return new Integer(myLocation.distanceSquaredTo(o1)).compareTo(myLocation.distanceSquaredTo(o2));
+				}
+    		});
+    		
+    		focusLocation = friendlyPastrLocations[0];
+		}
+		
+		//log("getFocusLocation end");
+		
+		return focusLocation;
 	}	
 }

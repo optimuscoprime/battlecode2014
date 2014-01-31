@@ -58,6 +58,12 @@ public class SoldierPlayer extends BasicPlayer implements Player {
 			nearbyFriendlyRobotInfo = senseAllRobotInfo(nearbyFriendlyRobots);
 			nearbyFriendlyRobots = nearbyFriendlyRobotInfo.keySet().toArray(new Robot[0]);
 			
+			if (Clock.getBytecodesLeft() < 1000) {
+				log("BYTECODES LEFT: " + Clock.getBytecodesLeft());
+				log("BREAKPOINT 1");
+				//rc.breakpoint();
+			}
+			
 			numNearbyFriendlySoldiers = countSoldiers(nearbyFriendlyRobotInfo);	
 			
 			boolean tookAction = attackNearbyEnemies();
@@ -82,6 +88,12 @@ public class SoldierPlayer extends BasicPlayer implements Player {
 					tookAction = true;
 				}				
 			}
+
+			if (Clock.getBytecodesLeft() < 1000) {
+				log("BYTECODES LEFT: " + Clock.getBytecodesLeft());
+				log("BREAKPOINT 2");
+				//rc.breakpoint();
+			}			
 			
 			// try making a pastr
 			if (!tookAction) {
@@ -100,6 +112,12 @@ public class SoldierPlayer extends BasicPlayer implements Player {
 					tookAction = true;
 				}					
 			}
+			
+			if (Clock.getBytecodesLeft() < 1000) {
+				log("BYTECODES LEFT: " + Clock.getBytecodesLeft());
+				log("BREAKPOINT 3");
+				//rc.breakpoint();
+			}			
 			
 			if (!tookAction) {
 				// maybe we should construct one anyway
@@ -363,11 +381,20 @@ public class SoldierPlayer extends BasicPlayer implements Player {
         	if (!tookAction && myRobotType == SOLDIER) {
             	for (RobotInfo nearbyInfo: nearbyEnemyInfo.values()) {
             		if (nearbyInfo.type != HQ && nearbyInfo.type != NOISETOWER) {
-            			if (rc.canAttackSquare(nearbyInfo.location)) {
+            			
+            			Robot[] friendlySoldierNearLocation = rc.senseNearbyGameObjects(Robot.class, nearbyInfo.location, RobotType.SOLDIER.attackRadiusMaxSquared, myTeam);
+            			
+            			int numFriendlySoldiersNearLocation = friendlySoldierNearLocation.length;
+            			
+            			Robot[] enemySoldierNearLocation = rc.senseNearbyGameObjects(Robot.class, nearbyInfo.location, RobotType.SOLDIER.attackRadiusMaxSquared, opponentTeam);
+
+            			int numEnemySoldiersNearLocation = enemySoldierNearLocation.length;
+            			
+            			if (numFriendlySoldiersNearLocation >= numEnemySoldiersNearLocation) {
             				gotoLocation(nearbyInfo.location);
-    	        			tookAction = true;
-    	        			break;
-    	        		}
+            				tookAction = true;
+            				break;
+            			}
             		}
             	}
         	}
@@ -414,6 +441,7 @@ public class SoldierPlayer extends BasicPlayer implements Player {
 				} catch (GameActionException e) {
 					// we already checked canMove
 					//die(e);
+					die(e);
 				}
 			}
 		} 			
@@ -482,6 +510,7 @@ public class SoldierPlayer extends BasicPlayer implements Player {
 					// don't die here
 					// we already checked canMove
 					// die(e);
+					die(e);
 				}
 				
 			} else {
@@ -520,4 +549,29 @@ public class SoldierPlayer extends BasicPlayer implements Player {
 		return approximateDirection;
 	}		
 
+	protected MapLocation getFocusLocation() {
+		//log("getFocusLocation start");
+		
+		MapLocation[] friendlyPastrLocations = rc.sensePastrLocations(myTeam);
+		
+		MapLocation focusLocation = myHqLocation;
+		
+		if (friendlyPastrLocations.length > 0) {
+		
+    		// pick the pastr location that is closest to us
+    		
+    		sort(friendlyPastrLocations, new Comparator<MapLocation>() {
+				@Override
+				public int compare(MapLocation o1, MapLocation o2) {
+					return new Integer(myLocation.distanceSquaredTo(o1)).compareTo(myLocation.distanceSquaredTo(o2));
+				}
+    		});
+    		
+    		focusLocation = friendlyPastrLocations[0];
+		}
+		
+		//log("getFocusLocation end");
+		
+		return focusLocation;
+	}	
 }

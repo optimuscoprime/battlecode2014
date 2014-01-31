@@ -269,6 +269,13 @@ class CachedFloodedMap {
 		
 		log("still caching map to: " + toLocation + " (taken " + cacheTurns + " turns so far)");
 		
+		cacheTurns++;
+		
+		if (Clock.getBytecodesLeft() < 4000) {
+			//log("Used too many bytecodes");
+			return;
+		}		
+		
 		// might need to resort
 //		if (!fromLocation.equals(oldFromLocation)) {
 //			
@@ -310,7 +317,7 @@ class CachedFloodedMap {
 					}
 				}				
 				
-				if (Clock.getBytecodesLeft() < 3000) {
+				if (Clock.getBytecodesLeft() < 4000) {
 					//log("Used too many bytecodes");
 					break;
 				}		
@@ -327,8 +334,6 @@ class CachedFloodedMap {
 			//printMap();
 			//rc.breakpoint();
 		}
-		
-		cacheTurns++;
 	
 	}
 	

@@ -101,7 +101,7 @@ public abstract class BasicPlayer implements Player {
     				RobotInfo info = rc.senseRobotInfo(robot);
     				allInfo.put(robot,  info);
     			} catch (GameActionException e) {
-    				// ?
+    				die(e);
     			}
     		}
     	}
@@ -109,29 +109,5 @@ public abstract class BasicPlayer implements Player {
     	return allInfo;
 	}
     
-	protected MapLocation getFocusLocation() {
-		//log("getFocusLocation start");
-		
-		MapLocation[] friendlyPastrLocations = rc.sensePastrLocations(myTeam);
-		
-		MapLocation focusLocation = myHqLocation;
-		
-		if (friendlyPastrLocations.length > 0) {
-		
-    		// pick the pastr location that is closest to us
-    		
-    		sort(friendlyPastrLocations, new Comparator<MapLocation>() {
-				@Override
-				public int compare(MapLocation o1, MapLocation o2) {
-					return new Integer(myLocation.distanceSquaredTo(o1)).compareTo(myLocation.distanceSquaredTo(o2));
-				}
-    		});
-    		
-    		focusLocation = friendlyPastrLocations[0];
-		}
-		
-		//log("getFocusLocation end");
-		
-		return focusLocation;
-	}
+
 }

@@ -106,20 +106,8 @@ public class HeadquartersPlayer extends BasicPlayer implements Player  {
 		// requirement: "behind" our spawn
 		// requirement: open space
 						
-		int numPastrs = 0;
-		
-		for (Robot friendlyRobot: allFriendlyRobots) {
-			if (rc.canSenseObject(friendlyRobot)) {
-				try {
-					RobotInfo info = rc.senseRobotInfo(friendlyRobot);
-					if (info.type == PASTR) {
-						numPastrs++;
-					}
-				} catch (GameActionException e) {
-					// ?
-				}
-			}
-		}
+        MapLocation[] pastrLocations = rc.sensePastrLocations(myTeam);
+		int numPastrs = pastrLocations.length;
 		
 		boolean havePastr = false;
 		if (numPastrs > 0) {
@@ -139,9 +127,11 @@ public class HeadquartersPlayer extends BasicPlayer implements Player  {
 		if (havePastr) {
 			rc.broadcast(RADIO_CHANNEL_REQUEST_PASTR, 0);
 		} else {		
-			pastrConstructionLocation = findGoodConstructionLocation();
+			pastrConstructionLocation = findGoodPastrLocation();
 			if (pastrConstructionLocation != null) {
 				rc.broadcast(RADIO_CHANNEL_REQUEST_PASTR, locationToInt(pastrConstructionLocation));
+			} else {
+				rc.broadcast(RADIO_CHANNEL_REQUEST_PASTR, 0);
 			}
 		}
 		
@@ -163,6 +153,7 @@ public class HeadquartersPlayer extends BasicPlayer implements Player  {
 					}
 				} catch (GameActionException e) {
 					// ?
+					die(e);
 				}
 			}
 		}
@@ -185,63 +176,48 @@ public class HeadquartersPlayer extends BasicPlayer implements Player  {
 		if (haveNoiseTower) {
 			rc.broadcast(RADIO_CHANNEL_REQUEST_NOISETOWER, 0);
 		} else {		
-			noiseTowerConstructionLocation = findGoodConstructionLocation();
+			noiseTowerConstructionLocation = findGoodNoiseTowerLocation(); //TODO
 			if (noiseTowerConstructionLocation != null) {
 				rc.broadcast(RADIO_CHANNEL_REQUEST_NOISETOWER, locationToInt(noiseTowerConstructionLocation));				
+			} else {
+				rc.broadcast(RADIO_CHANNEL_REQUEST_NOISETOWER, 0);
 			}
 		}
 	}
 
-	private MapLocation findGoodConstructionLocation() throws GameActionException {
+	private MapLocation findGoodPastrLocation() throws GameActionException {
 		// want a location near the HQ
 		// that doesn't have many voids around it
-				
 		
 		// idea; consider all locations near us
 		// do a fancy sort
 		
-		
-		// sort by distance to enemy HQ
-		// prefer bigger distances
-		Direction[] sortedDirections = allDirections.clone();
-		sort(sortedDirections, new Comparator<Direction>() {
-			public int compare(Direction o1, Direction o2) {
-				return new Integer(myLocation.add(o2).distanceSquaredTo(enemyHqLocation)).compareTo(myLocation.add(o1).distanceSquaredTo(enemyHqLocation));
+		MapLocation[] possibleConstructionLocations = MapLocation.getAllMapLocationsWithinRadiusSq(myLocation, myRobotType.sensorRadiusSquared);
+	    Arrays.sort(possibleConstructionLocations, new Comparator<MapLocation>() {
+			@Override
+			public int compare(MapLocation o1, MapLocation o2) {
+				// distance to our HQ + distance to enemy HQ
+				int result = new Integer(o2.distanceSquaredTo(enemyHqLocation)).compareTo(o1.distanceSquaredTo(enemyHqLocation));
+				if (result == 0) {
+					result = new Integer(o1.distanceSquaredTo(myHqLocation)).compareTo(o2.distanceSquaredTo(myHqLocation));
+				}
+				return result;
 			}
-			
-		}); 
-		
-		Deque<MapLocation> possibleLocations = new ArrayDeque<MapLocation>();
-		Set<MapLocation> visitedLocations = new HashSet<MapLocation>();
-		
-		visitedLocations.add(myLocation);		
-		
-		for (Direction direction: sortedDirections) {
-			MapLocation possibleLocation = myLocation.add(direction);
-			if (gameMap.isTraversable(possibleLocation.x, possibleLocation.y)) {
-				possibleLocations.add(possibleLocation);
-				visitedLocations.add(possibleLocation);
-			}
-		}
-		
+	    });
+	    
+	    // sorted by locations that are far away from enemy hq
+	    
 		MapLocation bestLocation = null;
 		int bestFreeTiles = 0;
-		
-		boolean found = false;
-		int i =0;
-		while (!found && !possibleLocations.isEmpty()) {
-			MapLocation currentLocation = possibleLocations.remove();
-			
+	    
+	    for (MapLocation possibleConstructionLocation: possibleConstructionLocations) {
+	    	
 			int freeTiles = 0;
 			
-			for (Direction direction: sortedDirections) {
-				MapLocation possibleLocation = currentLocation.add(direction);
+			for (Direction direction: allDirections) {
+				MapLocation possibleLocation = possibleConstructionLocation.add(direction);
 				if (gameMap.isTraversable(possibleLocation.x, possibleLocation.y)) {					
 					freeTiles++;
-					if (!visitedLocations.contains(possibleLocation)) {
-						possibleLocations.add(possibleLocation);
-						visitedLocations.add(possibleLocation);
-					}
 				}
 			}
 			
@@ -249,7 +225,7 @@ public class HeadquartersPlayer extends BasicPlayer implements Player  {
 				boolean canBuild = true;
 				
 				// check if there is a construction there
-				Robot robot = (Robot) rc.senseObjectAtLocation(currentLocation);
+				Robot robot = (Robot) rc.senseObjectAtLocation(possibleConstructionLocation);
 				
 				if (robot != null) {
 					RobotInfo info = rc.senseRobotInfo(robot);
@@ -259,21 +235,101 @@ public class HeadquartersPlayer extends BasicPlayer implements Player  {
 				}
 						
 				if (canBuild && freeTiles > bestFreeTiles) {
-					bestLocation = currentLocation;
+					bestLocation = possibleConstructionLocation;
 					bestFreeTiles = freeTiles;
 				}
 			}
-			
-			i++;
-	
-			if (bestFreeTiles > 6 || i > 16) {
+
+			if (bestFreeTiles > 4) {
 				break;
 			}			
-			
 		}
 		
 		return bestLocation;
 	}
+	
+	private MapLocation findGoodNoiseTowerLocation() throws GameActionException {
+		// want a location near the HQ
+		// that doesn't have many voids around it
+		
+		// idea; consider all locations near us
+		// do a fancy sort
+		
+		MapLocation[] pastrLocations = rc.sensePastrLocations(myTeam);
+		int numPastrs = pastrLocations.length;
+		
+		if (numPastrs == 0) {
+			return null;
+		}
+		
+		MapLocation closestPastrLocation = pastrLocations[0];
+		int closestPastrDistance = myLocation.distanceSquaredTo(pastrLocations[0]);
+				
+		for (MapLocation pastrLocation : pastrLocations) {
+			int thisDistance = myLocation.distanceSquaredTo(pastrLocation);
+			if (thisDistance < closestPastrDistance) {
+				closestPastrDistance = thisDistance;
+				closestPastrLocation = pastrLocation;
+			}
+		}
+		
+		final MapLocation finalClosestPastrLocation = closestPastrLocation;
+		
+		MapLocation[] possibleConstructionLocations = MapLocation.getAllMapLocationsWithinRadiusSq(myLocation, myRobotType.sensorRadiusSquared);
+	    Arrays.sort(possibleConstructionLocations, new Comparator<MapLocation>() {
+			@Override
+			public int compare(MapLocation o1, MapLocation o2) {
+				// distance to our HQ + distance to enemy HQ
+				int result = new Integer(o1.distanceSquaredTo(finalClosestPastrLocation)).compareTo(o2.distanceSquaredTo(finalClosestPastrLocation));
+				if (result == 0) {
+					result = new Integer(o1.distanceSquaredTo(myHqLocation)).compareTo(o2.distanceSquaredTo(myHqLocation));
+				}
+				return result;
+			}
+	    });
+	    
+	    // sorted by locations that are far away from enemy hq
+	    
+		MapLocation bestLocation = null;
+		int bestFreeTiles = 0;
+	    
+	    for (MapLocation possibleConstructionLocation: possibleConstructionLocations) {
+	    	
+			int freeTiles = 0;
+			
+			for (Direction direction: allDirections) {
+				MapLocation possibleLocation = possibleConstructionLocation.add(direction);
+				if (gameMap.isTraversable(possibleLocation.x, possibleLocation.y)) {					
+					freeTiles++;
+				}
+			}
+			
+			if (freeTiles > 4) {
+				boolean canBuild = true;
+				
+				// check if there is a construction there
+				Robot robot = (Robot) rc.senseObjectAtLocation(possibleConstructionLocation);
+				
+				if (robot != null) {
+					RobotInfo info = rc.senseRobotInfo(robot);
+					if (info.type != SOLDIER) {
+						canBuild = false;
+					}
+				}
+						
+				if (canBuild && freeTiles > bestFreeTiles) {
+					bestLocation = possibleConstructionLocation;
+					bestFreeTiles = freeTiles;
+				}
+			}
+
+			if (bestFreeTiles > 4) {
+				break;
+			}			
+		}
+		
+		return bestLocation;
+	}	
 
 	private boolean tryToSpawn () {
         // check surrounding squares
@@ -378,10 +434,15 @@ public class HeadquartersPlayer extends BasicPlayer implements Player  {
             	// try to attack one of them as long as it isn't the HQ
             	for (RobotInfo nearbyInfo: nearbyEnemyInfo.values()) {
             		//if (nearbyInfo.type != HQ && nearbyInfo.type != NOISETOWER) {
-        			if (rc.canAttackSquare(nearbyInfo.location.add(nearbyInfo.location.directionTo(myLocation)))) {
-	        			rc.attackSquare(nearbyInfo.location);
-	        			tookAction = true;
-	        			break;
+            		MapLocation splashDamageLocation = nearbyInfo.location.add(nearbyInfo.location.directionTo(myLocation));
+        			if (rc.canAttackSquare(splashDamageLocation)) {
+        				try {
+        					rc.attackSquare(splashDamageLocation);
+        					tookAction = true;
+        					break;
+        				} catch (GameActionException e) {
+        					die(e);
+        				}
 	        		}
             		//}
             	}       		
