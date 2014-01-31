@@ -191,26 +191,26 @@ public abstract class BasicPlayer implements Player {
 					RobotInfo info1 = nearbyEnemyInfo.get(o1);
 					RobotInfo info2 = nearbyEnemyInfo.get(o2);
 					
-					if (info1.type == PASTR && info2.type != PASTR) {
-						return -1;
-					} else if (info1.type != PASTR && info2.type == PASTR) {
-						return 1;
-					} else if (info1.type == SOLDIER && info2.type != SOLDIER) {
-						return -1;
-					} else if (info1.type != SOLDIER && info2.type == SOLDIER) {
-						return 1;
-					} else if (info1.type == NOISETOWER && info2.type != NOISETOWER) {
-						return -1;
-					} else if (info1.type != NOISETOWER && info2.type == NOISETOWER) {
-						return 1;
-					} else if (info1.type == HQ && info2.type != HQ) {
-						return 1;
-					} else if (info1.type != HQ && info2.type == HQ) {
-						return -1;
-					} else {
-						// if same type, just sort on health
-						return new Double(info1.health).compareTo(info2.health);
-					}
+//					if (info1.type == PASTR && info2.type != PASTR) {
+//						return -1;
+//					} else if (info1.type != PASTR && info2.type == PASTR) {
+//						return 1;
+//					} else if (info1.type == SOLDIER && info2.type != SOLDIER) {
+//						return -1;
+//					} else if (info1.type != SOLDIER && info2.type == SOLDIER) {
+//						return 1;
+//					} else if (info1.type == NOISETOWER && info2.type != NOISETOWER) {
+//						return -1;
+//					} else if (info1.type != NOISETOWER && info2.type == NOISETOWER) {
+//						return 1;
+//					} else if (info1.type == HQ && info2.type != HQ) {
+//						return 1;
+//					} else if (info1.type != HQ && info2.type == HQ) {
+//						return -1;
+//					} else {
+//						// if same type, just sort on health
+					return new Double(info1.health).compareTo(info2.health);
+					//}
 				}
         	});
         	        	
