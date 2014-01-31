@@ -24,12 +24,14 @@ public class SoldierPlayer extends BasicPlayer implements Player {
 	private int numAllFriendlySoldiers;
 	
 	protected Deque<MapLocation> trail;
+	private double[][] cowGrowth;
 
 	
 	public SoldierPlayer(Robot robot, int robotId, Team team, RobotType robotType, RobotController rc) {
 		super(robot, robotId, team, robotType, rc);
 		
 		this.trail = new ArrayDeque<MapLocation>();
+		cowGrowth = rc.senseCowGrowth();
 
 	}
 
@@ -43,7 +45,7 @@ public class SoldierPlayer extends BasicPlayer implements Player {
 	
 		} else {
 			
-			if (trail.size() > 10) {
+			if (trail.size() > 20) {
 				trail.remove();
 			}
 			
@@ -54,19 +56,43 @@ public class SoldierPlayer extends BasicPlayer implements Player {
 			numAllFriendlySoldiers = countSoldiers(allFriendlyRobotInfo);		
 			
 			// pastr has a terrible sensor radius, so always use 35 here
-			nearbyFriendlyRobots = rc.senseNearbyGameObjects(Robot.class, 35, myTeam);
+			nearbyFriendlyRobots = rc.senseNearbyGameObjects(Robot.class, myRobotType.sensorRadiusSquared, myTeam);
 			nearbyFriendlyRobotInfo = senseAllRobotInfo(nearbyFriendlyRobots);
 			nearbyFriendlyRobots = nearbyFriendlyRobotInfo.keySet().toArray(new Robot[0]);
+			numNearbyFriendlySoldiers = countSoldiers(nearbyFriendlyRobotInfo);	
+
+			boolean tookAction = attackNearbyEnemies();
 			
 			if (Clock.getBytecodesLeft() < 1000) {
 				log("BYTECODES LEFT: " + Clock.getBytecodesLeft());
 				log("BREAKPOINT 1");
 				//rc.breakpoint();
 			}
+						
 			
-			numNearbyFriendlySoldiers = countSoldiers(nearbyFriendlyRobotInfo);	
+			if (!tookAction) {
+				
+				int numNearbyPastrs = 0;
+				for (RobotInfo robotInfo: nearbyFriendlyRobotInfo.values()) {
+					if (robotInfo.type == PASTR) {
+						numNearbyPastrs++;
+						break;
+					}
+				}
+				
+				if (numNearbyFriendlySoldiers > 1 &&
+						numNearbyPastrs == 0 && 
+						rc.senseCowsAtLocation(myLocation) > 1000 && 
+						myLocation.distanceSquaredTo(myHqLocation) < myLocation.distanceSquaredTo(enemyHqLocation) &&
+						myLocation.distanceSquaredTo(myHqLocation) > RobotType.NOISETOWER.attackRadiusMaxSquared &&
+						cowGrowth[myLocation.x][myLocation.y] > 1) {
+					
+					log("want to construct pastr");
+					rc.construct(PASTR);
+					tookAction = true;
+				}
+			}
 			
-			boolean tookAction = attackNearbyEnemies();
 			
 			// try making a broadcast tower
 			if (!tookAction) {
@@ -371,9 +397,16 @@ public class SoldierPlayer extends BasicPlayer implements Player {
         	for (RobotInfo nearbyInfo: nearbyEnemyInfo.values()) {
         		if (nearbyInfo.type != HQ && nearbyInfo.type != NOISETOWER) {
         			if (rc.canAttackSquare(nearbyInfo.location)) {
-	        			rc.attackSquare(nearbyInfo.location);
-	        			tookAction = true;
-	        			break;
+        				
+            			//Robot[] friendlySoldierNearLocation = rc.senseNearbyGameObjects(Robot.class, nearbyInfo.location, RobotType.SOLDIER.attackRadiusMaxSquared, myTeam);
+            			
+            			//int numFriendlySoldiersNearLocation = friendlySoldierNearLocation.length;        				
+        				
+            			//if (numFriendlySoldiersNearLocation > 1 && myHealth >= nearbyInfo.health) {
+		        			rc.attackSquare(nearbyInfo.location);
+		        			tookAction = true;
+		        			break;
+            			//}
 	        		}
         		}
         	}
