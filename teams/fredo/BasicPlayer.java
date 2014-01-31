@@ -246,9 +246,9 @@ public abstract class BasicPlayer implements Player {
     
 	protected void gotoLocation(MapLocation toLocation) throws GameActionException {
 		
-		if (numNearbyFriendlySoldiers < 3) {
-			toLocation = rallyPoint;
-		}
+		//if (numNearbyFriendlySoldiers < 3) {
+		//	toLocation = rallyPoint;
+		//}
 		
 		rc.setIndicatorString(0, "gotoLocation: " + toLocation);
 		
@@ -263,9 +263,9 @@ public abstract class BasicPlayer implements Player {
 		// just try going there, if we are still waiting for the perfect map
 		if (direction == null) {
 			direction = myLocation.directionTo(toLocation);
-			if (!rc.canMove(direction)) {
-				direction = null;
-			}
+			//if (!rc.canMove(direction)) {
+			//	direction = null;
+			//}
 			//if (!rc.canMove(direction)) {
 			//	direction = null;
 			//}
@@ -277,13 +277,13 @@ public abstract class BasicPlayer implements Player {
 	    	boolean canMove = rc.canMove(direction);
 	        
 	    	// don't go near enemy hq
-	    	if (canMove) {
+	    	//if (canMove) {
 	    		
-				int newDistanceToEnemyHq = enemyHqLocation.distanceSquaredTo(newLocation);
-				if (newDistanceToEnemyHq <= RobotType.HQ.attackRadiusMaxSquared) {
-					canMove = false;
-				}
-	    	}
+			//	int newDistanceToEnemyHq = enemyHqLocation.distanceSquaredTo(newLocation);
+			//	if (newDistanceToEnemyHq <= RobotType.HQ.attackRadiusMaxSquared) {
+			//		canMove = false;
+			//	}
+	    	//}
 	    	
 			if (canMove) {
 				

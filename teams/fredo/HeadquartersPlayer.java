@@ -81,10 +81,16 @@ public class HeadquartersPlayer extends BasicPlayer implements Player  {
 		//if (Clock.getRoundNum() > 500) {
 		//maybeCreateExploringWaypoint();	
 		//}
+	
+		// try creating maps
+		
+		createCachedMaps();
 		 
 		rc.yield();
-		 
-
+	}
+	
+	private void createCachedMaps() {
+		// todo maybe cache maps and broadcast them
 	}
 
 	private void maybeAskForPastr() throws GameActionException {

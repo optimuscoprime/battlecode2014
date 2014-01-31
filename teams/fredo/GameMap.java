@@ -94,6 +94,11 @@ public class GameMap {
 
 	}
 	
+	
+	public boolean isTraversable(MapLocation location) {
+		return isTraversable(location.x, location.y);
+	}
+	
 	public boolean isTraversable(int x, int y) {
 		return (x >= 0 && 
 				x < width &&
@@ -264,13 +269,14 @@ class CachedFloodedMap {
 				double thisScore = floodedMap[currentLocation.x][currentLocation.y];
 				for (Direction direction: allDirections) {
 					MapLocation newLocation = currentLocation.add(direction);								
-					if (gameMap.isTraversable(newLocation.x, newLocation.y) && floodedMap[newLocation.x][newLocation.y] == null) {
+					if (floodedMap[newLocation.x][newLocation.y] == null && gameMap.isTraversable(newLocation)) {
 						floodedMap[newLocation.x][newLocation.y] = thisScore + 1; //getTileScore(newLocation, direction);
 						
 						toVisit.add(newLocation);
 						
 						if (newLocation.equals(fromLocation)) {
 							finishedCaching = true;
+							break;
 						}
 					}
 				}				
