@@ -147,9 +147,13 @@ public class HeadquartersPlayer extends BasicPlayer implements Player  {
 		
 		for (Robot friendlyRobot: allFriendlyRobots) {
 			if (rc.canSenseObject(friendlyRobot)) {
-				RobotInfo info = rc.senseRobotInfo(friendlyRobot);
-				if (info.type == NOISETOWER) {
-					numNoiseTowers++;
+				try {
+					RobotInfo info = rc.senseRobotInfo(friendlyRobot);
+					if (info.type == NOISETOWER) {
+						numNoiseTowers++;
+					}
+				} catch (GameActionException e) {
+					// ?
 				}
 			}
 		}

@@ -247,9 +247,9 @@ class CachedFloodedMap {
 		
 		oldFromLocation = fromLocation;
 		
-		log("toLocation: " + toLocation);
-		log("width: " + width);
-		log("height: " + height);
+		//log("toLocation: " + toLocation);
+		//log("width: " + width);
+		//log("height: " + height);
 		
 		floodedMap[toLocation.x][toLocation.y] = 0.0;
 		

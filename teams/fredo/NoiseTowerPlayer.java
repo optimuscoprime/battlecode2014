@@ -97,10 +97,10 @@ public class NoiseTowerPlayer extends BasicPlayer implements Player {
 				rc.setIndicatorString(0, "can't sense, attacking blind");
 				rc.attackSquare(pulseLocation);
 			} else if (surroundingCows > 10) {
-				rc.setIndicatorString(0,  "has some cows, attacking");
+				rc.setIndicatorString(0, "has some cows, attacking");
 				rc.attackSquare(pulseLocation);
 			} else {
-				log("no cows, not attacking");
+				rc.setIndicatorString(0, "no cows, not attacking");
 			}			
 			
 		}

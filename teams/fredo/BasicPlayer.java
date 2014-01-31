@@ -307,7 +307,7 @@ public abstract class BasicPlayer implements Player {
 	
 				int newDistanceToEnemyHq = enemyHqLocation.distanceSquaredTo(newLocation);
 				if (newDistanceToEnemyHq <= RobotType.HQ.attackRadiusMaxSquared) {
-					log("can't move");
+					//log("can't move");
 					canMove = false;
 				}
 			}
@@ -357,7 +357,7 @@ public abstract class BasicPlayer implements Player {
 			if (canMove) {	
 				int newDistanceToEnemyHq = enemyHqLocation.distanceSquaredTo(toLocation);
 				if (newDistanceToEnemyHq <= RobotType.HQ.attackRadiusMaxSquared) {
-					log("can't move");
+					//log("can't move");
 					canMove = false;
 				}
 			}
