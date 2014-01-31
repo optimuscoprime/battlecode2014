@@ -85,6 +85,7 @@ public class Overlord {
 
 		teams.add("emo");		
 		teams.add("fredo");		
+		teams.add("awesemo");		
 		teams.add("gk_roman");
 		teams.add("sc02");
 		teams.add("sound04");
