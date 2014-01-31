@@ -117,12 +117,19 @@ maybe even when we're getting shot we just want that soldier to yell help and ru
 					//viable strategies are suicide or running.
 					for (int i = 0; i < enemies.length; i++) {
 						targetLoc=rc.senseRobotInfo(enemies[i]).location;
+						if(targetLoc==rc.senseEnemyHQLocation()){
+							return;
+						}
 						Direction awayFromE=rc.getLocation().directionTo(targetLoc).opposite();
 						if(rc.isActive()){
 							getHelp(rc, targetLoc);
 							if(rc.canMove(awayFromE)){
 								rc.move(awayFromE);
-							}else{
+							//}else if(rc.canMove(awayFromE.rotateLeft())){
+							//	rc.move(awayFromE.rotateLeft());
+							//}else if(rc.canMove(awayFromE.rotateRight())){
+							//	rc.move(awayFromE.rotateRight());
+							}else{	//can't run?
 								if (rc.canAttackSquare(targetLoc)) {
 									rc.attackSquare(targetLoc);
 								}
@@ -161,6 +168,8 @@ maybe even when we're getting shot we just want that soldier to yell help and ru
 							} else {
 								break;
 							}
+						}else{
+							return;
 						}
 					} else {
 						break;

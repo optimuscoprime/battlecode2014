@@ -60,16 +60,18 @@ public class SoundStrategy implements Strategy {
 		}
 		pos=0;  
 		// sort by distance from rc.getLocation()
-		
+		if(pastrLoc==null){
+			pastrLoc=rc.getLocation();//close enough
+		}
 		Collections.sort(targetList, new Comparator<MapLocation>(){
 				public int compare(MapLocation b, MapLocation a){
 				return new Integer(pastrLoc.distanceSquaredTo(a)).compareTo( pastrLoc.distanceSquaredTo(b));
 				}
 				}
-		);
+				);
 
 	}
-	
+
 	public void play() throws GameActionException {
 		
 		if (rc.isActive()) {

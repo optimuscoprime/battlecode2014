@@ -8,7 +8,11 @@ import java.util.Random;
 import battlecode.common.GameActionException;
 import battlecode.common.RobotController;
 import battlecode.common.RobotType;
+import battlecode.common.Robot;
+import battlecode.common.RobotInfo;
+import battlecode.common.RobotType;
 import battlecode.common.Clock;
+import battlecode.common.MapLocation;
 
 public class RobotPlayer {
 	public static void run(RobotController rc) {
@@ -46,15 +50,28 @@ public class RobotPlayer {
 			}else if (type == RobotType.PASTR){
 					  //SoundStrategy soundStrategy = new SoundStrategy(rc, rand);
 					  //playSingleStrategy(rc, soundStrategy);
-					  while(true){
-						  if(rc.getHealth()<rc.getType().maxHealth){
-								//call for help.
-							  Comms.BroadcastMessage(rc,3,
-									  Comms.Message.create(Comms.Type.HELP, rc.getLocation(), Clock.getRoundNum()%16, rc.getRobot().getID())
-									  );
-						  }
-						  rc.yield();
-					  }
+				MapLocation targetLoc=null;
+				while(true){
+					double lowestEH=100000;
+					Robot enemies[] = rc.senseNearbyGameObjects(Robot.class, rc.getLocation(), 9, rc.getTeam().opponent());
+					
+					if(enemies.length>0){
+						for (int i = 0; i < enemies.length; i++) {
+							Robot e = enemies[i];
+							RobotInfo ei = rc.senseRobotInfo(e);
+							if(ei.health<lowestEH){ //pickoff weakest .. also skips hq.
+								targetLoc = ei.location;
+								lowestEH=ei.health;
+								//if(ei.type == RobotType.HQ) { //run or we could make movement not go there.
+							}
+						}	//call for help.
+						Comms.BroadcastMessage(rc,3,
+								Comms.Message.create(Comms.Type.HELP, targetLoc,0, rc.getRobot().getID())
+								);
+
+					}  
+					rc.yield();
+				}
 			}		
 		} catch(GameActionException e) {
 			throw new RuntimeException(e);

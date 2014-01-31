@@ -1,0 +1,24 @@
+---
+debug: true
+
+bots_can_play_self: false
+score_win: 1
+score_tie: 0
+score_loss: 0
+
+# only looks at 'custom_teams' if 'use_all_teams' is false
+use_all_teams: false
+custom_teams: 
+ - awesemo
+ - fredo
+ - emo
+ - sc02
+ - sound04
+ - brute01
+ - gk_roman
+ - hubertTheFraternal
+
+# only looks at 'custom_teams' if 'use_all_maps' is false
+use_all_maps: true
+custom_maps:
+ - bakedpotato

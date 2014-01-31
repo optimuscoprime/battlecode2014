@@ -73,6 +73,19 @@ public class Navigation {
 		return false;
 	}
 	
+	public static final int[] AROUND = new int[]{0,1,-1,2,-2,3,-3};
+	public static final int DS = Direction.values().length;
+	public static boolean stepToward(RobotController rc, Direction d) throws GameActionException {
+		for (int i : AROUND) {
+			Direction dc = Direction.values()[(d.ordinal() + i + DS) % DS]; 
+			if (rc.canMove(dc)) {
+				rc.move(dc);
+				return true;
+			}
+		}
+		return false;
+	}
+	
 	/**
 	 * move to a location, will give up on first obstacle, or after max steps
 	 */
