@@ -209,8 +209,10 @@ public abstract class BasicPlayer implements Player {
 //						return -1;
 //					} else {
 //						// if same type, just sort on health
-					return new Double(info1.health).compareTo(info2.health);
 					//}
+					
+					return new Double(info1.health).compareTo(info2.health);
+					
 				}
         	});
         	        	
