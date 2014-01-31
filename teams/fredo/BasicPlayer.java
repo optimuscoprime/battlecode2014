@@ -43,6 +43,19 @@ public abstract class BasicPlayer implements Player {
     
     public Direction[] randomDirections = allDirections.clone();
 
+	protected Robot[] allFriendlyRobots;
+
+	protected int numAllFriendlySoldiers;
+
+	protected Robot[] nearbyFriendlyRobots;
+
+	protected int numNearbyFriendlySoldiers;
+
+	protected RobotInfo myRobotInfo = null;
+	
+	protected double myHealth;
+
+	private MapLocation rallyPoint;
     
 	public BasicPlayer(Robot robot, int robotId, Team team, RobotType robotType, RobotController rc) {
 		this.myRobot = robot;
@@ -58,19 +71,42 @@ public abstract class BasicPlayer implements Player {
 		
 		this.enemyHqLocation = rc.senseEnemyHQLocation();
 		this.myHqLocation = rc.senseHQLocation();
-		this.myLocation = rc.getLocation();
+	
+		this.rallyPoint = myHqLocation;
+		
+		//new MapLocation((int) (2/3.0 * myHqLocation.x + 1/3.0 * enemyHqLocation.x), (int) (2/3.0 * myHqLocation.y + 1/3.0 * enemyHqLocation.y));
+		
+		//while (!gameMap.isTraversable(rallyPoint.x, rallyPoint.y)) {
+		//	rallyPoint = rallyPoint.add(rallyPoint.directionTo(myHqLocation));
+		//}
 	}
 	
 	public void playOneTurn() throws GameActionException {
 		// keep this up to date
-		myLocation = rc.getLocation();
+		myRobotInfo = rc.senseRobotInfo(myRobot);
+		myHealth = myRobotInfo.health;
+		myLocation = myRobotInfo.location;
+		
+		allFriendlyRobots = rc.senseNearbyGameObjects(Robot.class, HUGE_RADIUS, myTeam);
+		numAllFriendlySoldiers = countSoldiers(allFriendlyRobots, rc);
+		
+		// pastr has a terrible sensor radius, so always use 35 here
+		nearbyFriendlyRobots = rc.senseNearbyGameObjects(Robot.class, 35, myTeam);
+		
+		numNearbyFriendlySoldiers = countSoldiers(nearbyFriendlyRobots, rc);	
+		
+		rc.setIndicatorString(0, "");
+		
+		rc.setIndicatorString(1, "");
+		
+		rc.setIndicatorString(2, "");
 	}
 	
     protected boolean attackNearbyEnemies() throws GameActionException {
     	
     	//log("Started attackNearbyEnemies()...");
     	
-        boolean didAttack = false;
+        boolean tookAction = false;
         
         MapLocation myLocation = rc.getLocation();
         
@@ -80,15 +116,29 @@ public abstract class BasicPlayer implements Player {
             HUGE_RADIUS,
             opponentTeam
         );
+        
+        int numNearbyEnemySoldiers = countSoldiers(nearbyEnemies, rc);
+        
+    	if (myRobotType == SOLDIER) {
+    		if (myHealth < myRobotType.maxHealth / 3 || numNearbyFriendlySoldiers < numNearbyEnemySoldiers) {
+    			// maybe we should retreat
+    			if (myLocation.distanceSquaredTo(rallyPoint) > 35) {
+    				// go to hq
+    				rc.setIndicatorString(1, "retreat to rally point");
+    				gotoLocation(rallyPoint);
+    				tookAction = true;
+    			}
+    		}        		
+    	}        
 
-        if (nearbyEnemies.length > 0) {
+        if (!tookAction && nearbyEnemies.length > 0) {
 
             final Map<Robot, RobotInfo> allRobotInfo = new HashMap<Robot, RobotInfo>();
             
         	for (int i=0; i < nearbyEnemies.length; i++) {
         		// this sense is guaranteed to succeed because we already used senseNearbyGameObjects
         		RobotInfo robotInfo = rc.senseRobotInfo(nearbyEnemies[i]);
-        		allRobotInfo.put(nearbyEnemies[i], robotInfo);        		
+        		allRobotInfo.put(nearbyEnemies[i], robotInfo);  
         	}
         	
         	sort(nearbyEnemies, new Comparator<Robot>() {
@@ -125,54 +175,62 @@ public abstract class BasicPlayer implements Player {
 					}
 				}
         	});
-        	
+        	        	
         	// try to attack one of them as long as it isn't the HQ
         	for (Robot nearbyEnemyRobot: nearbyEnemies) {
         		RobotInfo info = allRobotInfo.get(nearbyEnemyRobot);
-        		if (info.type != HQ) {
+        		if (info.type != HQ && info.type != NOISETOWER) {
         			if (rc.canAttackSquare(info.location)) {
 	        			rc.attackSquare(info.location);
-	        			didAttack = true;
+	        			tookAction = true;
 	        			break;
 	        		}
         		}
         	}
         	
-        	if (!didAttack) {
-	        	// try to attack one of them as long as it isn't the HQ
-	        	for (Robot nearbyEnemyRobot: nearbyEnemies) {
-	        		RobotInfo info = allRobotInfo.get(nearbyEnemyRobot);
-	        		if (info.type != HQ) {
-	        			if (myRobotType == SOLDIER) {
-		        			gotoLocation(info.location);
-		        			didAttack = true;
-		        			break;
-		        		}
-	        		}
-	        	}      	
-        	}
+//        	if (!tookAction && myRobotType == SOLDIER) {
+//        		
+//        		// there are soldiers nearby, but none of them were attackable
+//        		
+//
+//        		
+//	        	// try to move towards one of them as long as it isn't the hq
+//	        	for (Robot nearbyEnemyRobot: nearbyEnemies) {
+//	        		RobotInfo info = allRobotInfo.get(nearbyEnemyRobot);
+//	        		if (info.type != HQ) {
+//	        			gotoLocation(info.location);
+//	        			tookAction = true;
+//	        			break;
+//	        		}
+//	        	}      	
+//        	}
+        	
         }
 
         //log("Finished attackNearbyEnemies().");
         
-        return didAttack;
+        return tookAction;
     }	
     
     protected void moveRandomly() {
+    	rc.setIndicatorString(2, "moveRandomly");
+    	
 		// let's try moving randomly
 		shuffle(randomDirections);
 		for (Direction randomDirection: randomDirections) {
 			boolean canMove = rc.canMove(randomDirection);
-			
-			if (canMove) {
-				MapLocation toLocation = myLocation.add(randomDirection);
 	
-				int newDistanceToEnemyHq = enemyHqLocation.distanceSquaredTo(toLocation);
-				if (newDistanceToEnemyHq <= RobotType.HQ.attackRadiusMaxSquared) {
-					log("can't move");
-					canMove = false;
-				}
-			}
+			
+			// handle this elsewhere?
+			//if (canMove) {
+			//	MapLocation toLocation = myLocation.add(randomDirection);
+	
+			//	int newDistanceToEnemyHq = enemyHqLocation.distanceSquaredTo(toLocation);
+			//	if (newDistanceToEnemyHq <= RobotType.HQ.attackRadiusMaxSquared) {
+			//		log("can't move");
+			//		canMove = false;
+			//	}
+			//}
 			
 			if (canMove) {
 				try	{
@@ -186,7 +244,13 @@ public abstract class BasicPlayer implements Player {
 		} 			
     }
     
-	protected void gotoLocation(MapLocation toLocation) {
+	protected void gotoLocation(MapLocation toLocation) throws GameActionException {
+		
+		if (numNearbyFriendlySoldiers < 3) {
+			toLocation = rallyPoint;
+		}
+		
+		rc.setIndicatorString(0, "gotoLocation: " + toLocation);
 		
 		//log("started nextDirectionTo...");
 		
@@ -199,18 +263,23 @@ public abstract class BasicPlayer implements Player {
 		// just try going there, if we are still waiting for the perfect map
 		if (direction == null) {
 			direction = myLocation.directionTo(toLocation);
+			if (!rc.canMove(direction)) {
+				direction = null;
+			}
 			//if (!rc.canMove(direction)) {
 			//	direction = null;
 			//}
 		}
 	    
 	    if (direction != null) {
-
-	    	boolean canMove = rc.canMove(direction);
+	    	MapLocation newLocation = myLocation.add(direction);
 	    	
+	    	boolean canMove = rc.canMove(direction);
+	        
 	    	// don't go near enemy hq
 	    	if (canMove) {
-				int newDistanceToEnemyHq = enemyHqLocation.distanceSquaredTo(toLocation);
+	    		
+				int newDistanceToEnemyHq = enemyHqLocation.distanceSquaredTo(newLocation);
 				if (newDistanceToEnemyHq <= RobotType.HQ.attackRadiusMaxSquared) {
 					canMove = false;
 				}
@@ -218,13 +287,17 @@ public abstract class BasicPlayer implements Player {
 	    	
 			if (canMove) {
 				
-				MapLocation focusLocation = myHqLocation;
+				MapLocation focusLocation = getFocusLocation();
 								
-				int newDistanceToFocus = focusLocation.distanceSquaredTo(toLocation);
+				int newDistanceToFocus = focusLocation.distanceSquaredTo(newLocation);
 				int currentDistanceToFocus = focusLocation.distanceSquaredTo(myLocation);
 				
+				//int distanceToMyHq = myHqLocation.distanceSquaredTo(myLocation);
+				
+				//double newLocationCows = rc.senseCowsAtLocation(newLocation);
+				
 				try	{
-					if (newDistanceToFocus < currentDistanceToFocus) {
+					if (newDistanceToFocus < currentDistanceToFocus) { // && newLocationCows > 100) {
 						// herd cattle
 						rc.move(direction);
 					} else {
@@ -234,16 +307,22 @@ public abstract class BasicPlayer implements Player {
 				} catch (GameActionException e) {
 					die(e);
 				}
+				
 			} else {
+				
+				// TODO: should sneak/herd here maybe
+				
 				moveRandomly();
 			}
 	    }
 	}   
 	
 	protected MapLocation getFocusLocation() {
+		//log("getFocusLocation start");
+		
 		MapLocation[] friendlyPastrLocations = rc.sensePastrLocations(myTeam);
 		
-		MapLocation focusLocation;
+		MapLocation focusLocation = myHqLocation;
 		
 		if (friendlyPastrLocations.length > 0) {
 		
@@ -257,9 +336,9 @@ public abstract class BasicPlayer implements Player {
     		});
     		
     		focusLocation = friendlyPastrLocations[0];
-		} else {
-			focusLocation = myLocation;
 		}
+		
+		//log("getFocusLocation end");
 		
 		return focusLocation;
 	}

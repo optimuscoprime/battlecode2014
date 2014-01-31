@@ -17,24 +17,13 @@ public class SoldierPlayer extends BasicPlayer implements Player {
 	private int waypointRound;
 	private int lastWaypointRoundNum = 0;
 	
-	private boolean kamikaze = false;
-
 	public SoldierPlayer(Robot robot, int robotId, Team team, RobotType robotType, RobotController rc) {
 		super(robot, robotId, team, robotType, rc);
-		myHqLocation = rc.senseHQLocation();
-		enemyHqLocation = rc.senseEnemyHQLocation();
 	}
 
 	@Override
 	public void playOneTurn() throws GameActionException {
 		super.playOneTurn();
-		
-		Robot[] allFriendlyRobots = rc.senseNearbyGameObjects(Robot.class, HUGE_RADIUS, myTeam);
-		
-		Robot[] nearbyFriendlyRobots = rc.senseNearbyGameObjects(Robot.class, myRobotType.sensorRadiusSquared*2, myTeam);
-
-		int numFriendlySoldiers = countSoldiers(allFriendlyRobots, rc);
-		int numNearbyFriendlySoldiers = countSoldiers(nearbyFriendlyRobots, rc);
 		
 		boolean didAttack = false;
 		
@@ -43,19 +32,6 @@ public class SoldierPlayer extends BasicPlayer implements Player {
 		}
 		
 		if (!didAttack && rc.isActive()) {
-			if (numFriendlySoldiers > 5) {
-				// small chance of going kamikaze
-				if (Util.random.nextDouble() < 0.1) {
-					kamikaze = true;
-				}
-			}
-		}
-		
-		if (!didAttack && kamikaze && rc.isActive()) {
-			gotoLocation(enemyHqLocation);
-		}
-		
-		if (!didAttack && !kamikaze && rc.isActive()) {
 			
 			// prefer to construct noise towers
 			
@@ -72,7 +48,7 @@ public class SoldierPlayer extends BasicPlayer implements Player {
 					// check if another robot is there
 					//Robot robot = rc.senseObjectAtLocation(noiseTowerConstructionMapLocation);
 					
-					rc.setIndicatorString(0,  "going to noisetower location");
+					rc.setIndicatorString(1,  "build noisetower");
 					gotoLocation(noiseTowerConstructionMapLocation);
 				}
 				constructingNoiseTower = true;
@@ -90,7 +66,7 @@ public class SoldierPlayer extends BasicPlayer implements Player {
 							rc.construct(PASTR);
 						}
 					} else {
-						rc.setIndicatorString(0,  "going to pastr location");
+						rc.setIndicatorString(1,  "build pastr");
 						gotoLocation(pastrConstructionMapLocation);
 					}
 					constructingPastr = true;
@@ -98,19 +74,20 @@ public class SoldierPlayer extends BasicPlayer implements Player {
 			
 				if (!constructingPastr) {
 					
-					
+					// maybe we should construct one anyway
+					// if (rc.senseCowsAtLocation(myLocation) > 1000 && cowGrowth[myLocation.x][myLocation.y] 
 						
 					// don't listen for waypoints all the time
-					int thisRoundNum = Clock.getRoundNum();
+					//int thisRoundNum = Clock.getRoundNum();
 					
 					int intWaypointLocation = rc.readBroadcast(RADIO_CHANNEL_WAYPOINT);
 					if (intWaypointLocation != 0) {
-						if (thisRoundNum > lastWaypointRoundNum + 10) {
-							waypointLocation = intToLocation(intWaypointLocation);
-							lastWaypointRoundNum = thisRoundNum;
-						} else {
+						//if (thisRoundNum > lastWaypointRoundNum) {
+						waypointLocation = intToLocation(intWaypointLocation);
+						//lastWaypointRoundNum = thisRoundNum;
+						//} else {
 							// keep current waypoint before overriding
-						}
+						//}
 					} else {
 						// allow waypoint resets at any time
 						waypointLocation = null;
@@ -141,19 +118,19 @@ public class SoldierPlayer extends BasicPlayer implements Player {
 					
 
 					
-					if (waypointLocation != null && numNearbyFriendlySoldiers > 2) {
+					if (waypointLocation != null) { // && numNearbyFriendlySoldiers > 2) {
 						//log("going to waypoint");
-						rc.setIndicatorString(0,  "going to waypoint: " + waypointLocation);
+						rc.setIndicatorString(1,  "goto waypoint");
 						gotoLocation(waypointLocation);
 					} else {
 						// make a random move for now
-						if (random.nextDouble() < 0.25) {
-							rc.setIndicatorString(0,  "moving randomly");
-							moveRandomly();
-						} else {
-							rc.setIndicatorString(0, "going to hq");
-							gotoLocation(myHqLocation);
-						}
+						//if (random.nextDouble() < 0.25) {
+						//	rc.setIndicatorString(0,  "moving randomly");
+						//	moveRandomly();
+						//} else {
+						//	rc.setIndicatorString(0, "going to hq");
+						//	gotoLocation(myHqLocation);
+						//}
 					}
 					
 				}

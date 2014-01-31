@@ -10,9 +10,6 @@ import battlecode.common.*;
 import static fredo.Util.*;
 
 public class PastrPlayer extends BasicPlayer implements Player {
-	private Robot[] nearbyFriendlyRobots;
-	private int numNearbyFriendlySoldiers;
-
 	public PastrPlayer(Robot robot, int robotId, Team team, RobotType robotType, RobotController rc) {
 		super(robot, robotId, team, robotType, rc);
 	}
@@ -21,24 +18,23 @@ public class PastrPlayer extends BasicPlayer implements Player {
 	public void playOneTurn() throws GameActionException {
 		super.playOneTurn();
 			    		
-		if (rc.isActive()) {
+		//if (rc.isActive()) {
 			
-			nearbyFriendlyRobots = rc.senseNearbyGameObjects(Robot.class, 40, myTeam);
+			//nearbyFriendlyRobots = rc.senseNearbyGameObjects(Robot.class, 40, myTeam);
 			
-			numNearbyFriendlySoldiers = countSoldiers(nearbyFriendlyRobots, rc);			
+			//numNearbyFriendlySoldiers = countSoldiers(nearbyFriendlyRobots, rc);			
 			
-			maybeCreateExploringWaypoint();
-		}
+		maybeAskForBackup();
+		//}
 		
 		rc.yield();
 	}
 	
-	private void maybeCreateExploringWaypoint() throws GameActionException {
+	private void maybeAskForBackup() throws GameActionException {
 
     	MapLocation waypointLocation = null;
     	
-
-    	if (numNearbyFriendlySoldiers < 2) {
+    	if (numNearbyFriendlySoldiers < 2 || myHealth < myRobotType.maxHealth) {
     		
     		waypointLocation = myLocation;
 	

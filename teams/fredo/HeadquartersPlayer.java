@@ -16,9 +16,6 @@ public class HeadquartersPlayer extends BasicPlayer implements Player  {
 	private Robot[] nearbyFriendlyRobots;
 	private int numNearbyFriendlySoldiers;
 	
-	
-
-	
 	public HeadquartersPlayer(Robot robot, int robotId, Team team, RobotType robotType, RobotController rc) {
 		super(robot, robotId, team, robotType, rc);
 	}
@@ -73,13 +70,13 @@ public class HeadquartersPlayer extends BasicPlayer implements Player  {
 		
 		//if (friendlyRobots.length > 16) {
 		
-		if (numNearbyFriendlySoldiers > 2) {
+		//if (numNearbyFriendlySoldiers > 2) {
 			
 			maybeAskForNoiseTower();
 			
 			maybeAskForPastr();
 		
-		}
+		//}
 		
 		//if (Clock.getRoundNum() > 500) {
 		//maybeCreateExploringWaypoint();	

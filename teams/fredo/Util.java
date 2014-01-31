@@ -159,12 +159,13 @@ public class Util {
 	public static int countSoldiers (Robot[] robots, RobotController rc) throws GameActionException {
 		int numSoldiers = 0;
 		for (Robot robot: robots) {
-			if (rc.canSenseObject(robot)) {
+			// should be able to sense robot info (already sensed the robots)
+			//if (rc.canSenseObject(robot)) {
 				RobotInfo info = rc.senseRobotInfo(robot);
 				if (info.type == SOLDIER) {
 					numSoldiers++;
 				}
-			}
+			//}
 		}
 		return numSoldiers;
 	}

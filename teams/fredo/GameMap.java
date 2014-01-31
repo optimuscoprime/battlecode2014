@@ -7,107 +7,6 @@ import static fredo.Util.*;
 import static battlecode.common.Direction.*;
 import static battlecode.common.TerrainTile.*;
 
-class CachedFloodedMap {
-    public static Direction[] allDirections = new Direction[] {
-    	// prefer diagonal directions
-    	NORTH_EAST,
-    	NORTH_WEST,
-    	SOUTH_WEST,
-    	SOUTH_EAST,
-        EAST,
-        NORTH,
-        WEST,
-        SOUTH,
-    };		
-	
-	public Double[][] floodedMap;
-	public MapLocation fromLocation;
-	public MapLocation toLocation;
-	public PriorityQueue<MapLocation> toVisit;
-	public boolean finishedCaching = false;
-	private GameMap gameMap;
-	
-	public CachedFloodedMap(final GameMap gameMap, final int width, final int height, final MapLocation fromLocation, final MapLocation toLocation) {
-		this.gameMap = gameMap;
-		this.fromLocation = fromLocation;
-		this.toLocation = toLocation;
-		this.finishedCaching = false;
-		this.floodedMap = new Double[width][height];
-		
-		// init
-		for (int x=0; x < width; x++) {
-			for (int y=0; y < height; y++) {
-				floodedMap[x][y] = null;
-			}
-		}
-		
-		this.toVisit = new PriorityQueue<MapLocation>(100, new Comparator<MapLocation>() {
-			public int compare(MapLocation o1, MapLocation o2) {
-				// prefer locations closer to the to location
-				return new Integer(toLocation.distanceSquaredTo(o1)).compareTo(toLocation.distanceSquaredTo(o2));
-			}
-		});
-		
-		floodedMap[toLocation.x][toLocation.y] = 0.0;
-		
-		toVisit.add(toLocation);
-	}
-	
-	public void continueCaching() {
-			
-		log("still caching map");
-		
-		while (!finishedCaching && !toVisit.isEmpty()) {
-			MapLocation currentLocation = toVisit.remove();
-			
-			if (currentLocation.equals(fromLocation)) {
-				
-				finishedCaching = true;
-				break;
-				
-			} else {
-				
-				double thisScore = floodedMap[currentLocation.x][currentLocation.y];
-				for (Direction direction: allDirections) {
-					MapLocation newLocation = currentLocation.add(direction);								
-					if (gameMap.isTraversable(newLocation.x, newLocation.y) && floodedMap[newLocation.x][newLocation.y] == null) {
-						floodedMap[newLocation.x][newLocation.y] = thisScore + 1; //getTileScore(newLocation, direction);
-						toVisit.add(newLocation);
-					}
-				}				
-				if (Clock.getBytecodesLeft() < 1000) {
-					//log("Used too many bytecodes");
-					break;
-				}		
-				
-			}
-		}
-		
-		if (toVisit.isEmpty()) {
-			finishedCaching = true;
-		}
-		
-		if (finishedCaching) {
-			log("finished caching map");
-		}
-	
-	}
-//	
-//	private void printFloodedMap() {
-//		for (int x=0; x < width; x++) {
-//			for (int y =0; y < height; y++) {
-//				if (floodedMap[x][y] == null) {
-//					System.out.printf("      ");
-//				} else {
-//					System.out.printf("%02.1f  ", floodedMap[x][y]);
-//				}
-//			}
-//			System.out.printf("\n");
-//		}
-//	}	
-}
-
-
 public class GameMap {
 	private RobotController rc;
 	
@@ -135,6 +34,8 @@ public class GameMap {
 		
 		this.width = rc.getMapWidth();
 		this.height = rc.getMapHeight();
+		
+		MapLocation enemyHqLocation = rc.senseEnemyHQLocation();
 
 		// sense terrain tiles, build a map
 		
@@ -144,7 +45,13 @@ public class GameMap {
 		
 		for (int y = 0; y < height; y++) {
 			for (int x = 0; x < width; x++) {	
-				map[x][y] = rc.senseTerrainTile(new MapLocation(x,y));
+				MapLocation currentLocation = new MapLocation(x,y);
+				map[x][y] = rc.senseTerrainTile(currentLocation);
+				
+				// pretend that squares near the enemy hq are not traversible
+				if (currentLocation.distanceSquaredTo(enemyHqLocation) <= RobotType.HQ.attackRadiusMaxSquared) {
+					map[x][y] = VOID;
+				}
 			}
 		}
 		
@@ -222,7 +129,7 @@ public class GameMap {
 		}
 		
 		if (!cachedFloodedMap.finishedCaching) {
-			cachedFloodedMap.continueCaching();
+			cachedFloodedMap.continueCaching(fromLocation);
 		}
 		
 		Direction nextDirection = null;
@@ -250,23 +157,153 @@ public class GameMap {
 		return nextDirection;
 	}
 
-	// lower is better
-	private Double getTileScore(MapLocation location, Direction direction) {
-		Double tileScore = null;
+//	// lower is better
+//	private Double getTileScore(MapLocation location, Direction direction) {
+//		Double tileScore = null;
+//		
+//		TerrainTile tile = map[location.x][location.y];
+//		if (tile == ROAD) {
+//			tileScore = 0.5;
+//		} else if (tile == NORMAL) {
+//			tileScore = 1.0;
+//		}
+//				
+//		if (tileScore != null) {
+//			if (direction.isDiagonal()) {
+//				tileScore = tileScore * 1.4; 
+//			}
+//		}
+//		
+//		return tileScore;
+//	}
+}
+
+class CachedFloodedMap {
+    public static Direction[] allDirections = new Direction[] {
+    	// prefer diagonal directions
+    	NORTH_EAST,
+    	NORTH_WEST,
+    	SOUTH_WEST,
+    	SOUTH_EAST,
+        EAST,
+        NORTH,
+        WEST,
+        SOUTH,
+    };		
+	
+	public Double[][] floodedMap;
+	//public MapLocation fromLocation;
+	public MapLocation toLocation;
+	public PriorityQueue<MapLocation> toVisit;
+	public boolean finishedCaching = false;
+	public int cacheTurns = 0;
+	
+	private MapLocation oldFromLocation = null;
+	private GameMap gameMap;
+
+	
+	public CachedFloodedMap(final GameMap gameMap, final int width, final int height, final MapLocation fromLocation, final MapLocation toLocation) {
+		this.gameMap = gameMap;
+		//this.fromLocation = fromLocation;
+		this.toLocation = toLocation;
+		this.finishedCaching = false;
+		this.floodedMap = new Double[width][height];
+		this.cacheTurns = 0;
 		
-		TerrainTile tile = map[location.x][location.y];
-		if (tile == ROAD) {
-			tileScore = 0.5;
-		} else if (tile == NORMAL) {
-			tileScore = 1.0;
-		}
+		// init
+		//for (int x=0; x < width; x++) {
+		//	for (int y=0; y < height; y++) {
+		//		floodedMap[x][y] = null;
+		//	}
+		//}
+		
+		this.toVisit = new PriorityQueue<MapLocation>(100, new Comparator<MapLocation>() {
+			public int compare(MapLocation o1, MapLocation o2) {
+				// prefer locations closer to the to location
+				return new Integer(fromLocation.distanceSquaredTo(o1)).compareTo(fromLocation.distanceSquaredTo(o2));
+			}
+		});
+		
+		oldFromLocation = fromLocation;
+		
+		floodedMap[toLocation.x][toLocation.y] = 0.0;
+		
+		toVisit.add(toLocation);
+	}
+	
+	public void continueCaching(final MapLocation fromLocation) {
+		
+		log("still caching map to: " + toLocation + " (taken " + cacheTurns + " turns so far)");
+		
+		// might need to resort
+//		if (!fromLocation.equals(oldFromLocation)) {
+//			
+//			oldFromLocation = fromLocation;
+//			
+//			PriorityQueue<MapLocation> newToVisit = new PriorityQueue<MapLocation>(100, new Comparator<MapLocation>() {
+//				public int compare(MapLocation o1, MapLocation o2) {
+//					// prefer locations closer to the to location
+//					return new Integer(fromLocation.distanceSquaredTo(o1)).compareTo(fromLocation.distanceSquaredTo(o2));
+//				}
+//			});
+//			
+//			newToVisit.addAll(toVisit);
+//			toVisit = newToVisit;
+//		}
+		
+		while (!finishedCaching && !toVisit.isEmpty()) {
+			MapLocation currentLocation = toVisit.remove();
+			
+			if (currentLocation.equals(fromLocation)) {
 				
-		if (tileScore != null) {
-			if (direction.isDiagonal()) {
-				tileScore = tileScore * 1.4; 
+				finishedCaching = true;
+				break;
+				
+			} else {
+				
+				double thisScore = floodedMap[currentLocation.x][currentLocation.y];
+				for (Direction direction: allDirections) {
+					MapLocation newLocation = currentLocation.add(direction);								
+					if (gameMap.isTraversable(newLocation.x, newLocation.y) && floodedMap[newLocation.x][newLocation.y] == null) {
+						floodedMap[newLocation.x][newLocation.y] = thisScore + 1; //getTileScore(newLocation, direction);
+						
+						toVisit.add(newLocation);
+						
+						if (newLocation.equals(fromLocation)) {
+							finishedCaching = true;
+						}
+					}
+				}				
+				if (Clock.getBytecodesLeft() < 1500) {
+					//log("Used too many bytecodes");
+					break;
+				}		
+				
 			}
 		}
 		
-		return tileScore;
+		if (toVisit.isEmpty()) {
+			finishedCaching = true;
+		}
+		
+		if (finishedCaching) {
+			log("finished caching map");
+		}
+		
+		cacheTurns++;
+	
 	}
+//	
+//	private void printFloodedMap() {
+//		for (int x=0; x < width; x++) {
+//			for (int y =0; y < height; y++) {
+//				if (floodedMap[x][y] == null) {
+//					System.out.printf("      ");
+//				} else {
+//					System.out.printf("%02.1f  ", floodedMap[x][y]);
+//				}
+//			}
+//			System.out.printf("\n");
+//		}
+//	}	
 }
