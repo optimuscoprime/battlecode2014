@@ -283,7 +283,7 @@ public class HeadquartersPlayer extends BasicPlayer implements Player  {
 		
 		int robotCount = rc.senseRobotCount();
 		
-		if (robotCount < 1 && robotCount < GameConstants.MAX_ROBOTS) {
+		if (robotCount < GameConstants.MAX_ROBOTS) {
 	    	shuffle(randomDirections); 
 	
 	        for (Direction direction: randomDirections) {
@@ -371,6 +371,20 @@ public class HeadquartersPlayer extends BasicPlayer implements Player  {
 	        			break;
 	        		}
         		//}
+        	}
+        	
+        	if (!tookAction) {
+        		// try attacting a nearby square
+            	// try to attack one of them as long as it isn't the HQ
+            	for (RobotInfo nearbyInfo: nearbyEnemyInfo.values()) {
+            		//if (nearbyInfo.type != HQ && nearbyInfo.type != NOISETOWER) {
+        			if (rc.canAttackSquare(nearbyInfo.location.add(nearbyInfo.location.directionTo(myLocation)))) {
+	        			rc.attackSquare(nearbyInfo.location);
+	        			tookAction = true;
+	        			break;
+	        		}
+            		//}
+            	}       		
         	}
         	
         }

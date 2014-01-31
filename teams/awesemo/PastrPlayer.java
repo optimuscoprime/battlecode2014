@@ -1,8 +1,6 @@
 package awesemo;
 
-import static awesemo.Util.RADIO_CHANNEL_WAYPOINT;
-import static awesemo.Util.countSoldiers;
-import static awesemo.Util.locationToInt;
+import static awesemo.Util.*;
 
 import java.util.*;
 
@@ -47,9 +45,9 @@ public class PastrPlayer extends BasicPlayer implements Player {
     	}    		
     	
     	if (waypointLocation != null) {
-    		rc.broadcast(RADIO_CHANNEL_WAYPOINT, locationToInt(waypointLocation));
+    		rc.broadcast(RADIO_CHANNEL_PASTR_BACKUP, locationToInt(waypointLocation));
     	} else {
-    		rc.broadcast(RADIO_CHANNEL_WAYPOINT, 0);
+    		rc.broadcast(RADIO_CHANNEL_PASTR_BACKUP, 0);
  
     	}
 	}		

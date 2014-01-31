@@ -108,7 +108,8 @@ public class SoldierPlayer extends BasicPlayer implements Player {
 				// don't listen for waypoints all the time
 				//int thisRoundNum = Clock.getRoundNum();
 				
-				int intWaypointLocation = rc.readBroadcast(RADIO_CHANNEL_WAYPOINT);
+				int intWaypointLocation = rc.readBroadcast(RADIO_CHANNEL_PASTR_BACKUP);
+				
 				if (intWaypointLocation != 0) {
 					//if (thisRoundNum > lastWaypointRoundNum) {
 					waypointLocation = intToLocation(intWaypointLocation);
@@ -121,19 +122,19 @@ public class SoldierPlayer extends BasicPlayer implements Player {
 					int myDistanceToWaypoint = myLocation.distanceSquaredTo(waypointLocation);
 					
 					for (RobotInfo info : allFriendlyRobotInfo.values()) {
-						if (info.location.distanceSquaredTo(waypointLocation) < myDistanceToWaypoint) {
+						if (info.type == SOLDIER && info.location.distanceSquaredTo(waypointLocation) < myDistanceToWaypoint) {
 							closerRobots++;
 						}
 					}
 					
 					if (closerRobots > 5) {
 						
-						rc.setIndicatorString(1,  "ignoring waypoint: " + waypointLocation);
+						rc.setIndicatorString(1,  "ignoring pastr waypoint: " + waypointLocation);
 						waypointLocation = null; // don't go there
 						
 						
 					} else {
-						rc.setIndicatorString(1,  "received waypoint: " + waypointLocation);
+						rc.setIndicatorString(1,  "received pastr waypoint: " + waypointLocation);
 					}
 					
 					
@@ -144,6 +145,50 @@ public class SoldierPlayer extends BasicPlayer implements Player {
 				} else {
 					// allow waypoint resets at any time
 					waypointLocation = null;
+				}
+				
+				if (waypointLocation == null) {
+					
+					intWaypointLocation = rc.readBroadcast(RADIO_CHANNEL_NOISETOWER_BACKUP);
+					
+					if (intWaypointLocation != 0) {
+						//if (thisRoundNum > lastWaypointRoundNum) {
+						waypointLocation = intToLocation(intWaypointLocation);
+						
+						
+						
+						// check if there is a closer friendly soldier
+						
+						int closerRobots = 0;
+						int myDistanceToWaypoint = myLocation.distanceSquaredTo(waypointLocation);
+						
+						for (RobotInfo info : allFriendlyRobotInfo.values()) {
+							if (info.type == SOLDIER && info.location.distanceSquaredTo(waypointLocation) < myDistanceToWaypoint) {
+								closerRobots++;
+							}
+						}
+						
+						if (closerRobots > 5) {
+							
+							rc.setIndicatorString(1,  "ignoring noisetower waypoint: " + waypointLocation);
+							waypointLocation = null; // don't go there
+							
+							
+						} else {
+							rc.setIndicatorString(1,  "received noisetower waypoint: " + waypointLocation);
+						}
+						
+						
+						//lastWaypointRoundNum = thisRoundNum;
+						//} else {
+							// keep current waypoint before overriding
+						//}
+					} else {
+						// allow waypoint resets at any time
+						waypointLocation = null;
+					}
+										
+					
 				}
 				
 				
@@ -245,7 +290,7 @@ public class SoldierPlayer extends BasicPlayer implements Player {
         int numNearbyEnemySoldiers = countSoldiers(nearbyEnemyInfo);
         
     	if (myRobotType == SOLDIER) {
-    		if (myHealth < myRobotType.maxHealth / 3 || numNearbyFriendlySoldiers < numNearbyEnemySoldiers || numNearbyFriendlySoldiers < 2) {
+    		if (myHealth < myRobotType.maxHealth / 3 || numNearbyFriendlySoldiers < numNearbyEnemySoldiers) {
     			
     			// pick a good rally point
     			
@@ -404,14 +449,14 @@ public class SoldierPlayer extends BasicPlayer implements Player {
 	    	boolean canMove = rc.canMove(direction);
 	        
 	    	// don't go near enemy hq
-			if (canMove) {	
-				int newDistanceToEnemyHq = enemyHqLocation.distanceSquaredTo(newLocation);
-				if (newDistanceToEnemyHq <= RobotType.HQ.attackRadiusMaxSquared) {
-					//log("can't move");
-					rc.setIndicatorString(2, "too close to enemy HQ");
-					canMove = false;
-				}
-			}
+			//if (canMove) {	
+			//	int newDistanceToEnemyHq = enemyHqLocation.distanceSquaredTo(newLocation);
+			//	if (newDistanceToEnemyHq <= RobotType.HQ.attackRadiusMaxSquared) {
+			//		//log("can't move");
+			//		rc.setIndicatorString(2, "too close to enemy HQ");
+			//		canMove = false;
+			//	}
+			//}
 	    	
 			if (canMove) {
 				

@@ -74,6 +74,8 @@ public class NoiseTowerPlayer extends BasicPlayer implements Player {
 				rc.yield();
 			} 			
 			
+			maybeAskForBackup();
+			
 			//if (allCowGrowth[pulseLocation.x][pulseLocation.y] < 0.5) {
 			//	// small chance we just skip it
 			//	if (Util.random.nextDouble() < 0.5) {
@@ -96,9 +98,11 @@ public class NoiseTowerPlayer extends BasicPlayer implements Player {
 			if (!canSense) {
 				rc.setIndicatorString(0, "can't sense, attacking blind");
 				rc.attackSquare(pulseLocation);
+				rc.yield();
 			} else if (surroundingCows > 10) {
 				rc.setIndicatorString(0, "has some cows, attacking");
 				rc.attackSquare(pulseLocation);
+				rc.yield();
 			} else {
 				rc.setIndicatorString(0, "no cows, not attacking");
 			}			
@@ -106,4 +110,28 @@ public class NoiseTowerPlayer extends BasicPlayer implements Player {
 		}
 		i++;
 	}
+	
+	private void maybeAskForBackup() throws GameActionException {
+
+    	MapLocation waypointLocation = null;
+   
+		Robot[] nearbyFriendlyRobots = rc.senseNearbyGameObjects(Robot.class, 35, myTeam);
+		Map<Robot, RobotInfo> nearbyFriendlyRobotInfo = senseAllRobotInfo(nearbyFriendlyRobots);
+		nearbyFriendlyRobots = nearbyFriendlyRobotInfo.keySet().toArray(new Robot[0]);
+		
+		int numNearbyFriendlySoldiers = countSoldiers(nearbyFriendlyRobotInfo);	    	
+    	
+		if (numNearbyFriendlySoldiers < 3 || myHealth < myRobotType.maxHealth) {
+    		
+    		waypointLocation = myLocation;
+	
+    	}    		
+    	
+    	if (waypointLocation != null) {
+    		rc.broadcast(RADIO_CHANNEL_NOISETOWER_BACKUP, locationToInt(waypointLocation));
+    	} else {
+    		rc.broadcast(RADIO_CHANNEL_NOISETOWER_BACKUP, 0);
+ 
+    	}
+	}	
 }
