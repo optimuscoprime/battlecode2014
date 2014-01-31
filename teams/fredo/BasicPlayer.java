@@ -56,6 +56,10 @@ public abstract class BasicPlayer implements Player {
 	protected double myHealth;
 
 	private MapLocation rallyPoint;
+
+	protected Map<Robot, RobotInfo> allFriendlyRobotInfo;
+
+	protected Map<Robot, RobotInfo> nearbyFriendlyRobotInfo;
     
 	public BasicPlayer(Robot robot, int robotId, Team team, RobotType robotType, RobotController rc) {
 		this.myRobot = robot;
@@ -72,7 +76,7 @@ public abstract class BasicPlayer implements Player {
 		this.enemyHqLocation = rc.senseEnemyHQLocation();
 		this.myHqLocation = rc.senseHQLocation();
 	
-		this.rallyPoint = myHqLocation;
+		this.rallyPoint = null;
 		
 		//new MapLocation((int) (2/3.0 * myHqLocation.x + 1/3.0 * enemyHqLocation.x), (int) (2/3.0 * myHqLocation.y + 1/3.0 * enemyHqLocation.y));
 		
@@ -88,21 +92,40 @@ public abstract class BasicPlayer implements Player {
 		myLocation = myRobotInfo.location;
 		
 		allFriendlyRobots = rc.senseNearbyGameObjects(Robot.class, HUGE_RADIUS, myTeam);
-		numAllFriendlySoldiers = countSoldiers(allFriendlyRobots, rc);
+		allFriendlyRobotInfo = senseAllRobotInfo(allFriendlyRobots);
+		allFriendlyRobots = allFriendlyRobotInfo.keySet().toArray(new Robot[0]);
+		
+		numAllFriendlySoldiers = countSoldiers(allFriendlyRobotInfo);
 		
 		// pastr has a terrible sensor radius, so always use 35 here
 		nearbyFriendlyRobots = rc.senseNearbyGameObjects(Robot.class, 35, myTeam);
+		nearbyFriendlyRobotInfo = senseAllRobotInfo(nearbyFriendlyRobots);
+		nearbyFriendlyRobots = nearbyFriendlyRobotInfo.keySet().toArray(new Robot[0]);
 		
-		numNearbyFriendlySoldiers = countSoldiers(nearbyFriendlyRobots, rc);	
+		numNearbyFriendlySoldiers = countSoldiers(nearbyFriendlyRobotInfo);	
 		
-		rc.setIndicatorString(0, "");
+		rc.setIndicatorString(0, ""); // gotoLocation
 		
-		rc.setIndicatorString(1, "");
+		rc.setIndicatorString(1, ""); // 
 		
 		rc.setIndicatorString(2, "");
 	}
 	
-    protected boolean attackNearbyEnemies() throws GameActionException {
+    private Map<Robot, RobotInfo> senseAllRobotInfo(Robot[] robots) throws GameActionException {
+    	
+    	Map<Robot, RobotInfo> allInfo = new HashMap<Robot, RobotInfo>();
+    	
+    	for (Robot robot: robots) {
+    		if (rc.canSenseObject(robot)) {
+    			RobotInfo info = rc.senseRobotInfo(robot);
+    			allInfo.put(robot,  info);
+    		}
+    	}
+
+    	return allInfo;
+	}
+
+	protected boolean attackNearbyEnemies() throws GameActionException {
     	
     	//log("Started attackNearbyEnemies()...");
     	
@@ -116,15 +139,26 @@ public abstract class BasicPlayer implements Player {
             HUGE_RADIUS,
             opponentTeam
         );
+        final Map<Robot, RobotInfo> nearbyEnemyInfo = senseAllRobotInfo(nearbyEnemies);
+        nearbyEnemies = nearbyEnemyInfo.keySet().toArray(new Robot[0]);
         
-        int numNearbyEnemySoldiers = countSoldiers(nearbyEnemies, rc);
+        int numNearbyEnemySoldiers = countSoldiers(nearbyEnemyInfo);
         
     	if (myRobotType == SOLDIER) {
-    		if (myHealth < myRobotType.maxHealth / 3 || numNearbyFriendlySoldiers < numNearbyEnemySoldiers) {
+    		if (myHealth < myRobotType.maxHealth / 3 || numNearbyFriendlySoldiers < numNearbyEnemySoldiers || numNearbyFriendlySoldiers < 2) {
+    			
+    			// pick a good rally point
+    			
+    			rallyPoint = getSoldierCenterLocation(); 	
+    				
+    			if (rallyPoint == null) {
+    				rallyPoint = myHqLocation;
+    			}
+    			
     			// maybe we should retreat
-    			if (myLocation.distanceSquaredTo(rallyPoint) > 35) {
-    				// go to hq
-    				rc.setIndicatorString(1, "retreat to rally point");
+    			if (myLocation.distanceSquaredTo(rallyPoint) >= 35) {
+    				// go there
+    				rc.setIndicatorString(1, "go to rally point");
     				gotoLocation(rallyPoint);
     				tookAction = true;
     			}
@@ -132,14 +166,6 @@ public abstract class BasicPlayer implements Player {
     	}        
 
         if (!tookAction && nearbyEnemies.length > 0) {
-
-            final Map<Robot, RobotInfo> allRobotInfo = new HashMap<Robot, RobotInfo>();
-            
-        	for (int i=0; i < nearbyEnemies.length; i++) {
-        		// this sense is guaranteed to succeed because we already used senseNearbyGameObjects
-        		RobotInfo robotInfo = rc.senseRobotInfo(nearbyEnemies[i]);
-        		allRobotInfo.put(nearbyEnemies[i], robotInfo);  
-        	}
         	
         	sort(nearbyEnemies, new Comparator<Robot>() {
         		// idea:
@@ -150,8 +176,8 @@ public abstract class BasicPlayer implements Player {
         		
 				@Override
 				public int compare(Robot o1, Robot o2) {
-					RobotInfo info1 = allRobotInfo.get(o1);
-					RobotInfo info2 = allRobotInfo.get(o2);
+					RobotInfo info1 = nearbyEnemyInfo.get(o1);
+					RobotInfo info2 = nearbyEnemyInfo.get(o2);
 					
 					if (info1.type == PASTR && info2.type != PASTR) {
 						return -1;
@@ -178,7 +204,7 @@ public abstract class BasicPlayer implements Player {
         	        	
         	// try to attack one of them as long as it isn't the HQ
         	for (Robot nearbyEnemyRobot: nearbyEnemies) {
-        		RobotInfo info = allRobotInfo.get(nearbyEnemyRobot);
+        		RobotInfo info = nearbyEnemyInfo.get(nearbyEnemyRobot);
         		if (info.type != HQ && info.type != NOISETOWER) {
         			if (rc.canAttackSquare(info.location)) {
 	        			rc.attackSquare(info.location);
@@ -212,7 +238,44 @@ public abstract class BasicPlayer implements Player {
         return tookAction;
     }	
     
-    protected void moveRandomly() {
+    protected MapLocation getSoldierCenterLocation() {
+    	MapLocation centerLocation = null;
+    	
+    	if (numAllFriendlySoldiers > 1) {
+    		double totalX = 0;
+    		double totalY = 0;
+    		
+    		int n = 0;
+    		
+    		// find the average pos
+    		for (RobotInfo info: allFriendlyRobotInfo.values()) {
+    			if (info.type == SOLDIER) {
+    				totalX += info.location.x;
+    				totalY += info.location.y;
+    				n++;
+    			}
+    		}
+    		
+    		double averageX = totalX / n;
+    		double averageY = totalY / n;    	
+    		
+    		centerLocation = new MapLocation((int) averageX, (int) averageY);
+    		
+    		if (!gameMap.isTraversable(centerLocation)) {
+    			// would be better to search around the center loc
+    			centerLocation = myHqLocation;
+    		}
+    		
+//    		while (!gameMap.isTraversable(centerLocation)) {
+//    			// try exploring around
+//    		
+//    		}
+    	}
+		
+		return centerLocation;
+	}
+
+	protected void moveRandomly() {
     	rc.setIndicatorString(2, "moveRandomly");
     	
 		// let's try moving randomly
@@ -220,17 +283,17 @@ public abstract class BasicPlayer implements Player {
 		for (Direction randomDirection: randomDirections) {
 			boolean canMove = rc.canMove(randomDirection);
 	
-			
 			// handle this elsewhere?
-			//if (canMove) {
-			//	MapLocation toLocation = myLocation.add(randomDirection);
+			
+			if (canMove) {
+				MapLocation newLocation = myLocation.add(randomDirection);
 	
-			//	int newDistanceToEnemyHq = enemyHqLocation.distanceSquaredTo(toLocation);
-			//	if (newDistanceToEnemyHq <= RobotType.HQ.attackRadiusMaxSquared) {
-			//		log("can't move");
-			//		canMove = false;
-			//	}
-			//}
+				int newDistanceToEnemyHq = enemyHqLocation.distanceSquaredTo(newLocation);
+				if (newDistanceToEnemyHq <= RobotType.HQ.attackRadiusMaxSquared) {
+					log("can't move");
+					canMove = false;
+				}
+			}
 			
 			if (canMove) {
 				try	{
@@ -238,7 +301,8 @@ public abstract class BasicPlayer implements Player {
 					rc.sneak(randomDirection);
 					break;
 				} catch (GameActionException e) {
-					die(e);
+					// we already checked canMove
+					//die(e);
 				}
 			}
 		} 			
@@ -262,13 +326,7 @@ public abstract class BasicPlayer implements Player {
 		
 		// just try going there, if we are still waiting for the perfect map
 		if (direction == null) {
-			direction = myLocation.directionTo(toLocation);
-			//if (!rc.canMove(direction)) {
-			//	direction = null;
-			//}
-			//if (!rc.canMove(direction)) {
-			//	direction = null;
-			//}
+			direction = approximateDirectionTo(myLocation, toLocation);
 		}
 	    
 	    if (direction != null) {
@@ -277,13 +335,13 @@ public abstract class BasicPlayer implements Player {
 	    	boolean canMove = rc.canMove(direction);
 	        
 	    	// don't go near enemy hq
-	    	//if (canMove) {
-	    		
-			//	int newDistanceToEnemyHq = enemyHqLocation.distanceSquaredTo(newLocation);
-			//	if (newDistanceToEnemyHq <= RobotType.HQ.attackRadiusMaxSquared) {
-			//		canMove = false;
-			//	}
-	    	//}
+			if (canMove) {	
+				int newDistanceToEnemyHq = enemyHqLocation.distanceSquaredTo(toLocation);
+				if (newDistanceToEnemyHq <= RobotType.HQ.attackRadiusMaxSquared) {
+					log("can't move");
+					canMove = false;
+				}
+			}
 	    	
 			if (canMove) {
 				
@@ -305,14 +363,20 @@ public abstract class BasicPlayer implements Player {
 						rc.sneak(direction);
 					}
 				} catch (GameActionException e) {
-					die(e);
+					// don't die here
+					// we already checked canMove
+					// die(e);
 				}
 				
 			} else {
 				
 				// TODO: should sneak/herd here maybe
 				
-				moveRandomly();
+				// maybe move randomly
+				
+				if (Util.random.nextDouble() < 0.1) {
+					moveRandomly();
+				}
 			}
 	    }
 	}   

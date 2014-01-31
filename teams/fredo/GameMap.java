@@ -123,7 +123,7 @@ public class GameMap {
 		
 		CachedFloodedMap cachedFloodedMap = cachedFloodedMaps.get(toLocation);
 		if (cachedFloodedMap == null) {
-			cachedFloodedMap = new CachedFloodedMap(this, height, height, fromLocation, toLocation);
+			cachedFloodedMap = new CachedFloodedMap(this, width, height, fromLocation, toLocation);
 			cachedFloodedMaps.put(toLocation,  cachedFloodedMap);
 		}
 
@@ -143,13 +143,21 @@ public class GameMap {
 			double lowestScore = Integer.MAX_VALUE;
 			
 			for (Direction direction: allDirections) {
-				MapLocation testLocation = fromLocation.add(direction);
-				if (isTraversable(testLocation.x, testLocation.y)) {
-					Double thisScore = cachedFloodedMap.floodedMap[testLocation.x][testLocation.y];
+				MapLocation newLocation = fromLocation.add(direction);
+				if (isTraversable(newLocation)) {
+					Double thisScore = cachedFloodedMap.floodedMap[newLocation.x][newLocation.y];
 					if (thisScore != null) {
+						
+						
 						if (direction.isDiagonal()) {
 							thisScore += 0.3; // discourage diagonal directions unless they save time
 						}
+
+						// prefer roads?
+						if (map[newLocation.x][newLocation.y] == ROAD) {
+							thisScore -= 0.5;
+						}
+						
 						if (thisScore < lowestScore) {
 							lowestScore = thisScore;
 							nextDirection = direction;
@@ -231,6 +239,10 @@ class CachedFloodedMap {
 		
 		oldFromLocation = fromLocation;
 		
+		log("toLocation: " + toLocation);
+		log("width: " + width);
+		log("height: " + height);
+		
 		floodedMap[toLocation.x][toLocation.y] = 0.0;
 		
 		toVisit.add(toLocation);
@@ -269,7 +281,7 @@ class CachedFloodedMap {
 				double thisScore = floodedMap[currentLocation.x][currentLocation.y];
 				for (Direction direction: allDirections) {
 					MapLocation newLocation = currentLocation.add(direction);								
-					if (floodedMap[newLocation.x][newLocation.y] == null && gameMap.isTraversable(newLocation)) {
+					if (gameMap.isTraversable(newLocation) && floodedMap[newLocation.x][newLocation.y] == null) {
 						floodedMap[newLocation.x][newLocation.y] = thisScore + 1; //getTileScore(newLocation, direction);
 						
 						toVisit.add(newLocation);
@@ -280,7 +292,8 @@ class CachedFloodedMap {
 						}
 					}
 				}				
-				if (Clock.getBytecodesLeft() < 1500) {
+				
+				if (Clock.getBytecodesLeft() < 3000) {
 					//log("Used too many bytecodes");
 					break;
 				}		

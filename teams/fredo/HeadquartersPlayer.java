@@ -12,9 +12,6 @@ public class HeadquartersPlayer extends BasicPlayer implements Player  {
 	private MapLocation pastrConstructionLocation;
 	private MapLocation noiseTowerConstructionLocation;
 	private int waypointRound;
-	private Robot[] allFriendlyRobots;
-	private Robot[] nearbyFriendlyRobots;
-	private int numNearbyFriendlySoldiers;
 	
 	public HeadquartersPlayer(Robot robot, int robotId, Team team, RobotType robotType, RobotController rc) {
 		super(robot, robotId, team, robotType, rc);
@@ -22,6 +19,7 @@ public class HeadquartersPlayer extends BasicPlayer implements Player  {
 
 	@Override
 	public void playOneTurn() throws GameActionException {
+		
 		super.playOneTurn();
 		
 		//while (true) {
@@ -49,10 +47,11 @@ public class HeadquartersPlayer extends BasicPlayer implements Player  {
 		// 3. spawn a new robot
 		// if not attacking
 		
-		allFriendlyRobots = rc.senseNearbyGameObjects(Robot.class, HUGE_RADIUS, myTeam);
-		nearbyFriendlyRobots = rc.senseNearbyGameObjects(Robot.class, myRobotType.sensorRadiusSquared*2, myTeam);
+		//allFriendlyRobots = rc.senseNearbyGameObjects(Robot.class, HUGE_RADIUS, myTeam);
+		//numAllFriendlySoldiers = countSoldiers(allFriendlyRobots, rc);
 		
-		numNearbyFriendlySoldiers = countSoldiers(nearbyFriendlyRobots, rc);		
+		//nearbyFriendlyRobots = rc.senseNearbyGameObjects(Robot.class, myRobotType.sensorRadiusSquared*2, myTeam);
+		//numNearbyFriendlySoldiers = countSoldiers(nearbyFriendlyRobots, rc);		
 		
 		boolean didAttack = false;
 		
@@ -70,13 +69,13 @@ public class HeadquartersPlayer extends BasicPlayer implements Player  {
 		
 		//if (friendlyRobots.length > 16) {
 		
-		//if (numNearbyFriendlySoldiers > 2) {
+		if (numAllFriendlySoldiers > 4) {
 			
 			maybeAskForNoiseTower();
 			
 			maybeAskForPastr();
 		
-		//}
+		}
 		
 		//if (Clock.getRoundNum() > 500) {
 		//maybeCreateExploringWaypoint();	
@@ -261,7 +260,7 @@ public class HeadquartersPlayer extends BasicPlayer implements Player  {
 		
 		boolean spawned = false;
 		
-		if (allFriendlyRobots.length < GameConstants.MAX_ROBOTS) {
+		if (rc.senseRobotCount() < GameConstants.MAX_ROBOTS) {
 	    	shuffle(randomDirections); 
 	
 	        for (Direction direction: randomDirections) {

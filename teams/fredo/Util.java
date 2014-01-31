@@ -24,11 +24,14 @@ public class Util {
 	public static Random random;
 	private static RobotType robotType;
 	private static int robotId;
+
+	private static RobotController rc;
 	
-	public static void init(int robotId, RobotType robotType) {
+	public static void init(int robotId, RobotType robotType, RobotController rc) {
 	    random = new Random(robotId);
 	    Util.robotId = robotId;
 	    Util.robotType = robotType;
+	    Util.rc = rc;
 	}
 	
 	// Implementing Fisher–Yates shuffle (http://stackoverflow.com/questions/1519736/random-shuffling-of-an-array)
@@ -90,7 +93,11 @@ public class Util {
     protected static void die (String message, Exception e) {
     	if (e != null) {
     		e.printStackTrace();
-    	} 
+    	}
+    	
+    	System.out.printf("Breakpoint\n");
+    	rc.breakpoint();
+    	
     	//throw new RuntimeException(message, e);
     }	
     
@@ -156,17 +163,35 @@ public class Util {
 		System.out.printf("All tests passed!");
 	}   
 	
-	public static int countSoldiers (Robot[] robots, RobotController rc) throws GameActionException {
+	public static int countSoldiers (Map<Robot, RobotInfo> allInfo) throws GameActionException {
 		int numSoldiers = 0;
-		for (Robot robot: robots) {
-			// should be able to sense robot info (already sensed the robots)
-			//if (rc.canSenseObject(robot)) {
-				RobotInfo info = rc.senseRobotInfo(robot);
-				if (info.type == SOLDIER) {
-					numSoldiers++;
-				}
-			//}
+		for (RobotInfo info: allInfo.values()) {
+			if (info.type == SOLDIER) {
+				numSoldiers++;
+			}
 		}
 		return numSoldiers;
+	}
+	
+	public static Direction approximateDirectionTo(MapLocation from, MapLocation to) {
+		Direction exactDirection = from.directionTo(to);
+		Direction approximateDirection = null;
+		
+		if (rc.canMove(exactDirection)) {
+			approximateDirection = exactDirection;
+		} else {
+			approximateDirection = exactDirection.rotateLeft();
+			if (!rc.canMove(approximateDirection)) {
+				approximateDirection = exactDirection.rotateRight();
+				if (!rc.canMove(approximateDirection)) {
+					approximateDirection = exactDirection.rotateLeft().rotateLeft();
+					if (!rc.canMove(approximateDirection)) {
+						approximateDirection = exactDirection.rotateRight().rotateRight();
+					}
+				}
+			}
+		}
+		
+		return approximateDirection;
 	}
 }

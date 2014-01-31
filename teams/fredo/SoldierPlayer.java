@@ -29,6 +29,8 @@ public class SoldierPlayer extends BasicPlayer implements Player {
 		
 		if (rc.isActive()) {
 			didAttack = attackNearbyEnemies();
+		} else {
+			rc.setIndicatorString(1, "not active");
 		}
 		
 		if (!didAttack && rc.isActive()) {
@@ -84,6 +86,25 @@ public class SoldierPlayer extends BasicPlayer implements Player {
 					if (intWaypointLocation != 0) {
 						//if (thisRoundNum > lastWaypointRoundNum) {
 						waypointLocation = intToLocation(intWaypointLocation);
+						
+						rc.setIndicatorString(1,  "received waypoint");
+						
+						// check if there is a closer friendly soldier
+						
+						int closerRobots = 0;
+						int myDistanceToWaypoint = myLocation.distanceSquaredTo(waypointLocation);
+						
+						for (RobotInfo info : allFriendlyRobotInfo.values()) {
+							if (info.location.distanceSquaredTo(waypointLocation) < myDistanceToWaypoint) {
+								closerRobots++;
+							}
+						}
+						
+						if (closerRobots > 1) {
+							waypointLocation = null; // don't go there
+						}
+						
+						
 						//lastWaypointRoundNum = thisRoundNum;
 						//} else {
 							// keep current waypoint before overriding
@@ -113,6 +134,8 @@ public class SoldierPlayer extends BasicPlayer implements Player {
 				    		});
 				    		
 				    		waypointLocation = enemyPastrLocations[0];
+
+				    		rc.setIndicatorString(1,  "created pastr waypoint: " + waypointLocation);
 						}
 					}
 					
@@ -120,9 +143,13 @@ public class SoldierPlayer extends BasicPlayer implements Player {
 					
 					if (waypointLocation != null) { // && numNearbyFriendlySoldiers > 2) {
 						//log("going to waypoint");
-						rc.setIndicatorString(1,  "goto waypoint");
+						//rc.setIndicatorString(1,  "goto waypoint");
 						gotoLocation(waypointLocation);
 					} else {
+						
+						//MapLocation rallyPoint = ;
+						gotoLocation(getSoldierCenterLocation());
+						
 						// make a random move for now
 						//if (random.nextDouble() < 0.25) {
 						//	rc.setIndicatorString(0,  "moving randomly");

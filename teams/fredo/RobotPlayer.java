@@ -14,7 +14,7 @@ public class RobotPlayer {
 		
 		Team team = robot.getTeam();
 		
-		Util.init(robotId, robotType);
+		Util.init(robotId, robotType, rc);
 		
 		Player player = null;
 		
