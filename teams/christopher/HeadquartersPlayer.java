@@ -225,6 +225,10 @@ public class HeadquartersPlayer extends BasicPlayer implements Player  {
 	    
 	    for (MapLocation possibleConstructionLocation: possibleConstructionLocations) {
 	    	
+	    	if (!gameMap.isTraversable(possibleConstructionLocation)) {
+	    		continue;
+	    	}
+	    	
 			int freeTiles = 0;
 			
 			for (Direction direction: allDirections) {
@@ -307,6 +311,10 @@ public class HeadquartersPlayer extends BasicPlayer implements Player  {
 		int bestFreeTiles = 0;
 	    
 	    for (MapLocation possibleConstructionLocation: possibleConstructionLocations) {
+	    	
+	    	if (!gameMap.isTraversable(possibleConstructionLocation)) {
+	    		continue;
+	    	}	    	
 	    	
 			int freeTiles = 0;
 			
