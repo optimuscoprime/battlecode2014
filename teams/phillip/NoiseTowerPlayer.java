@@ -147,7 +147,7 @@ public class NoiseTowerPlayer extends BasicPlayer implements Player {
 			lastBackupRound = currentRound;
 		}
 		
-		log("maybeAskForBackup start");
+		//log("maybeAskForBackup start");
 
     	MapLocation waypointLocation = null;
    
@@ -169,12 +169,12 @@ public class NoiseTowerPlayer extends BasicPlayer implements Player {
  
     	}
     	
-    	log("maybeAskForBackup end");
+    	//log("maybeAskForBackup end");
 	}
 	
 	protected MapLocation getFocusLocation() {
 		
-		log("getFocusLocation start");
+		//log("getFocusLocation start");
 				
 		MapLocation[] friendlyPastrLocations = rc.sensePastrLocations(myTeam);
 		
@@ -194,7 +194,7 @@ public class NoiseTowerPlayer extends BasicPlayer implements Player {
     		focusLocation = friendlyPastrLocations[0];
 		}
 				
-		log("getFocusLocation end");
+		//log("getFocusLocation end");
 		
 		return focusLocation;
 	}	

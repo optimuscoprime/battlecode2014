@@ -144,6 +144,12 @@ public class SoldierPlayer extends BasicPlayer implements Player {
 								// they shoot first but they will eventually die first
 								
 								attacked = true;
+							
+							} else if (nearbyEnemyInfo.actionDelay >= 1) {
+								
+								// he is delayed, let's attack
+								
+								attacked = true;
 							}
 							
 						} else {
@@ -186,8 +192,41 @@ public class SoldierPlayer extends BasicPlayer implements Player {
 								
 				// just attack for now?
 				
+				// we are outnumbered if we try to attack this guy
+				// run away if we can
 				
 				
+				int bestFutureAttackers = Integer.MAX_VALUE;
+				Direction bestEscapeDirection = null;
+				
+				for (Direction direction: allDirections) {
+					if (rc.canMove(direction)) {
+						// check if it is safe
+						MapLocation newLocation = myLocation.add(direction);
+						int futureAttackers = 0;
+						for (RobotInfo nearbyEnemyInfo : nearbyEnemiesWhoCanSeeMeInfos) {
+							if (nearbyEnemyInfo.type == SOLDIER) {
+								if (nearbyEnemyInfo.location.distanceSquaredTo(newLocation) <= nearbyEnemyInfo.type.attackRadiusMaxSquared) {
+									// they can attack me
+									futureAttackers++;
+								}
+							}
+						}
+						if (futureAttackers < bestFutureAttackers) {
+							bestFutureAttackers = futureAttackers;
+							bestEscapeDirection = direction;
+						}
+					}
+				}
+				
+				if (bestEscapeDirection != null && bestFutureAttackers == 0) {
+					rc.setIndicatorString(1,  "trying to escape: " + bestEscapeDirection);
+					rc.move(bestEscapeDirection);
+					rc.yield();
+					return;
+				}
+				
+				// we couldn't escape - try to fight instead
 				for (RobotInfo nearbyEnemyInfo : nearbyEnemiesWhoCanSeeMeInfos) {
 					if (nearbyEnemyInfo.type == SOLDIER) {
 						if (rc.canAttackSquare(nearbyEnemyInfo.location)) {
