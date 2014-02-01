@@ -38,8 +38,11 @@ public class Tree {
          botsList.add(new BotInfo(location, id, team));
       }
 
+      // TODO doesn't compile
+      /*
+      
       BotInfo[] bots = botsList.toArray(new BotInfo[0]);
-
+      
       Arrays.sort(bots, new Comparator<BotInfo>() {
          public int compare(BotInfo o1, BotInfo o2) {
             return new Integer(o1.id).compareTo(o2.id);
@@ -54,6 +57,9 @@ public class Tree {
 
       // to convert int to direction
       // Direction.values()[intDirection];      
+       
+       
+      */
    }
    
    private static int recurse(BotInfo[] bots, int botIndex, Team ourTeam) {

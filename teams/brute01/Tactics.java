@@ -125,6 +125,9 @@ public class Tactics {
 		}
 		Comms.BroadcastMessage(rc, enemies_band+i, Comms.Message.create(Comms.Type.HELP, eloc, Clock.getRoundNum()%16, eid));
 		
+		// TODO doesn't comppile
+		/*
+		
 		if(enemyM!=null){
 			//if( ((help.val+helpWithin) < (Clock.getRoundNum()%16) )||(Clock.getRoundNum()%16 ==0)){
 			if( eloc !=rc.senseEnemyHQLocation()){
@@ -141,7 +144,11 @@ public class Tactics {
 					);
 
 		}
+		
+		// TODO doesn't compile
+		*/
 	}
+	
 	public static void fightOrFlight(RobotController rc, RobotInfo info) throws GameActionException {
 		int r = info.type.sensorRadiusSquared;
 		Team et = info.team.opponent();
@@ -155,6 +162,9 @@ maybe even when we're getting shot we just want that soldier to yell help and ru
 
 */
 
+		// TODO doesn't compile
+		/* 
+		
 		Robot enemies[] = rc.senseNearbyGameObjects(Robot.class, loc, r+1, et);
 		while(enemies.length >0){
 		
@@ -211,5 +221,9 @@ maybe even when we're getting shot we just want that soldier to yell help and ru
 			enemies= rc.senseNearbyGameObjects(Robot.class, loc, r, et);
 			//friendlies = rc.senseNearbyGameObjects(Robot.class, loc, r, rc.getTeam());
 		}
+		
+		// TODO doesn't compile
+		*/
+		
 	}
 }
