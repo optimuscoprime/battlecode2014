@@ -110,6 +110,8 @@ public class HeadquartersPlayer extends BasicPlayer implements Player  {
 		int numPastrs = pastrLocations.length;
 		
 		boolean havePastr = false;
+		boolean constructing = false;
+		
 		if (numPastrs > 0) {
 			havePastr = true;
 		}
@@ -119,6 +121,8 @@ public class HeadquartersPlayer extends BasicPlayer implements Player  {
 			if (robot != null) {
 				RobotInfo info = rc.senseRobotInfo(robot);
 				if (info.isConstructing) {
+					constructing = true;
+				} else {
 					havePastr = true;
 				}
 			}
@@ -126,11 +130,13 @@ public class HeadquartersPlayer extends BasicPlayer implements Player  {
 		
 		if (havePastr) {
 			rc.broadcast(RADIO_CHANNEL_REQUEST_PASTR, 0);
-		} else {		
+		} else if (!constructing) {		
 			pastrConstructionLocation = findGoodPastrLocation();
 			if (pastrConstructionLocation != null) {
+				rc.setIndicatorString(0,  "ask for pastr");
 				rc.broadcast(RADIO_CHANNEL_REQUEST_PASTR, locationToInt(pastrConstructionLocation));
 			} else {
+				rc.setIndicatorString(0,  "cancel pastr");
 				rc.broadcast(RADIO_CHANNEL_REQUEST_PASTR, 0);
 			}
 		}
@@ -159,6 +165,8 @@ public class HeadquartersPlayer extends BasicPlayer implements Player  {
 		}
 		
 		boolean haveNoiseTower = false;
+		boolean constructing = false;
+		
 		if (numNoiseTowers > 0) {
 			haveNoiseTower = true;
 		}
@@ -168,6 +176,8 @@ public class HeadquartersPlayer extends BasicPlayer implements Player  {
 			if (robot != null) {
 				RobotInfo info = rc.senseRobotInfo(robot);
 				if (info.isConstructing) {
+					constructing = true;
+				} else {
 					haveNoiseTower = true;
 				}
 			}
@@ -175,11 +185,13 @@ public class HeadquartersPlayer extends BasicPlayer implements Player  {
 		
 		if (haveNoiseTower) {
 			rc.broadcast(RADIO_CHANNEL_REQUEST_NOISETOWER, 0);
-		} else {		
-			noiseTowerConstructionLocation = findGoodNoiseTowerLocation(); //TODO
+		} else if (!constructing) {		
+			noiseTowerConstructionLocation = findGoodNoiseTowerLocation(); 
 			if (noiseTowerConstructionLocation != null) {
+				rc.setIndicatorString(1,  "ask for noisetower");
 				rc.broadcast(RADIO_CHANNEL_REQUEST_NOISETOWER, locationToInt(noiseTowerConstructionLocation));				
 			} else {
+				rc.setIndicatorString(1,  "cancel noisetower");
 				rc.broadcast(RADIO_CHANNEL_REQUEST_NOISETOWER, 0);
 			}
 		}

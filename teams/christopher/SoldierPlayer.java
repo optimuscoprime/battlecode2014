@@ -10,29 +10,18 @@ import static christopher.Util.*;
 
 public class SoldierPlayer extends BasicPlayer implements Player {
 	
-	private MapLocation pastrConstructionMapLocation;
-	private MapLocation noiseTowerConstructionMapLocation;
-
-	private MapLocation waypointLocation;
-	private int waypointRound;
-	private int lastWaypointRoundNum = 0;
-	private Robot[] nearbyFriendlyRobots;
-	private Map<Robot, RobotInfo> nearbyFriendlyRobotInfo;
-	private int numNearbyFriendlySoldiers;
-	private Robot[] allFriendlyRobots;
-	private Map<Robot, RobotInfo> allFriendlyRobotInfo;
-	private int numAllFriendlySoldiers;
-	
-	protected Deque<MapLocation> trail;
+	private static final int WAYPOINT_MIN_CLOSER_SOLDIERS = 5;
+	private static final int MAX_TRAIL_SIZE = 20;
 	private double[][] cowGrowth;
-
+	private MapLocation toLocation = null;
+	private Deque<MapLocation> trail;
 	
 	public SoldierPlayer(Robot robot, int robotId, Team team, RobotType robotType, RobotController rc) {
 		super(robot, robotId, team, robotType, rc);
 		
 		this.trail = new ArrayDeque<MapLocation>();
-		cowGrowth = rc.senseCowGrowth();
 
+		cowGrowth = rc.senseCowGrowth();
 	}
 
 	@Override
@@ -41,413 +30,507 @@ public class SoldierPlayer extends BasicPlayer implements Player {
 		
 		if (!rc.isActive()) {
 			
-			rc.setIndicatorString(1, "not active");
-	
+			rc.setIndicatorString(2, "not active");
+			
+			if (toLocation != null) {
+				// keep caching
+				gameMap.nextDirectionTo(myLocation, toLocation);
+			}
+			
+			rc.yield();
+			return;			
+				
 		} else {
 			
-			if (trail.size() > 20) {
-				trail.remove();
+			rc.setIndicatorString(2, "active");
+			
+			// should recalculate if active
+			this.toLocation = null;
+			
+//////////// ATTACKING START ////////////
+			
+			// check for nearby friends
+			
+			Robot[] nearbyFriendsWhoCanSeeMe = rc.senseNearbyGameObjects(Robot.class,myLocation,myRobotType.sensorRadiusSquared,myTeam);
+			Map<Robot, RobotInfo> nearbyFriendsWhoCanSeeMeMap = senseAllRobotInfo(nearbyFriendsWhoCanSeeMe);			
+			RobotInfo[] nearbyFriendsWhoCanSeeMeInfos = nearbyFriendsWhoCanSeeMeMap.values().toArray(new RobotInfo[0]);
+			
+			// check for nearby enemies
+			
+			Robot[] nearbyEnemiesWhoCanSeeMe = rc.senseNearbyGameObjects(Robot.class,myLocation,HUGE_RADIUS,opponentTeam);
+			Map<Robot, RobotInfo> nearbyEnemiesWhoCanSeeMeMap = senseAllRobotInfo(nearbyEnemiesWhoCanSeeMe);
+			
+			RobotInfo[] nearbyEnemiesWhoCanSeeMeInfos = nearbyEnemiesWhoCanSeeMeMap.values().toArray(new RobotInfo[0]);
+			
+			// we want to sort by their health			
+			
+			sort(nearbyEnemiesWhoCanSeeMeInfos, new Comparator<RobotInfo>() {
+				@Override
+				public int compare(RobotInfo o1, RobotInfo o2) {
+					return Double.compare(o1.health,  o2.health);
+				}
+			});
+			
+			int potentialEnemySoldierAttackers = 0;
+			
+			double lowestHealthEnemySoldierHealth = Integer.MAX_VALUE;
+			RobotInfo lowestHealthEnemySoldierInfo = null;
+			
+			for (RobotInfo nearbyEnemyInfo : nearbyEnemiesWhoCanSeeMeInfos) {
+				if (nearbyEnemyInfo.type == SOLDIER) {
+					
+					int distanceToSoldier = nearbyEnemyInfo.location.distanceSquaredTo(myLocation);
+				   
+					// could consider nearbyEnemyInfo.actionDelay < 1 here
+				    if (distanceToSoldier <= nearbyEnemyInfo.type.attackRadiusMaxSquared) {
+				 	   potentialEnemySoldierAttackers++;
+				    }
+				   
+				    double enemySoldierHealth = nearbyEnemyInfo.health;
+				    
+				    if (enemySoldierHealth < lowestHealthEnemySoldierHealth) {
+				 	   lowestHealthEnemySoldierHealth = enemySoldierHealth;
+			   		   lowestHealthEnemySoldierInfo = nearbyEnemyInfo;
+		   		    }
+				}
 			}
 			
-			allFriendlyRobots = rc.senseNearbyGameObjects(Robot.class, HUGE_RADIUS, myTeam);
-			allFriendlyRobotInfo = senseAllRobotInfo(allFriendlyRobots);
-			allFriendlyRobots = allFriendlyRobotInfo.keySet().toArray(new Robot[0]);
-			
-			numAllFriendlySoldiers = countSoldiers(allFriendlyRobotInfo);		
-			
-			// pastr has a terrible sensor radius, so always use 35 here
-			nearbyFriendlyRobots = rc.senseNearbyGameObjects(Robot.class, myRobotType.sensorRadiusSquared, myTeam);
-			nearbyFriendlyRobotInfo = senseAllRobotInfo(nearbyFriendlyRobots);
-			nearbyFriendlyRobots = nearbyFriendlyRobotInfo.keySet().toArray(new Robot[0]);
-			numNearbyFriendlySoldiers = countSoldiers(nearbyFriendlyRobotInfo);	
-
-			boolean tookAction = attackNearbyEnemies();
-			
-			if (Clock.getBytecodesLeft() < 1000) {
-				log("BYTECODES LEFT: " + Clock.getBytecodesLeft());
-				log("BREAKPOINT 1");
-				//rc.breakpoint();
-			}
+			for (RobotInfo nearbyEnemyInfo : nearbyEnemiesWhoCanSeeMeInfos) {
+				if (nearbyEnemyInfo.type == SOLDIER) {
+					
+					if (rc.canAttackSquare(nearbyEnemyInfo.location)) {
 						
+						boolean attacked = false;
+						
+						if (potentialEnemySoldierAttackers == 1) {
+							
+							// only one attacker
+							
+							if ( nearbyEnemyInfo.robot.getID() > myRobotId &&
+								 (nearbyEnemyInfo.health <= myHealth || nearbyEnemyInfo.health <= myRobotType.attackPower) ) {      
+								
+								// we shoot first and they will eventually die first
+								
+								attacked = true;
+								
+							} else if (nearbyEnemyInfo.robot.getID() < myRobotId &&
+									 nearbyEnemyInfo.health < myHealth - nearbyEnemyInfo.type.attackPower ) {   
+								
+								// they shoot first but they will eventually die first
+								
+								attacked = true;
+							}
+							
+						} else {
+							
+							// multiple attackers
+							
+							int potentialFriendlySoldierAttackers = 0;
+							
+							for (RobotInfo nearbyFriendInfo: nearbyFriendsWhoCanSeeMeInfos) {
+								if (nearbyFriendInfo.type == SOLDIER) {
+									if (nearbyFriendInfo.location.distanceSquaredTo(nearbyEnemyInfo.location) <= nearbyFriendInfo.type.attackRadiusMaxSquared) {
+										potentialFriendlySoldierAttackers++;
+									}
+								}
+							}
+							
+							if (potentialFriendlySoldierAttackers > potentialEnemySoldierAttackers) {
+								
+								attacked = true;
+								
+							} else {
+								
+								// TODO
+								// unclear - maybe run away?
+								
+							}	
+						}
+						
+						if (attacked) {
+							rc.setIndicatorString(0, "attacking location: " + nearbyEnemyInfo.location);
+							rc.attackSquare(nearbyEnemyInfo.location);
+							rc.yield();
+							return;
+						}
+					}
+				}
+			}
+							
+			if (potentialEnemySoldierAttackers > 0) {
+				
+				
+				//if () {
+					// TODO
+					// if we can retreat, maybe we should do that
+					// toLocation = ?
+				
+				//} else {
+					// TODO
+				
+					// otherwise, maybe we should attack anyway?
+				//}
+				
 			
-			if (!tookAction) {
+			} else {
+				
+				if (nearbyEnemiesWhoCanSeeMeInfos.length > 0) {
+					// TODO
+					
+					// maybe there is a PASTR or a NOISETOWER that we can attack
+					
+					// prefer to attack pastrs
+					for (RobotInfo nearbyEnemyInfo : nearbyEnemiesWhoCanSeeMeInfos) {
+						if (nearbyEnemyInfo.type == PASTR) {
+							if (rc.canAttackSquare(nearbyEnemyInfo.location)) {
+								rc.attackSquare(nearbyEnemyInfo.location);
+								rc.yield();
+								return;
+							}
+						}
+					}
+					
+					// otherwise try attacking noisetowers
+					for (RobotInfo nearbyEnemyInfo : nearbyEnemiesWhoCanSeeMeInfos) {
+						if (nearbyEnemyInfo.type == NOISETOWER) {
+							if (rc.canAttackSquare(nearbyEnemyInfo.location)) {
+								rc.attackSquare(nearbyEnemyInfo.location);
+								rc.yield();
+								return;
+							}
+						}
+					}		
+					
+					// otherwise try moving towards a nearby soldier/pastr/noisetower
+					
+					//
+					// toLocation = ?
+					
+				} else {
+					// TODO
+					
+					
+					// no enemy attackers, and no enemies nearby
+					//
+					// maybe we should regroup?
+					// maybe we should heal?
+					
+					// toLocation =?
+					
+				}
+			}			
+			
+/////////// ATTACKING END ////////////		
+									
+/////////// PASTR/NOISETOWER BACKUP START ////////////			
+			
+			// check for all friends
+			Robot[] allFriendlyRobots = rc.senseNearbyGameObjects(Robot.class,myLocation,HUGE_RADIUS,myTeam);
+			Map<Robot, RobotInfo> allFriendlyRobotsMap = senseAllRobotInfo(allFriendlyRobots);			
+			RobotInfo[] allFriendlyRobotsInfos = allFriendlyRobotsMap.values().toArray(new RobotInfo[0]);	
+			
+			// a PASTR or NOISETOWER might have asked for backup
+			
+			// prefer to help pastrs
+			
+			int intWaypointLocation = rc.readBroadcast(RADIO_CHANNEL_PASTR_BACKUP);
+			if (intWaypointLocation != 0) {
+				MapLocation waypointLocation = intToLocation(intWaypointLocation);
+				
+				// the PASTR might already be dead - check first
+				
+				boolean pastrAtWaypoint = false;
+
+				for (RobotInfo friendlyRobotInfo : allFriendlyRobotsInfos) {
+					if (friendlyRobotInfo.type == PASTR &&
+						friendlyRobotInfo.location.equals(waypointLocation)) {
+						pastrAtWaypoint = true;
+						
+						// warn the others
+						rc.broadcast(RADIO_CHANNEL_PASTR_BACKUP, 0);
+						
+						break;
+					}
+				}				
+				
+				if (pastrAtWaypoint) {
+					// check if any other soldiers are closer
+				
+					int closerSoldiers = 0;
+					int myDistanceToWaypoint = myLocation.distanceSquaredTo(waypointLocation);
+				
+					for (RobotInfo friendlyRobotInfo : allFriendlyRobotsInfos) {
+						
+						if (friendlyRobotInfo.type == SOLDIER && 
+							friendlyRobotInfo.location.distanceSquaredTo(waypointLocation) < myDistanceToWaypoint) {
+							
+							closerSoldiers++;
+							
+							if (closerSoldiers >= WAYPOINT_MIN_CLOSER_SOLDIERS) {
+								break;
+							}
+						}
+					}
+					
+					if (closerSoldiers >= WAYPOINT_MIN_CLOSER_SOLDIERS) {
+						
+						rc.setIndicatorString(1,  "ignoring pastr backup waypoint: " + waypointLocation);
+						
+					} else {
+						rc.setIndicatorString(1,  "going to pastr backup waypoint: " + waypointLocation);
+						toLocation = waypointLocation;
+						gotoLocation(toLocation);
+						rc.yield();
+						return;
+					}
+				}
+			}
+			
+			// otherwise help noisetowers
+			
+			intWaypointLocation = rc.readBroadcast(RADIO_CHANNEL_NOISETOWER_BACKUP);
+			if (intWaypointLocation != 0) {
+				MapLocation waypointLocation = intToLocation(intWaypointLocation);
+				
+				// the NOISETOWER might already be dead - check first
+				
+				boolean noisetowerAtWaypoint = false;
+				
+				for (RobotInfo friendlyRobotInfo : allFriendlyRobotsInfos) {
+					if (friendlyRobotInfo.type == NOISETOWER &&
+						friendlyRobotInfo.location.equals(waypointLocation)) {
+						noisetowerAtWaypoint = true;
+						
+						// warn the others
+						rc.broadcast(RADIO_CHANNEL_NOISETOWER_BACKUP, 0);
+						
+						break;
+					}
+				}
+					
+				if (noisetowerAtWaypoint) {				
+				
+					// check if any other soldiers are closer
+				
+					int closerSoldiers = 0;
+					int myDistanceToWaypoint = myLocation.distanceSquaredTo(waypointLocation);
+				
+					for (RobotInfo friendlyRobotInfo : allFriendlyRobotsInfos) {
+						
+						if (friendlyRobotInfo.type == SOLDIER && 
+							friendlyRobotInfo.location.distanceSquaredTo(waypointLocation) < myDistanceToWaypoint) {
+							
+							closerSoldiers++;
+							
+							if (closerSoldiers >= WAYPOINT_MIN_CLOSER_SOLDIERS) {
+								break;
+							}
+						}
+					}
+					
+					if (closerSoldiers >= WAYPOINT_MIN_CLOSER_SOLDIERS) {
+						
+						rc.setIndicatorString(1,  "ignoring noisetower backup waypoint: " + waypointLocation);
+						
+					} else {
+						rc.setIndicatorString(1,  "going to noisetower backup waypoint: " + waypointLocation);
+						toLocation = waypointLocation;
+						gotoLocation(toLocation);
+						rc.yield();
+						return;
+					}
+				}
+			}						
+			
+/////////// PASTR/NOISETOWER BACKUP END ////////////
+
+/////////// ASKED TO CONSTRUCT PASTR/NOISETOWER START ////////////
+			
+			int numNearbyFriendlySoldiers = 0;
+			for (RobotInfo nearbyFriendInfo: nearbyFriendsWhoCanSeeMeInfos) {
+				if (nearbyFriendInfo.type == SOLDIER) {
+					numNearbyFriendlySoldiers++;
+				}
+			}
+			
+			// HQ might have asked for a pastr
+		
+			int intConstructionLocation = rc.readBroadcast(RADIO_CHANNEL_REQUEST_PASTR);
+			if (intConstructionLocation != 0) {
+				MapLocation constructionLocation = intToLocation(intConstructionLocation);
+				if (myLocation.equals(constructionLocation)) {
+					if (numNearbyFriendlySoldiers > 2) {
+						rc.setIndicatorString(1, "constructing pastr here");
+						rc.construct(PASTR);
+						rc.yield();
+						return;
+					} else {
+						// wait?
+					}
+				} else {
+					rc.setIndicatorString(1,  "moving to pastr construction location");
+					toLocation = constructionLocation;
+					gotoLocation(toLocation);
+					rc.yield();
+					return;
+				}
+			}					
+		
+			// HQ might have asked for a broadcast tower
+		
+			intConstructionLocation = rc.readBroadcast(RADIO_CHANNEL_REQUEST_NOISETOWER);
+			if (intConstructionLocation != 0) {
+				MapLocation constructionLocation = intToLocation(intConstructionLocation);
+				if (myLocation.equals(constructionLocation)) {
+					if (numNearbyFriendlySoldiers > 2) {
+						rc.setIndicatorString(1, "constructing noisetower here");
+						rc.construct(NOISETOWER);
+						rc.yield();
+						return;
+					} else {
+						// wait?
+					}
+				} else {
+					rc.setIndicatorString(1,  "moving to noisetower construction location");
+					toLocation = constructionLocation;
+					gotoLocation(toLocation);
+					rc.yield();
+					return;
+				}
+			}	
+			
+/////////// ASKED TO CONSTRUCT PASTR/NOISETOWER END ////////////
+			
+/////////// DECIDED TO CONSTRUCT PASTR/NOISETOWER START ////////////			
+			
+			// maybe we should construct a pastr anyway
+			// if it is a nice spot
+										
+			if (rc.senseCowsAtLocation(myLocation) > 1000 &&
+				cowGrowth[myLocation.x][myLocation.y] > 1 &&  // TODO what is a good growth rate?
+				numNearbyFriendlySoldiers > 1) {
 				
 				int numNearbyPastrs = 0;
-				for (RobotInfo robotInfo: nearbyFriendlyRobotInfo.values()) {
-					if (robotInfo.type == PASTR) {
+				
+				for (RobotInfo robotInfo: nearbyFriendsWhoCanSeeMeInfos) {
+					if (robotInfo.type == PASTR || robotInfo.isConstructing) {
 						numNearbyPastrs++;
 						break;
 					}
 				}
 				
-				if (numNearbyFriendlySoldiers > 1 &&
-						numNearbyPastrs == 0 && 
-						rc.senseCowsAtLocation(myLocation) > 1000 && 
-						myLocation.distanceSquaredTo(myHqLocation) < myLocation.distanceSquaredTo(enemyHqLocation) &&
-						myLocation.distanceSquaredTo(myHqLocation) > RobotType.NOISETOWER.attackRadiusMaxSquared &&
-						cowGrowth[myLocation.x][myLocation.y] > 1) {
+				if (numNearbyPastrs == 0) {
+					int distanceToMyHq = myLocation.distanceSquaredTo(myHqLocation);
+					int distanceToEnemyHq = myLocation.distanceSquaredTo(enemyHqLocation);
 					
-					log("want to construct pastr");
-					rc.construct(PASTR);
-					tookAction = true;
+					if (distanceToMyHq < distanceToEnemyHq && 
+						distanceToMyHq > RobotType.NOISETOWER.attackRadiusMaxSquared) {
+						
+						rc.setIndicatorString(1, "found a good spot for a pastr, building here");
+						rc.construct(PASTR);
+						rc.yield();
+						return;					
+					}
 				}
 			}
 			
+/////////// DECIDED TO CONSTRUCT PASTR/NOISETOWER END ////////////			
 			
-			// try making a broadcast tower
-			if (!tookAction) {
-				// check the broadcasts
-				int intNoiseTowerLocation = rc.readBroadcast(RADIO_CHANNEL_REQUEST_NOISETOWER);
-				if (intNoiseTowerLocation != 0) {
-					noiseTowerConstructionMapLocation = intToLocation(intNoiseTowerLocation);
-					if (myLocation.equals(noiseTowerConstructionMapLocation)) {
-						if (numNearbyFriendlySoldiers > 2) {
-							rc.construct(NOISETOWER);
-						}
-					} else {
-						// check if another robot is there
-						//Robot robot = rc.senseObjectAtLocation(noiseTowerConstructionMapLocation);
-						
-						rc.setIndicatorString(1,  "build noisetower");
-						gotoLocation(noiseTowerConstructionMapLocation);
+/////////// DESTROY ENEMY PASTR START ////////////		
+	
+		
+			MapLocation[] enemyPastrLocations = rc.sensePastrLocations(opponentTeam);
+			
+			if (enemyPastrLocations.length > 0) {
+			
+	    		// pick the pastr location that is closest to us
+				
+				MapLocation closestEnemyPastrLocation = null;
+				int closestEnemyPastrDistance = Integer.MAX_VALUE;
+				
+				for (MapLocation enemyPastrLocation: enemyPastrLocations) {
+					int thisDistance = myLocation.distanceSquaredTo(enemyPastrLocation);
+					if (thisDistance < closestEnemyPastrDistance) {
+						closestEnemyPastrDistance = thisDistance;
+						closestEnemyPastrLocation = enemyPastrLocation;
 					}
-					tookAction = true;
-				}				
+				}
+				
+				rc.setIndicatorString(1,  "going to enemy pastr location: " + closestEnemyPastrLocation);
+				toLocation = closestEnemyPastrLocation;
+				gotoLocation(toLocation);
+				rc.yield();
+				return;    		
 			}
+		
+/////////// DESTROY ENEMY PASTR END ////////////		
 
-			if (Clock.getBytecodesLeft() < 1000) {
-				log("BYTECODES LEFT: " + Clock.getBytecodesLeft());
-				log("BREAKPOINT 2");
-				//rc.breakpoint();
-			}			
-			
-			// try making a pastr
-			if (!tookAction) {
-				// check the broadcasts
-				int intPastrTowerLocation = rc.readBroadcast(RADIO_CHANNEL_REQUEST_PASTR);
-				if (intPastrTowerLocation != 0) {
-					pastrConstructionMapLocation = intToLocation(intPastrTowerLocation);
-					if (myLocation.equals(pastrConstructionMapLocation)) {
-						if (numNearbyFriendlySoldiers > 2) {
-							rc.construct(PASTR);
-						}
-					} else {
-						rc.setIndicatorString(1,  "build pastr");
-						gotoLocation(pastrConstructionMapLocation);
-					}
-					tookAction = true;
-				}					
+/////////// WANDERING START ////////////
+		
+			if (Util.random.nextDouble() < 0.1) {
+				rc.setIndicatorString(1, "wandering randomly");
+				moveRandomly();
+				rc.yield();
+				return;
 			}
+		
+/////////// WANDERING END ////////////	
+		
+			// shouldn't make it here often
 			
-			if (Clock.getBytecodesLeft() < 1000) {
-				log("BYTECODES LEFT: " + Clock.getBytecodesLeft());
-				log("BREAKPOINT 3");
-				//rc.breakpoint();
-			}			
-			
-			if (!tookAction) {
-				// maybe we should construct one anyway
-				// if (rc.senseCowsAtLocation(myLocation) > 1000 && cowGrowth[myLocation.x][myLocation.y] 
-					
-				// don't listen for waypoints all the time
-				//int thisRoundNum = Clock.getRoundNum();
-				
-				int intWaypointLocation = rc.readBroadcast(RADIO_CHANNEL_PASTR_BACKUP);
-				
-				if (intWaypointLocation != 0) {
-					//if (thisRoundNum > lastWaypointRoundNum) {
-					waypointLocation = intToLocation(intWaypointLocation);
-					
-					
-					
-					// check if there is a closer friendly soldier
-					
-					int closerRobots = 0;
-					int myDistanceToWaypoint = myLocation.distanceSquaredTo(waypointLocation);
-					
-					for (RobotInfo info : allFriendlyRobotInfo.values()) {
-						if (info.type == SOLDIER && info.location.distanceSquaredTo(waypointLocation) < myDistanceToWaypoint) {
-							closerRobots++;
-						}
-					}
-					
-					if (closerRobots > 5) {
-						
-						rc.setIndicatorString(1,  "ignoring pastr waypoint: " + waypointLocation);
-						waypointLocation = null; // don't go there
-						
-						
-					} else {
-						rc.setIndicatorString(1,  "received pastr waypoint: " + waypointLocation);
-					}
-					
-					
-					//lastWaypointRoundNum = thisRoundNum;
-					//} else {
-						// keep current waypoint before overriding
-					//}
-				} else {
-					// allow waypoint resets at any time
-					waypointLocation = null;
-				}
-				
-				if (waypointLocation == null) {
-					
-					intWaypointLocation = rc.readBroadcast(RADIO_CHANNEL_NOISETOWER_BACKUP);
-					
-					if (intWaypointLocation != 0) {
-						//if (thisRoundNum > lastWaypointRoundNum) {
-						waypointLocation = intToLocation(intWaypointLocation);
-						
-						
-						
-						// check if there is a closer friendly soldier
-						
-						int closerRobots = 0;
-						int myDistanceToWaypoint = myLocation.distanceSquaredTo(waypointLocation);
-						
-						for (RobotInfo info : allFriendlyRobotInfo.values()) {
-							if (info.type == SOLDIER && info.location.distanceSquaredTo(waypointLocation) < myDistanceToWaypoint) {
-								closerRobots++;
-							}
-						}
-						
-						if (closerRobots > 5) {
-							
-							rc.setIndicatorString(1,  "ignoring noisetower waypoint: " + waypointLocation);
-							waypointLocation = null; // don't go there
-							
-							
-						} else {
-							rc.setIndicatorString(1,  "received noisetower waypoint: " + waypointLocation);
-						}
-						
-						
-						//lastWaypointRoundNum = thisRoundNum;
-						//} else {
-							// keep current waypoint before overriding
-						//}
-					} else {
-						// allow waypoint resets at any time
-						waypointLocation = null;
-					}
-										
-					
-				}
-				
-				
-				if (myLocation.equals(waypointLocation)) {
-					waypointLocation = null;
-				}
-				
-				if (waypointLocation == null) {
-					MapLocation[] enemyPastrLocations = rc.sensePastrLocations(opponentTeam);
-					
-					if (enemyPastrLocations.length > 0) {
-		    		
-			    		// pick the pastr location that is closest to us
-			    		
-			    		sort(enemyPastrLocations, new Comparator<MapLocation>() {
-							@Override
-							public int compare(MapLocation o1, MapLocation o2) {
-								return new Integer(myLocation.distanceSquaredTo(o1)).compareTo(myLocation.distanceSquaredTo(o2));
-							}
-			    		});
-			    		
-			    		waypointLocation = enemyPastrLocations[0];
-
-			    		rc.setIndicatorString(1,  "created pastr waypoint: " + waypointLocation);
-					}
-				}
-				
-
-				
-				if (waypointLocation != null) { // && numNearbyFriendlySoldiers > 2) {
-					//log("going to waypoint");
-					//rc.setIndicatorString(1,  "goto waypoint");
-					gotoLocation(waypointLocation);
-				} else {
-					if (Util.random.nextDouble() < 0.1) {
-						moveRandomly();
-					}
-				}				
-			}
+			rc.setIndicatorString(1, "nothing to do");
+			rc.yield();
+			return;
 		}
-		
-		rc.yield();
+	
 	}
 
-    protected MapLocation getSoldierCenterLocation() {
-    	MapLocation centerLocation = null;
-    	
-    	if (numAllFriendlySoldiers > 1) {
-    		double totalX = 0;
-    		double totalY = 0;
-    		
-    		int n = 0;
-    		
-    		// find the average pos
-    		for (RobotInfo info: allFriendlyRobotInfo.values()) {
-    			if (info.type == SOLDIER) {
-    				totalX += info.location.x;
-    				totalY += info.location.y;
-    				n++;
-    			}
-    		}
-    		
-    		double averageX = totalX / n;
-    		double averageY = totalY / n;    	
-    		
-    		centerLocation = new MapLocation((int) averageX, (int) averageY);
-    		
-    		if (!gameMap.isTraversable(centerLocation)) {
-    			// would be better to search around the center loc
-    			centerLocation = myHqLocation;
-    		}
-    		
-//    		while (!gameMap.isTraversable(centerLocation)) {
-//    			// try exploring around
+//    protected MapLocation getSoldierCenterLocation() {
+//    	MapLocation centerLocation = null;
+//    	
+//    	if (numAllFriendlySoldiers > 1) {
+//    		double totalX = 0;
+//    		double totalY = 0;
 //    		
+//    		int n = 0;
+//    		
+//    		// find the average pos
+//    		for (RobotInfo info: allFriendlyRobotInfo.values()) {
+//    			if (info.type == SOLDIER) {
+//    				totalX += info.location.x;
+//    				totalY += info.location.y;
+//    				n++;
+//    			}
 //    		}
-    	}
-		
-		return centerLocation;
-	}
-    
-	protected boolean attackNearbyEnemies() throws GameActionException {
-    	
-    	//log("Started attackNearbyEnemies()...");
-    	
-        boolean tookAction = false;
-        
-        MapLocation myLocation = rc.getLocation();
-        
-        Robot[] nearbyEnemies = rc.senseNearbyGameObjects(
-            Robot.class,
-            myLocation,
-            HUGE_RADIUS,
-            opponentTeam
-        );
-        final Map<Robot, RobotInfo> nearbyEnemyInfo = senseAllRobotInfo(nearbyEnemies);
-        nearbyEnemies = nearbyEnemyInfo.keySet().toArray(new Robot[0]);
-        
-        int numNearbyEnemySoldiers = countSoldiers(nearbyEnemyInfo);
-        
-    	if (myRobotType == SOLDIER) {
-    		if (myHealth < myRobotType.maxHealth / 3 || numNearbyFriendlySoldiers < numNearbyEnemySoldiers) {
-    			
-    			// pick a good rally point
-    			
-    			MapLocation rallyPoint = getSoldierCenterLocation(); 	
-    				
-    			if (rallyPoint == null) {
-    				rallyPoint = myHqLocation;
-    			}
-    			
-    			// maybe we should retreat
-    			if (myLocation.distanceSquaredTo(rallyPoint) >= 35) {
-    				// go there
-    				rc.setIndicatorString(1, "go to rally point");
-    				gotoLocation(rallyPoint);
-    				tookAction = true;
-    			}
-    		}        		
-    	}        
-
-        if (!tookAction && nearbyEnemies.length > 0) {
-        	
-        	sort(nearbyEnemies, new Comparator<Robot>() {
-        		// idea:
-        		// prefer to attack pastrs
-        		// otherwise soldiers
-        		// otherwise noisetowers
-        		// never hqs
-        		
-				@Override
-				public int compare(Robot o1, Robot o2) {
-					RobotInfo info1 = nearbyEnemyInfo.get(o1);
-					RobotInfo info2 = nearbyEnemyInfo.get(o2);
-					
-//					if (info1.type == PASTR && info2.type != PASTR) {
-//						return -1;
-//					} else if (info1.type != PASTR && info2.type == PASTR) {
-//						return 1;
-//					} else if (info1.type == SOLDIER && info2.type != SOLDIER) {
-//						return -1;
-//					} else if (info1.type != SOLDIER && info2.type == SOLDIER) {
-//						return 1;
-//					} else if (info1.type == NOISETOWER && info2.type != NOISETOWER) {
-//						return -1;
-//					} else if (info1.type != NOISETOWER && info2.type == NOISETOWER) {
-//						return 1;
-//					} else if (info1.type == HQ && info2.type != HQ) {
-//						return 1;
-//					} else if (info1.type != HQ && info2.type == HQ) {
-//						return -1;
-//					} else {
-//						// if same type, just sort on health
-					//}
-					
-					return new Double(info1.health).compareTo(info2.health);
-					
-				}
-        	});
-        	        	
-        	// try to attack one of them as long as it isn't the HQ
-        	for (RobotInfo nearbyInfo: nearbyEnemyInfo.values()) {
-        		if (nearbyInfo.type != HQ && nearbyInfo.type != NOISETOWER) {
-        			if (rc.canAttackSquare(nearbyInfo.location)) {
-        				
-            			//Robot[] friendlySoldierNearLocation = rc.senseNearbyGameObjects(Robot.class, nearbyInfo.location, RobotType.SOLDIER.attackRadiusMaxSquared, myTeam);
-            			
-            			//int numFriendlySoldiersNearLocation = friendlySoldierNearLocation.length;        				
-        				
-            			//if (numFriendlySoldiersNearLocation > 1 && myHealth >= nearbyInfo.health) {
-		        			rc.attackSquare(nearbyInfo.location);
-		        			tookAction = true;
-		        			break;
-            			//}
-	        		}
-        		}
-        	}
-        	
-        	if (!tookAction && myRobotType == SOLDIER) {
-            	for (RobotInfo nearbyInfo: nearbyEnemyInfo.values()) {
-            		if (nearbyInfo.type != HQ && nearbyInfo.type != NOISETOWER) {
-            			
-            			Robot[] friendlySoldierNearLocation = rc.senseNearbyGameObjects(Robot.class, nearbyInfo.location, RobotType.SOLDIER.attackRadiusMaxSquared, myTeam);
-            			
-            			int numFriendlySoldiersNearLocation = friendlySoldierNearLocation.length;
-            			
-            			Robot[] enemySoldierNearLocation = rc.senseNearbyGameObjects(Robot.class, nearbyInfo.location, RobotType.SOLDIER.attackRadiusMaxSquared, opponentTeam);
-
-            			int numEnemySoldiersNearLocation = enemySoldierNearLocation.length;
-            			
-            			if (numFriendlySoldiersNearLocation >= numEnemySoldiersNearLocation) {
-            				gotoLocation(nearbyInfo.location);
-            				tookAction = true;
-            				break;
-            			}
-            		}
-            	}
-        	}
-        	
-        }
-
-        //log("Finished attackNearbyEnemies().");
-        
-        return tookAction;
-    }	 
+//    		
+//    		double averageX = totalX / n;
+//    		double averageY = totalY / n;    	
+//    		
+//    		centerLocation = new MapLocation((int) averageX, (int) averageY);
+//    		
+//    		if (!gameMap.isTraversable(centerLocation)) {
+//    			// would be better to search around the center loc
+//    			centerLocation = myHqLocation;
+//    		}
+//    		
+////    		while (!gameMap.isTraversable(centerLocation)) {
+////    			// try exploring around
+////    		
+////    		}
+//    	}
+//		
+//		return centerLocation;
+//	}
 	
 	protected void moveRandomly() {
-    	rc.setIndicatorString(2, "moveRandomly");
+    	//rc.setIndicatorString(2, "moveRandomly");
     	
 		// let's try moving randomly
 		shuffle(randomDirections);
+		
 		for (Direction randomDirection: randomDirections) {
+			
 			boolean canMove = rc.canMove(randomDirection);
-	
-			// handle this elsewhere?
 			
 			MapLocation newLocation = myLocation.add(randomDirection);
 		
@@ -465,15 +548,24 @@ public class SoldierPlayer extends BasicPlayer implements Player {
 			}
 			
 			if (canMove) {
+				MapLocation focusLocation = getFocusLocation();
+				
+				int newDistanceToFocus = focusLocation.distanceSquaredTo(newLocation);
+				int currentDistanceToFocus = focusLocation.distanceSquaredTo(myLocation);
 				
 				try	{
-					//log("sneaking randomly");
-					rc.sneak(randomDirection);
+					if (newDistanceToFocus < currentDistanceToFocus) {
+						rc.move(randomDirection);
+					} else {
+						// moving away from focus
+						rc.sneak(randomDirection);
+					}
 					trail.add(newLocation);
+					if (trail.size() > MAX_TRAIL_SIZE) {
+						trail.remove();
+					}
 					break;
 				} catch (GameActionException e) {
-					// we already checked canMove
-					//die(e);
 					die(e);
 				}
 			}
@@ -482,21 +574,11 @@ public class SoldierPlayer extends BasicPlayer implements Player {
     
 	protected void gotoLocation(MapLocation toLocation) throws GameActionException {
 		
-		//if (numNearbyFriendlySoldiers < 3) {
-		//	toLocation = rallyPoint;
-		//}
-		
 		rc.setIndicatorString(0, "gotoLocation: " + toLocation);
 		
-		//log("started nextDirectionTo...");
-		
-		// idea: return to spawn before doing a messy calculation
-		// idea: do the flood fill in parallel (use many robots?) - for big maps
-		
 		Direction direction = gameMap.nextDirectionTo(myLocation,toLocation);		
-	    //log("finished nextDirectionTo.");
-		
-		// just try going there, if we are still waiting for the perfect map
+
+		// nextDirectionTo failed - still caching?
 		if (direction == null) {
 			rc.setIndicatorString(0, "gotoLocation: " + toLocation + " (using approximate direction)");
 			direction = approximateDirectionTo(myLocation, toLocation);
@@ -508,27 +590,13 @@ public class SoldierPlayer extends BasicPlayer implements Player {
 	    	MapLocation newLocation = myLocation.add(direction);
 	    	
 	    	boolean canMove = rc.canMove(direction);
-	        
-	    	// don't go near enemy hq
-			//if (canMove) {	
-			//	int newDistanceToEnemyHq = enemyHqLocation.distanceSquaredTo(newLocation);
-			//	if (newDistanceToEnemyHq <= RobotType.HQ.attackRadiusMaxSquared) {
-			//		//log("can't move");
-			//		rc.setIndicatorString(2, "too close to enemy HQ");
-			//		canMove = false;
-			//	}
-			//}
-	    	
+	        	    	
 			if (canMove) {
 				
 				MapLocation focusLocation = getFocusLocation();
 								
 				int newDistanceToFocus = focusLocation.distanceSquaredTo(newLocation);
 				int currentDistanceToFocus = focusLocation.distanceSquaredTo(myLocation);
-				
-				//int distanceToMyHq = myHqLocation.distanceSquaredTo(myLocation);
-				
-				//double newLocationCows = rc.senseCowsAtLocation(newLocation);
 				
 				try	{
 					if (newDistanceToFocus < currentDistanceToFocus) { // && newLocationCows > 100) {
@@ -539,6 +607,9 @@ public class SoldierPlayer extends BasicPlayer implements Player {
 						rc.sneak(direction);
 					}
 					trail.add(newLocation);
+					if (trail.size() > MAX_TRAIL_SIZE) {
+						trail.remove();
+					}					
 				} catch (GameActionException e) {
 					// don't die here
 					// we already checked canMove
@@ -548,11 +619,10 @@ public class SoldierPlayer extends BasicPlayer implements Player {
 				
 			} else {
 				
-				// TODO: should sneak/herd here maybe
-				
-				// maybe move randomly
+				// maybe just move randomly then
 				
 				if (Util.random.nextDouble() < 0.1) {
+					rc.setIndicatorString(0, "gotoLocation: " + toLocation + " failed, moving randomly instead");
 					moveRandomly();
 				}
 			}
@@ -561,22 +631,38 @@ public class SoldierPlayer extends BasicPlayer implements Player {
 	
 	public Direction approximateDirectionTo(MapLocation from, MapLocation to) {
 		Direction exactDirection = from.directionTo(to);
+		
 		Direction approximateDirection = exactDirection;
 		
 		
 		if (!trail.contains(from.add(approximateDirection)) & rc.canMove(approximateDirection)) {
-			// good
+			// ok, good
+
 		} else {
+			
 			approximateDirection = exactDirection.rotateLeft();
+			
 			if (trail.contains(from.add(approximateDirection)) || !rc.canMove(approximateDirection)) {
+				
+				// bad, pick again
+				
 				approximateDirection = exactDirection.rotateRight();
+				
 				if (trail.contains(from.add(approximateDirection)) || !rc.canMove(approximateDirection)) {
+					
+					// bad, pick again
+					
 					approximateDirection = exactDirection.rotateLeft().rotateLeft();
+					
 					if (trail.contains(from.add(approximateDirection)) || !rc.canMove(approximateDirection)) {
+						
+						// bad, pick again
+						
 						approximateDirection = exactDirection.rotateRight().rotateRight();
 					}
 				}
 			}
+			
 		}
 		
 		return approximateDirection;
@@ -592,15 +678,19 @@ public class SoldierPlayer extends BasicPlayer implements Player {
 		if (friendlyPastrLocations.length > 0) {
 		
     		// pick the pastr location that is closest to us
-    		
-    		sort(friendlyPastrLocations, new Comparator<MapLocation>() {
-				@Override
-				public int compare(MapLocation o1, MapLocation o2) {
-					return new Integer(myLocation.distanceSquaredTo(o1)).compareTo(myLocation.distanceSquaredTo(o2));
+			
+			MapLocation closestFriendlyPastrLocation = null;
+			int closestFriendlyPastrDistance = Integer.MAX_VALUE;
+			
+			for (MapLocation enemyPastrLocation: friendlyPastrLocations) {
+				int thisDistance = myLocation.distanceSquaredTo(enemyPastrLocation);
+				if (thisDistance < closestFriendlyPastrDistance) {
+					closestFriendlyPastrDistance = thisDistance;
+					closestFriendlyPastrLocation = enemyPastrLocation;
 				}
-    		});
-    		
-    		focusLocation = friendlyPastrLocations[0];
+			}			
+      		
+    		focusLocation = closestFriendlyPastrLocation;
 		}
 		
 		//log("getFocusLocation end");

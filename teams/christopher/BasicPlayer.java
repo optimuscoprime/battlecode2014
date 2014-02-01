@@ -27,8 +27,6 @@ public abstract class BasicPlayer implements Player {
 	protected MapLocation enemyHqLocation;
 	protected MapLocation myHqLocation;
 	
-	//protected Robot[] friendlyRobots;
-	
     public final Direction[] allDirections = new Direction[] {
     	// prefer diagonal directions
         NORTH_EAST,
@@ -64,31 +62,17 @@ public abstract class BasicPlayer implements Player {
 	}
 	
 	public void playOneTurn() throws GameActionException {
-		// keep this up to date
+		// keep this up to date each turn
+		
 		myRobotInfo = rc.senseRobotInfo(myRobot);
 		myHealth = myRobotInfo.health;
 		myLocation = myRobotInfo.location;
 		
-		//allFriendlyRobots = rc.senseNearbyGameObjects(Robot.class, HUGE_RADIUS, myTeam);
-		//allFriendlyRobotInfo = senseAllRobotInfo(allFriendlyRobots);
-		//allFriendlyRobots = allFriendlyRobotInfo.keySet().toArray(new Robot[0]);
-		
-		//numAllFriendlySoldiers = countSoldiers(allFriendlyRobotInfo);
-		
-		// pastr has a terrible sensor radius, so always use 35 here
-		//nearbyFriendlyRobots = rc.senseNearbyGameObjects(Robot.class, 35, myTeam);
-		//nearbyFriendlyRobotInfo = senseAllRobotInfo(nearbyFriendlyRobots);
-		//nearbyFriendlyRobots = nearbyFriendlyRobotInfo.keySet().toArray(new Robot[0]);
-		
-		//numNearbyFriendlySoldiers = countSoldiers(nearbyFriendlyRobotInfo);	
-		
-		rc.setIndicatorString(0, ""); // gotoLocation
-		
-		rc.setIndicatorString(1, ""); // 
-		
-		rc.setIndicatorString(2, "");
-		
-
+		if (rc.isActive()) {
+			rc.setIndicatorString(0, ""); // gotoLocation
+			rc.setIndicatorString(1, ""); // 
+			rc.setIndicatorString(2, "");		
+		}
 	}
 	
     protected Map<Robot, RobotInfo> senseAllRobotInfo(Robot[] robots) throws GameActionException {
@@ -98,8 +82,7 @@ public abstract class BasicPlayer implements Player {
     	for (Robot robot: robots) {
     		if (rc.canSenseObject(robot)) {
     			try {
-    				RobotInfo info = rc.senseRobotInfo(robot);
-    				allInfo.put(robot,  info);
+    				allInfo.put(robot,  rc.senseRobotInfo(robot));
     			} catch (GameActionException e) {
     				die(e);
     			}
