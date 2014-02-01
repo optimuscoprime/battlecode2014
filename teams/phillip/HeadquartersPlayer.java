@@ -139,13 +139,14 @@ public class HeadquartersPlayer extends BasicPlayer implements Player  {
 				RobotInfo info = rc.senseRobotInfo(robot);
 				if (info.isConstructing) {
 					constructing = true;
-				} else {
-					havePastr = true;
+				//} else {
+				//	havePastr = true;
 				}
 			}
 		}
 		
 		if (havePastr) {
+			rc.setIndicatorString(0,  "cancel pastr (have pastr)");
 			rc.broadcast(RADIO_CHANNEL_REQUEST_PASTR, 0);
 		} else if (!constructing) {		
 			pastrConstructionLocation = findGoodPastrLocation();
@@ -153,7 +154,7 @@ public class HeadquartersPlayer extends BasicPlayer implements Player  {
 				rc.setIndicatorString(0,  "ask for pastr");
 				rc.broadcast(RADIO_CHANNEL_REQUEST_PASTR, locationToInt(pastrConstructionLocation));
 			} else {
-				rc.setIndicatorString(0,  "cancel pastr");
+				rc.setIndicatorString(0,  "cancel pastr (no good location)");
 				rc.broadcast(RADIO_CHANNEL_REQUEST_PASTR, 0);
 			}
 		}
@@ -194,21 +195,22 @@ public class HeadquartersPlayer extends BasicPlayer implements Player  {
 				RobotInfo info = rc.senseRobotInfo(robot);
 				if (info.isConstructing) {
 					constructing = true;
-				} else {
-					haveNoiseTower = true;
+				//} else {
+				//	haveNoiseTower = true;
 				}
 			}
 		}		
 		
 		if (haveNoiseTower) {
 			rc.broadcast(RADIO_CHANNEL_REQUEST_NOISETOWER, 0);
+			rc.setIndicatorString(1,  "cancel noisetower (have noisetower)");
 		} else if (!constructing) {		
 			noiseTowerConstructionLocation = findGoodNoiseTowerLocation(); 
 			if (noiseTowerConstructionLocation != null) {
 				rc.setIndicatorString(1,  "ask for noisetower");
 				rc.broadcast(RADIO_CHANNEL_REQUEST_NOISETOWER, locationToInt(noiseTowerConstructionLocation));				
 			} else {
-				rc.setIndicatorString(1,  "cancel noisetower");
+				rc.setIndicatorString(1,  "cancel noisetower (no good location)");
 				rc.broadcast(RADIO_CHANNEL_REQUEST_NOISETOWER, 0);
 			}
 		}

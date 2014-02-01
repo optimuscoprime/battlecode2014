@@ -22,7 +22,12 @@ public class Util {
 	public static int RADIO_CHANNEL_PASTR_BACKUP = 30;
 	
 	public static int RADIO_CHANNEL_NOISETOWER_BACKUP = 40;
-
+	
+	public static int RADIO_CHANNEL_SOLDIER_BACKUP_1_LOCATION = 50;
+	public static int RADIO_CHANNEL_SOLDIER_BACKUP_1_ROUND = 51;
+	
+	public static int RADIO_CHANNEL_SOLDIER_BACKUP_2_LOCATION = 60;
+	public static int RADIO_CHANNEL_SOLDIER_BACKUP_2_ROUND = 61;
 	
 	public static Random random;
 	private static RobotType robotType;

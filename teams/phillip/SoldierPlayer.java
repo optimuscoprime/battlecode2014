@@ -33,9 +33,29 @@ public class SoldierPlayer extends BasicPlayer implements Player {
 	public void playOneTurn() throws GameActionException {
 		super.playOneTurn();
 		
+		// check for nearby enemies
+		
+		Robot[] nearbyEnemiesWhoCanSeeMe = rc.senseNearbyGameObjects(Robot.class,myLocation,HUGE_RADIUS,opponentTeam);
+		Map<Robot, RobotInfo> nearbyEnemiesWhoCanSeeMeMap = senseAllRobotInfo(nearbyEnemiesWhoCanSeeMe);
+		
+		RobotInfo[] nearbyEnemiesWhoCanSeeMeInfos = nearbyEnemiesWhoCanSeeMeMap.values().toArray(new RobotInfo[0]);		
+		
 		if (!rc.isActive()) {
 			
 			rc.setIndicatorString(2, "not active");
+			
+			// broadcast enemy locations
+			
+			if (nearbyEnemiesWhoCanSeeMeInfos.length > 0) {
+				int currentRound = Clock.getRoundNum();
+				if (currentRound % 2 == 0) {
+					rc.broadcast(RADIO_CHANNEL_SOLDIER_BACKUP_1_LOCATION, locationToInt(myLocation));
+					rc.broadcast(RADIO_CHANNEL_SOLDIER_BACKUP_1_ROUND, currentRound);
+				} else {
+					rc.broadcast(RADIO_CHANNEL_SOLDIER_BACKUP_2_LOCATION, locationToInt(myLocation));
+					rc.broadcast(RADIO_CHANNEL_SOLDIER_BACKUP_2_ROUND, currentRound);					
+				}
+			}
 			
 			if (toLocation != null) {
 				// keep caching
@@ -59,14 +79,7 @@ public class SoldierPlayer extends BasicPlayer implements Player {
 			Robot[] nearbyFriendsWhoCanSeeMe = rc.senseNearbyGameObjects(Robot.class,myLocation,myRobotType.sensorRadiusSquared,myTeam);
 			Map<Robot, RobotInfo> nearbyFriendsWhoCanSeeMeMap = senseAllRobotInfo(nearbyFriendsWhoCanSeeMe);			
 			RobotInfo[] nearbyFriendsWhoCanSeeMeInfos = nearbyFriendsWhoCanSeeMeMap.values().toArray(new RobotInfo[0]);
-			
-			// check for nearby enemies
-			
-			Robot[] nearbyEnemiesWhoCanSeeMe = rc.senseNearbyGameObjects(Robot.class,myLocation,HUGE_RADIUS,opponentTeam);
-			Map<Robot, RobotInfo> nearbyEnemiesWhoCanSeeMeMap = senseAllRobotInfo(nearbyEnemiesWhoCanSeeMe);
-			
-			RobotInfo[] nearbyEnemiesWhoCanSeeMeInfos = nearbyEnemiesWhoCanSeeMeMap.values().toArray(new RobotInfo[0]);
-			
+						
 			// we want to sort by their health			
 			
 			sort(nearbyEnemiesWhoCanSeeMeInfos, new Comparator<RobotInfo>() {
@@ -140,7 +153,7 @@ public class SoldierPlayer extends BasicPlayer implements Player {
 								}
 							}
 							
-							if (potentialFriendlySoldierAttackers > potentialEnemySoldierAttackers) {
+							if (potentialFriendlySoldierAttackers >= potentialEnemySoldierAttackers) {
 								
 								attacked = true;
 								
@@ -165,6 +178,8 @@ public class SoldierPlayer extends BasicPlayer implements Player {
 			if (potentialEnemySoldierAttackers > 0) {
 								
 				// just attack for now?
+				
+				
 				
 				for (RobotInfo nearbyEnemyInfo : nearbyEnemiesWhoCanSeeMeInfos) {
 					if (nearbyEnemyInfo.type == SOLDIER) {
@@ -252,6 +267,37 @@ public class SoldierPlayer extends BasicPlayer implements Player {
 			}			
 			
 /////////// ATTACKING END ////////////		
+			
+/////////// SOLDIER BACKUP START ///////////
+			
+			MapLocation soldierBackupLocation = null;
+			int intSoldierBackupLocation = 0;
+			int soldierBackupRound = 0;
+			
+			int currentRound = Clock.getRoundNum();
+			if (currentRound % 2 == 0) {
+				intSoldierBackupLocation = rc.readBroadcast(RADIO_CHANNEL_SOLDIER_BACKUP_2_LOCATION);
+				if (intSoldierBackupLocation != 0) {
+					soldierBackupLocation = intToLocation(intSoldierBackupLocation);
+					soldierBackupRound = rc.readBroadcast(RADIO_CHANNEL_SOLDIER_BACKUP_2_ROUND);
+				}
+			} else {
+				intSoldierBackupLocation = rc.readBroadcast(RADIO_CHANNEL_SOLDIER_BACKUP_1_LOCATION);
+				if (intSoldierBackupLocation != 0) {
+					soldierBackupLocation = intToLocation(intSoldierBackupLocation);
+					soldierBackupRound = rc.readBroadcast(RADIO_CHANNEL_SOLDIER_BACKUP_1_ROUND);
+				}			
+			}		
+			
+			if (soldierBackupLocation != null && currentRound - soldierBackupRound < 1) {
+				rc.setIndicatorString(1, "going to soldier backup location: " + soldierBackupLocation);
+				toLocation = soldierBackupLocation;
+				gotoLocation(toLocation);
+				rc.yield();
+				return;
+			}
+		
+/////////// SOLDIER BACKUP END ///////////				
 									
 /////////// PASTR/NOISETOWER BACKUP START ////////////			
 			
@@ -615,6 +661,7 @@ public class SoldierPlayer extends BasicPlayer implements Player {
 			direction = approximateDirectionTo(myLocation, toLocation);
 		} else {
 			rc.setIndicatorString(0, "gotoLocation: " + toLocation + " (cached direction was not null, = " + direction + ")");
+			trail.clear();
 		}
 	    		
 	    if (direction != null) {

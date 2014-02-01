@@ -18,6 +18,10 @@ public class NoiseTowerPlayer extends BasicPlayer implements Player {
 	public NoiseTowerPlayer(Robot robot, int robotId, Team team, RobotType robotType, RobotController rc) {
 		super(robot, robotId, team, robotType, rc);
 		
+		
+		// static location
+		myLocation = rc.getLocation();
+		
 		// every player builds their own map
 		gameMap = new GameMap(robotId, team, robotType, rc, enemyHqLocation, width, height);		
 		

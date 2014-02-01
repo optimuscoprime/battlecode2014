@@ -273,7 +273,7 @@ class CachedFloodedMap {
 	
 	public void continueCaching(final MapLocation fromLocation) {
 		
-		log("still caching map to: " + toLocation + " (taken " + cacheTurns + " turns so far)");
+		//log("still caching map to: " + toLocation + " (taken " + cacheTurns + " turns so far)");
 		
 		cacheTurns++;
 		
@@ -336,7 +336,7 @@ class CachedFloodedMap {
 		}
 		
 		if (finishedCaching) {
-			log("finished caching map");
+			//log("finished caching map");
 			//printMap();
 			//rc.breakpoint();
 		}
