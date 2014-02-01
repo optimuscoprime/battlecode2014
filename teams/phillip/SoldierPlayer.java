@@ -36,17 +36,15 @@ public class SoldierPlayer extends BasicPlayer implements Player {
 		// check for nearby enemies
 		
 		Robot[] nearbyEnemiesWhoCanSeeMe = rc.senseNearbyGameObjects(Robot.class,myLocation,HUGE_RADIUS,opponentTeam);
-		Map<Robot, RobotInfo> nearbyEnemiesWhoCanSeeMeMap = senseAllRobotInfo(nearbyEnemiesWhoCanSeeMe);
-		
-		RobotInfo[] nearbyEnemiesWhoCanSeeMeInfos = nearbyEnemiesWhoCanSeeMeMap.values().toArray(new RobotInfo[0]);		
-		
+				
 		if (!rc.isActive()) {
 			
 			rc.setIndicatorString(2, "not active");
 			
 			// broadcast enemy locations
 			
-			if (nearbyEnemiesWhoCanSeeMeInfos.length > 0) {
+			if (nearbyEnemiesWhoCanSeeMe.length > 0) {
+				
 				int currentRound = Clock.getRoundNum();
 				if (currentRound % 2 == 0) {
 					rc.broadcast(RADIO_CHANNEL_SOLDIER_BACKUP_1_LOCATION, locationToInt(myLocation));
@@ -55,11 +53,16 @@ public class SoldierPlayer extends BasicPlayer implements Player {
 					rc.broadcast(RADIO_CHANNEL_SOLDIER_BACKUP_2_LOCATION, locationToInt(myLocation));
 					rc.broadcast(RADIO_CHANNEL_SOLDIER_BACKUP_2_ROUND, currentRound);					
 				}
-			}
+				
+			} else {
 			
-			if (toLocation != null) {
-				// keep caching
-				gameMap.nextDirectionTo(myLocation, toLocation);
+				// only cache if no nearby enemies
+				// otherwise save bytecodes for attacking
+				
+				if (toLocation != null) {
+					// keep caching
+					gameMap.nextDirectionTo(myLocation, toLocation);
+				}
 			}
 			
 			rc.yield();
@@ -73,6 +76,10 @@ public class SoldierPlayer extends BasicPlayer implements Player {
 			this.toLocation = null;
 			
 //////////// ATTACKING START ////////////
+			
+			// make enemies array from map
+			Map<Robot, RobotInfo> nearbyEnemiesWhoCanSeeMeMap = senseAllRobotInfo(nearbyEnemiesWhoCanSeeMe);
+			RobotInfo[] nearbyEnemiesWhoCanSeeMeInfos = nearbyEnemiesWhoCanSeeMeMap.values().toArray(new RobotInfo[0]);
 			
 			// check for nearby friends
 			

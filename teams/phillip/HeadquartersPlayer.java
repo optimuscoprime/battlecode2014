@@ -110,9 +110,12 @@ public class HeadquartersPlayer extends BasicPlayer implements Player  {
 	        }
 		}
 		
-		maybeAskForNoiseTower();
+		//if (Clock.getRoundNum() > 500) {
 		
-		maybeAskForPastr();
+			maybeAskForNoiseTower();
+		
+			maybeAskForPastr();
+		//}
 				 
 		rc.yield();
 		return;
