@@ -85,14 +85,13 @@ public class Overlord {
 
 		//teams.add("emo");		
 		//teams.add("fredo");		
-		//teams.add("gk_roman");
-		//teams.add("sc02");
-		//teams.add("brute01");
 
-		//teams.add("awesemo");		
-		
+		teams.add("gk_roman");
+		teams.add("sc02");
+		teams.add("awesemo");		
                 teams.add("phillip");
 		teams.add("sound04");
+		teams.add("sound05");
 		teams.add("hubertTheFraternal");
 
 		int total_games_to_play = (teams.size() * teams.size() - teams.size()) * maps.size();
