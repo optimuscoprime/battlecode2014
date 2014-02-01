@@ -83,11 +83,12 @@ public class Overlord {
 		//teams.add("sound02");
 		//teams.add("sound03");
 
-		//teams.add("emo");		
+		teams.add("emo");		
+
 		//teams.add("fredo");		
 
-		//teams.add("awesemo");		
-		//teams.add("sound05");
+		teams.add("awesemo");		
+		teams.add("sound05");
 
 		teams.add("gk_roman");
 		teams.add("sc02");

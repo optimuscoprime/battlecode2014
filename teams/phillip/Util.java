@@ -83,7 +83,7 @@ public class Util {
 	}
 	
 	public static void log(String message) {
-		System.out.printf("%-15s ID %5d  ROUND %5d  BYTECODES USED %5d: %s\n", robotType, robotId, Clock.getRoundNum(), Clock.getBytecodeNum(), message);
+		//System.out.printf("%-15s ID %5d  ROUND %5d  BYTECODES USED %5d: %s\n", robotType, robotId, Clock.getRoundNum(), Clock.getBytecodeNum(), message);
 	}
 	
     protected static void die () {
@@ -100,7 +100,7 @@ public class Util {
 
     protected static void die (String message, Exception e) {
     	if (e != null) {
-    		e.printStackTrace();
+    		//e.printStackTrace();
     	}
     	
     	//System.out.printf("Breakpoint\n");
