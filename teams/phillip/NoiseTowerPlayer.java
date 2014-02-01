@@ -32,7 +32,7 @@ public class NoiseTowerPlayer extends BasicPlayer implements Player {
 			for (int y = 0; y < gameMap.height; y += 1) {
 				MapLocation pulseLocation = new MapLocation(x,y);
 				int attackDistance = myLocation.distanceSquaredTo(pulseLocation);
-				if (gameMap.isTraversable(pulseLocation.x, pulseLocation.y) && 
+				if ( (gameMap.isTraversable(pulseLocation.x, pulseLocation.y) || attackDistance <= 35) && 
 						attackDistance >= GameConstants.NOISE_SCARE_RANGE_LARGE/3 && 
 						attackDistance <= myRobotType.attackRadiusMaxSquared) {
 					pulseLocations.add(pulseLocation);
@@ -163,8 +163,12 @@ public class NoiseTowerPlayer extends BasicPlayer implements Player {
     	}    		
     	
     	if (waypointLocation != null) {
+    		rc.setIndicatorString(1, "asking for backup");
+    		
     		rc.broadcast(RADIO_CHANNEL_NOISETOWER_BACKUP, locationToInt(waypointLocation));
     	} else {
+    		rc.setIndicatorString(1, "cancelling backup request");
+    		
     		rc.broadcast(RADIO_CHANNEL_NOISETOWER_BACKUP, 0);
  
     	}

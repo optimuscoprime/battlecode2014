@@ -219,7 +219,7 @@ public class SoldierPlayer extends BasicPlayer implements Player {
 					}
 				}
 				
-				if (bestEscapeDirection != null && bestFutureAttackers == 0) {
+				if (bestEscapeDirection != null && (bestFutureAttackers*RobotType.SOLDIER.attackPower) < myHealth/2.0 ) {
 					rc.setIndicatorString(1,  "trying to escape: " + bestEscapeDirection);
 					rc.move(bestEscapeDirection);
 					rc.yield();
@@ -287,15 +287,18 @@ public class SoldierPlayer extends BasicPlayer implements Player {
 						public int compare(RobotInfo o1, RobotInfo o2) {
 							return Integer.compare(o1.location.distanceSquaredTo(myLocation), o2.location.distanceSquaredTo(myLocation));
 						}
-					});					
+					});				
 					
-					toLocation = nearbyEnemiesWhoCanSeeMeInfos[0].location;
-					rc.setIndicatorString(1, "moving towards nearby enemy: " + toLocation);
-					gotoLocation(toLocation); 
-					rc.yield();
-					return;
+					for (RobotInfo nearbyRobotInfo: nearbyEnemiesWhoCanSeeMeInfos) {
+						if (nearbyRobotInfo.health <= myHealth) {
+							toLocation = nearbyRobotInfo.location;
+							rc.setIndicatorString(1, "moving towards nearby enemy: " + toLocation);
+							gotoLocation(toLocation); 
+							rc.yield();
+							return;							
+						}
+					}
 
-					
 				} else {
 					
 					
