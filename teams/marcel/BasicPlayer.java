@@ -69,10 +69,10 @@ public abstract class BasicPlayer implements Player {
 		myHealth = myRobotInfo.health;
 		myLocation = myRobotInfo.location;
 		
-		if (rc.isActive()) {
-			rc.setIndicatorString(0, ""); // gotoLocation
-			rc.setIndicatorString(1, ""); // strategy
-			rc.setIndicatorString(2, ""); // active/not active	
-		}
+		//if (rc.isActive()) {
+		//	rc.setIndicatorString(0, ""); // gotoLocation
+		//	rc.setIndicatorString(1, ""); // strategy
+		//	rc.setIndicatorString(2, ""); // active/not active	
+		//}
 	}
 }

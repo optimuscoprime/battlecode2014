@@ -83,25 +83,25 @@ public class Util {
 	}
 	
 	public static void log(String message) {
-		System.out.printf("%-15s ID %5d  ROUND %5d  BYTECODES USED %5d: %s\n", robotType, robotId, Clock.getRoundNum(), Clock.getBytecodeNum(), message);
+		//System.out.printf("%-15s ID %5d  ROUND %5d  BYTECODES USED %5d: %s\n", robotType, robotId, Clock.getRoundNum(), Clock.getBytecodeNum(), message);
 	}
 	
     protected static void die () {
-        die("I'm melting, melting. Ohhhhh, what a world, what a world...");
+        //die("I'm melting, melting. Ohhhhh, what a world, what a world...");
     }
     
     protected static void die(String message) {
-    	die(message, null);
+    	//die(message, null);
     }
     
     protected static void die(Exception e) {
-    	die("I'm melting, melting. Ohhhhh, what a world, what a world...", e);
+    	//die("I'm melting, melting. Ohhhhh, what a world, what a world...", e);
     }
 
     protected static void die (String message, Exception e) {
-    	if (e != null) {
-    		e.printStackTrace();
-    	}
+    	//if (e != null) {
+    		//e.printStackTrace();
+    	//}
     	
     	//System.out.printf("Breakpoint\n");
     	//rc.breakpoint();

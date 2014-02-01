@@ -105,30 +105,30 @@ public class NoiseTowerPlayer extends BasicPlayer implements Player {
 							
 			if (!canSense) {
 				
-				rc.setIndicatorString(0, "can't sense, attacking blind");
+				//rc.setIndicatorString(0, "can't sense, attacking blind");
 				
 				while (!rc.isActive()) {
-					rc.setIndicatorString(2,  "not active");
+					//rc.setIndicatorString(2,  "not active");
 					rc.yield();
 				} 		
-				rc.setIndicatorString(2,  "active");
+				//rc.setIndicatorString(2,  "active");
 				rc.attackSquare(pulseLocation);
 				rc.yield();
 				
 			} else if (surroundingCows > 10) {
 				
-				rc.setIndicatorString(0, "has some cows, attacking");
+				//rc.setIndicatorString(0, "has some cows, attacking");
 				
 				while (!rc.isActive()) {
-					rc.setIndicatorString(2,  "not active");
+					//rc.setIndicatorString(2,  "not active");
 					rc.yield();
 				} 		
-				rc.setIndicatorString(2,  "active");
+				//rc.setIndicatorString(2,  "active");
 				rc.attackSquare(pulseLocation);
 				rc.yield();
 				
 			} else {
-				rc.setIndicatorString(0, "no cows, not attacking");
+				//rc.setIndicatorString(0, "no cows, not attacking");
 			}	
 			
 			maybeAskForBackup();
@@ -163,11 +163,11 @@ public class NoiseTowerPlayer extends BasicPlayer implements Player {
     	}    		
     	
     	if (waypointLocation != null) {
-    		rc.setIndicatorString(1, "asking for backup");
+    		//rc.setIndicatorString(1, "asking for backup");
     		
     		rc.broadcast(RADIO_CHANNEL_NOISETOWER_BACKUP, locationToInt(waypointLocation));
     	} else {
-    		rc.setIndicatorString(1, "cancelling backup request");
+    		//rc.setIndicatorString(1, "cancelling backup request");
     		
     		rc.broadcast(RADIO_CHANNEL_NOISETOWER_BACKUP, 0);
  

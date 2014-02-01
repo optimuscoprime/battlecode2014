@@ -39,7 +39,7 @@ public class SoldierPlayer extends BasicPlayer implements Player {
 				
 		if (!rc.isActive()) {
 			
-			rc.setIndicatorString(2, "not active");
+			//rc.setIndicatorString(2, "not active");
 			
 			// broadcast enemy locations
 			
@@ -70,7 +70,7 @@ public class SoldierPlayer extends BasicPlayer implements Player {
 				
 		} else {
 			
-			rc.setIndicatorString(2, "active");
+			//rc.setIndicatorString(2, "active");
 			
 			// should recalculate if active
 			this.toLocation = null;
@@ -179,7 +179,7 @@ public class SoldierPlayer extends BasicPlayer implements Player {
 						}
 						
 						if (attacked) {
-							rc.setIndicatorString(0, "attacking location: " + nearbyEnemyInfo.location);
+							//rc.setIndicatorString(0, "attacking location: " + nearbyEnemyInfo.location);
 							rc.attackSquare(nearbyEnemyInfo.location);
 							rc.yield();
 							return;
@@ -220,7 +220,7 @@ public class SoldierPlayer extends BasicPlayer implements Player {
 				}
 				
 				if (bestEscapeDirection != null && (bestFutureAttackers*RobotType.SOLDIER.attackPower) < myHealth/2.0 ) {
-					rc.setIndicatorString(1,  "trying to escape: " + bestEscapeDirection);
+					//rc.setIndicatorString(1,  "trying to escape: " + bestEscapeDirection);
 					rc.move(bestEscapeDirection);
 					rc.yield();
 					return;
@@ -230,7 +230,7 @@ public class SoldierPlayer extends BasicPlayer implements Player {
 				for (RobotInfo nearbyEnemyInfo : nearbyEnemiesWhoCanSeeMeInfos) {
 					if (nearbyEnemyInfo.type == SOLDIER) {
 						if (rc.canAttackSquare(nearbyEnemyInfo.location)) {
-							rc.setIndicatorString(1, "(UNWISE) attacking nearby soldier: " + nearbyEnemyInfo.location);
+							//rc.setIndicatorString(1, "(UNWISE) attacking nearby soldier: " + nearbyEnemyInfo.location);
 							rc.attackSquare(nearbyEnemyInfo.location);
 							rc.yield();
 							return;
@@ -260,7 +260,7 @@ public class SoldierPlayer extends BasicPlayer implements Player {
 					for (RobotInfo nearbyEnemyInfo : nearbyEnemiesWhoCanSeeMeInfos) {
 						if (nearbyEnemyInfo.type == PASTR) {
 							if (rc.canAttackSquare(nearbyEnemyInfo.location)) {
-								rc.setIndicatorString(1, "attacking nearby pastr: " + nearbyEnemyInfo.location);
+								//rc.setIndicatorString(1, "attacking nearby pastr: " + nearbyEnemyInfo.location);
 								rc.attackSquare(nearbyEnemyInfo.location);
 								rc.yield();
 								return;
@@ -272,7 +272,7 @@ public class SoldierPlayer extends BasicPlayer implements Player {
 					for (RobotInfo nearbyEnemyInfo : nearbyEnemiesWhoCanSeeMeInfos) {
 						if (nearbyEnemyInfo.type == NOISETOWER) {
 							if (rc.canAttackSquare(nearbyEnemyInfo.location)) {
-								rc.setIndicatorString(1, "attacking nearby noisetower: " + nearbyEnemyInfo.location);
+								//rc.setIndicatorString(1, "attacking nearby noisetower: " + nearbyEnemyInfo.location);
 								rc.attackSquare(nearbyEnemyInfo.location);
 								rc.yield();
 								return;
@@ -292,7 +292,7 @@ public class SoldierPlayer extends BasicPlayer implements Player {
 					for (RobotInfo nearbyRobotInfo: nearbyEnemiesWhoCanSeeMeInfos) {
 						if (nearbyRobotInfo.health <= myHealth) {
 							toLocation = nearbyRobotInfo.location;
-							rc.setIndicatorString(1, "moving towards nearby enemy: " + toLocation);
+							//rc.setIndicatorString(1, "moving towards nearby enemy: " + toLocation);
 							gotoLocation(toLocation); 
 							rc.yield();
 							return;							
@@ -339,7 +339,7 @@ public class SoldierPlayer extends BasicPlayer implements Player {
 			}		
 			
 			if (soldierBackupLocation != null && currentRound - soldierBackupRound <= 2) {
-				rc.setIndicatorString(1, "going to soldier backup location: " + soldierBackupLocation);
+				//rc.setIndicatorString(1, "going to soldier backup location: " + soldierBackupLocation);
 				toLocation = soldierBackupLocation;
 				gotoLocation(toLocation);
 				rc.yield();
@@ -400,10 +400,10 @@ public class SoldierPlayer extends BasicPlayer implements Player {
 					
 					if (closerSoldiers >= WAYPOINT_MIN_CLOSER_SOLDIERS) {
 						
-						rc.setIndicatorString(1,  "ignoring pastr backup waypoint: " + waypointLocation);
+						//rc.setIndicatorString(1,  "ignoring pastr backup waypoint: " + waypointLocation);
 						
 					} else {
-						rc.setIndicatorString(1,  "going to pastr backup waypoint: " + waypointLocation);
+						//rc.setIndicatorString(1,  "going to pastr backup waypoint: " + waypointLocation);
 						toLocation = waypointLocation;
 						gotoLocation(toLocation);
 						rc.yield();
@@ -456,10 +456,10 @@ public class SoldierPlayer extends BasicPlayer implements Player {
 					
 					if (closerSoldiers >= WAYPOINT_MIN_CLOSER_SOLDIERS) {
 						
-						rc.setIndicatorString(1,  "ignoring noisetower backup waypoint: " + waypointLocation);
+						//rc.setIndicatorString(1,  "ignoring noisetower backup waypoint: " + waypointLocation);
 						
 					} else {
-						rc.setIndicatorString(1,  "going to noisetower backup waypoint: " + waypointLocation);
+						//rc.setIndicatorString(1,  "going to noisetower backup waypoint: " + waypointLocation);
 						toLocation = waypointLocation;
 						gotoLocation(toLocation);
 						rc.yield();
@@ -486,7 +486,7 @@ public class SoldierPlayer extends BasicPlayer implements Player {
 				MapLocation constructionLocation = intToLocation(intConstructionLocation);
 				if (myLocation.equals(constructionLocation)) {
 					if (numNearbyFriendlySoldiers > 2) {
-						rc.setIndicatorString(1, "constructing pastr here");
+						//rc.setIndicatorString(1, "constructing pastr here");
 						rc.construct(PASTR);
 						rc.yield();
 						return;
@@ -494,7 +494,7 @@ public class SoldierPlayer extends BasicPlayer implements Player {
 						// wait?
 					}
 				} else {
-					rc.setIndicatorString(1,  "moving to pastr construction location");
+					//rc.setIndicatorString(1,  "moving to pastr construction location");
 					toLocation = constructionLocation;
 					gotoLocation(toLocation);
 					rc.yield();
@@ -509,7 +509,7 @@ public class SoldierPlayer extends BasicPlayer implements Player {
 				MapLocation constructionLocation = intToLocation(intConstructionLocation);
 				if (myLocation.equals(constructionLocation)) {
 					if (numNearbyFriendlySoldiers > 2) {
-						rc.setIndicatorString(1, "constructing noisetower here");
+						//rc.setIndicatorString(1, "constructing noisetower here");
 						rc.construct(NOISETOWER);
 						rc.yield();
 						return;
@@ -517,7 +517,7 @@ public class SoldierPlayer extends BasicPlayer implements Player {
 						// wait?
 					}
 				} else {
-					rc.setIndicatorString(1,  "moving to noisetower construction location");
+					//rc.setIndicatorString(1,  "moving to noisetower construction location");
 					toLocation = constructionLocation;
 					gotoLocation(toLocation);
 					rc.yield();
@@ -552,7 +552,7 @@ public class SoldierPlayer extends BasicPlayer implements Player {
 					if (distanceToMyHq < distanceToEnemyHq && 
 						distanceToMyHq > RobotType.NOISETOWER.attackRadiusMaxSquared) {
 						
-						rc.setIndicatorString(1, "found a good spot for a pastr, building here");
+						//rc.setIndicatorString(1, "found a good spot for a pastr, building here");
 						rc.construct(PASTR);
 						rc.yield();
 						return;					
@@ -582,7 +582,7 @@ public class SoldierPlayer extends BasicPlayer implements Player {
 					}
 				}
 				
-				rc.setIndicatorString(1,  "going to enemy pastr location: " + closestEnemyPastrLocation);
+				//rc.setIndicatorString(1,  "going to enemy pastr location: " + closestEnemyPastrLocation);
 				toLocation = closestEnemyPastrLocation;
 				gotoLocation(toLocation);
 				rc.yield();
@@ -594,7 +594,7 @@ public class SoldierPlayer extends BasicPlayer implements Player {
 /////////// WANDERING START ////////////
 		
 			if (Util.random.nextDouble() < 0.1) {
-				rc.setIndicatorString(1, "wandering randomly");
+				//rc.setIndicatorString(1, "wandering randomly");
 				moveRandomly();
 				rc.yield();
 				return;
@@ -604,7 +604,7 @@ public class SoldierPlayer extends BasicPlayer implements Player {
 		
 			// shouldn't make it here often
 			
-			rc.setIndicatorString(1, "nothing to do");
+			//rc.setIndicatorString(1, "nothing to do");
 			rc.yield();
 			return;
 		}
@@ -700,16 +700,16 @@ public class SoldierPlayer extends BasicPlayer implements Player {
     
 	protected void gotoLocation(MapLocation toLocation) throws GameActionException {
 		
-		rc.setIndicatorString(0, "gotoLocation: " + toLocation);
+		//rc.setIndicatorString(0, "gotoLocation: " + toLocation);
 		
 		Direction direction = gameMap.nextDirectionTo(myLocation,toLocation);		
 
 		// nextDirectionTo failed - still caching?
 		if (direction == null) {
-			rc.setIndicatorString(0, "gotoLocation: " + toLocation + " (using approximate direction)");
+			//rc.setIndicatorString(0, "gotoLocation: " + toLocation + " (using approximate direction)");
 			direction = approximateDirectionTo(myLocation, toLocation);
 		} else {
-			rc.setIndicatorString(0, "gotoLocation: " + toLocation + " (cached direction was not null, = " + direction + ")");
+			//rc.setIndicatorString(0, "gotoLocation: " + toLocation + " (cached direction was not null, = " + direction + ")");
 			trail.clear();
 		}
 	    		
@@ -758,7 +758,7 @@ public class SoldierPlayer extends BasicPlayer implements Player {
 				// maybe just move randomly then
 				
 				if (Util.random.nextDouble() < 0.1) {
-					rc.setIndicatorString(0, "gotoLocation: " + toLocation + " failed, moving randomly instead");
+					//rc.setIndicatorString(0, "gotoLocation: " + toLocation + " failed, moving randomly instead");
 					moveRandomly();
 				}
 			}

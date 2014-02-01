@@ -336,11 +336,11 @@ class CachedFloodedMap {
 			finishedCaching = true;
 		}
 		
-		if (finishedCaching) {
+		//if (finishedCaching) {
 			//log("finished caching map");
 			//printMap();
 			//rc.breakpoint();
-		}
+		//}
 	
 	}
 	
