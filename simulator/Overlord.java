@@ -91,7 +91,7 @@ public class Overlord {
 
 		teams.add("gk_roman");
 		teams.add("sc02");
-                teams.add("phillip");
+                teams.add("marcel");
 		teams.add("sound04");
 		teams.add("hubertTheFraternal");
 
