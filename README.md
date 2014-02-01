@@ -48,7 +48,7 @@ ruby run.rb
 Multi-threaded mode
 -------------------
 
-Pick team and maps in Overlord.java
+Pick teams and maps in Overlord.java
 
 Then run runall.sh e.g.
 
