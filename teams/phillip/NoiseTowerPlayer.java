@@ -13,6 +13,7 @@ public class NoiseTowerPlayer extends BasicPlayer implements Player {
 	private int n = 0;
 	private double[][] allCowGrowth;
 	private GameMap gameMap;
+	private int lastBackupRound;
 
 	
 	public NoiseTowerPlayer(Robot robot, int robotId, Team team, RobotType robotType, RobotController rc) {
@@ -44,13 +45,15 @@ public class NoiseTowerPlayer extends BasicPlayer implements Player {
 		i = 0;
 		
 		allCowGrowth = rc.senseCowGrowth();
+		
+		lastBackupRound = 0;
 	}
 	
 	private void sortTargets() {
 		Collections.sort(pulseLocations, new Comparator<MapLocation>() {
 			@Override
 			public int compare(MapLocation o1, MapLocation o2) {
-				return new Integer(focusLocation.distanceSquaredTo(o2)).compareTo(focusLocation.distanceSquaredTo(o1));
+				return Integer.compare(focusLocation.distanceSquaredTo(o2),focusLocation.distanceSquaredTo(o1));
 			}
 		});				
 	}
@@ -74,13 +77,8 @@ public class NoiseTowerPlayer extends BasicPlayer implements Player {
 		}
 		
 		if (i%3 == n%3 && i < pulseLocations.size()) {
+			
 			MapLocation pulseLocation = pulseLocations.get(i);
-			
-			while (!rc.isActive()) {
-				rc.yield();
-			} 			
-			
-			maybeAskForBackup();
 			
 			//if (allCowGrowth[pulseLocation.x][pulseLocation.y] < 0.5) {
 			//	// small chance we just skip it
@@ -96,36 +94,67 @@ public class NoiseTowerPlayer extends BasicPlayer implements Player {
 			for (Direction direction: allDirections) {
 				MapLocation surroundingLocation = pulseLocation.add(direction);
 				if (rc.canSenseSquare(surroundingLocation)) {
-					surroundingCows += rc.senseCowsAtLocation(surroundingLocation);
-					canSense = true;
+					try {
+						surroundingCows += rc.senseCowsAtLocation(surroundingLocation);
+						canSense = true;
+					} catch (GameActionException e) {
+						die(e);
+					}
 				}
 			}
 							
 			if (!canSense) {
+				
 				rc.setIndicatorString(0, "can't sense, attacking blind");
+				
+				while (!rc.isActive()) {
+					rc.setIndicatorString(2,  "not active");
+					rc.yield();
+				} 		
+				rc.setIndicatorString(2,  "active");
 				rc.attackSquare(pulseLocation);
 				rc.yield();
+				
 			} else if (surroundingCows > 10) {
+				
 				rc.setIndicatorString(0, "has some cows, attacking");
+				
+				while (!rc.isActive()) {
+					rc.setIndicatorString(2,  "not active");
+					rc.yield();
+				} 		
+				rc.setIndicatorString(2,  "active");
 				rc.attackSquare(pulseLocation);
 				rc.yield();
+				
 			} else {
 				rc.setIndicatorString(0, "no cows, not attacking");
-			}			
+			}	
+			
+			maybeAskForBackup();
 			
 		}
 		i++;
 	}
 	
 	private void maybeAskForBackup() throws GameActionException {
+		
+		int currentRound = Clock.getRoundNum();
+		
+		if (currentRound == lastBackupRound) {
+			return;
+		} else {
+			lastBackupRound = currentRound;
+		}
+		
+		log("maybeAskForBackup start");
 
     	MapLocation waypointLocation = null;
    
 		Robot[] nearbyFriendlyRobots = rc.senseNearbyGameObjects(Robot.class, 35, myTeam);
-		Map<Robot, RobotInfo> nearbyFriendlyRobotInfo = senseAllRobotInfo(nearbyFriendlyRobots);
-		nearbyFriendlyRobots = nearbyFriendlyRobotInfo.keySet().toArray(new Robot[0]);
+		Map<Robot, RobotInfo> nearbyFriendlyRobotMap = senseAllRobotInfo(nearbyFriendlyRobots);
 		
-		int numNearbyFriendlySoldiers = countSoldiers(nearbyFriendlyRobotInfo);	    	
+		int numNearbyFriendlySoldiers = countSoldiers(nearbyFriendlyRobotMap.values());	    	
     	
 		if (numNearbyFriendlySoldiers < 4 || myHealth < myRobotType.maxHealth) {
     		
@@ -139,11 +168,14 @@ public class NoiseTowerPlayer extends BasicPlayer implements Player {
     		rc.broadcast(RADIO_CHANNEL_NOISETOWER_BACKUP, 0);
  
     	}
+    	
+    	log("maybeAskForBackup end");
 	}
 	
 	protected MapLocation getFocusLocation() {
-		//log("getFocusLocation start");
 		
+		log("getFocusLocation start");
+				
 		MapLocation[] friendlyPastrLocations = rc.sensePastrLocations(myTeam);
 		
 		MapLocation focusLocation = myLocation;
@@ -155,14 +187,14 @@ public class NoiseTowerPlayer extends BasicPlayer implements Player {
     		sort(friendlyPastrLocations, new Comparator<MapLocation>() {
 				@Override
 				public int compare(MapLocation o1, MapLocation o2) {
-					return new Integer(myLocation.distanceSquaredTo(o1)).compareTo(myLocation.distanceSquaredTo(o2));
+					return Integer.compare(myLocation.distanceSquaredTo(o1),myLocation.distanceSquaredTo(o2));
 				}
     		});
     		
     		focusLocation = friendlyPastrLocations[0];
 		}
-		
-		//log("getFocusLocation end");
+				
+		log("getFocusLocation end");
 		
 		return focusLocation;
 	}	

@@ -46,7 +46,7 @@ public class HeadquartersPlayer extends BasicPlayer implements Player  {
 		allFriendlyRobotInfo = senseAllRobotInfo(allFriendlyRobots);
 		allFriendlyRobotInfo.keySet().toArray(new Robot[0]);
 		
-		numAllFriendlySoldiers = countSoldiers(allFriendlyRobotInfo);		
+		//numAllFriendlySoldiers = countSoldiers(allFriendlyRobotInfo);		
 		
 		if (rc.isActive()) {
 			

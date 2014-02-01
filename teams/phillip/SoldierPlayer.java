@@ -289,7 +289,7 @@ public class SoldierPlayer extends BasicPlayer implements Player {
 				}			
 			}		
 			
-			if (soldierBackupLocation != null && currentRound - soldierBackupRound < 1) {
+			if (soldierBackupLocation != null && currentRound - soldierBackupRound <= 2) {
 				rc.setIndicatorString(1, "going to soldier backup location: " + soldierBackupLocation);
 				toLocation = soldierBackupLocation;
 				gotoLocation(toLocation);

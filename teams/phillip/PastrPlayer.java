@@ -27,10 +27,9 @@ public class PastrPlayer extends BasicPlayer implements Player {
     	MapLocation waypointLocation = null;
    
 		Robot[] nearbyFriendlyRobots = rc.senseNearbyGameObjects(Robot.class, 35, myTeam);
-		Map<Robot, RobotInfo> nearbyFriendlyRobotInfo = senseAllRobotInfo(nearbyFriendlyRobots);
-		nearbyFriendlyRobots = nearbyFriendlyRobotInfo.keySet().toArray(new Robot[0]);
+		Map<Robot, RobotInfo> nearbyFriendlyRobotMap = senseAllRobotInfo(nearbyFriendlyRobots);
 		
-		int numNearbyFriendlySoldiers = countSoldiers(nearbyFriendlyRobotInfo);	    	
+		int numNearbyFriendlySoldiers = countSoldiers(nearbyFriendlyRobotMap.values());	    	
     	
 		if (numNearbyFriendlySoldiers < 3 || myHealth < myRobotType.maxHealth) {
     		

@@ -171,9 +171,9 @@ public class Util {
 		System.out.printf("All tests passed!");
 	}   
 	
-	public static int countSoldiers (Map<Robot, RobotInfo> allInfo) throws GameActionException {
+	public static int countSoldiers (Collection<RobotInfo> allInfo) throws GameActionException {
 		int numSoldiers = 0;
-		for (RobotInfo info: allInfo.values()) {
+		for (RobotInfo info: allInfo) {
 			if (info.type == SOLDIER) {
 				numSoldiers++;
 			}
