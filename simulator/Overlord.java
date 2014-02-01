@@ -70,31 +70,37 @@ public class Overlord {
 		maps.add("valve.xml");
 		maps.add("ventilation.xml");
 
-                //teams.add("frank");
-		//teams.add("micro");
-		//teams.add("nano");
-		//teams.add("pico");		
-
+		//teams.add("afk");
+		teams.add("awesemo");
+		//teams.add("brute01");
+		//teams.add("bytecodeTricks");
+		teams.add("christopher");
+		//teams.add("coarsenserPlayer");
+		teams.add("emo");
+		//teams.add("examplefuncsplayer");
+		//teams.add("frank");
+		//teams.add("fredo");
 		//teams.add("gk_attack");
 		//teams.add("gk_master");
+		teams.add("gk_roman");
+		teams.add("hubertTheFraternal");
+		teams.add("marcel");
+		//teams.add("micro");
+		//teams.add("nano");
+		//teams.add("networkmaker4");
+		//teams.add("paulTheConqueror");
+		teams.add("phillip");
+		//teams.add("pico");
 		//teams.add("sc01");
+		teams.add("sc02");
 		//teams.add("sound00");
 		//teams.add("sound01");
 		//teams.add("sound02");
 		//teams.add("sound03");
-
-		teams.add("emo");		
-
-		//teams.add("fredo");		
-
-		teams.add("awesemo");		
-		teams.add("sound05");
-
-		teams.add("gk_roman");
-		teams.add("sc02");
-                teams.add("marcel");
 		teams.add("sound04");
-		teams.add("hubertTheFraternal");
+		teams.add("sound05");
+		//teams.add("team085");
+		//teams.add("watson");
 
 		int total_games_to_play = (teams.size() * teams.size() - teams.size()) * maps.size();
 
