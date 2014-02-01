@@ -70,6 +70,12 @@ public class Overlord {
 		maps.add("valve.xml");
 		maps.add("ventilation.xml");
 
+
+		//teams.add("team085");
+		//teams.add("sound04");
+		//teams.add("sound05");
+		//teams.add("hubertTheFraternal");
+
 		//teams.add("afk");
 		teams.add("awesemo");
 		//teams.add("brute01");
