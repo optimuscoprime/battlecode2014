@@ -78,13 +78,13 @@ public class HeadquartersPlayer extends BasicPlayer implements Player  {
 		
 		//if (friendlyRobots.length > 16) {
 		
-		if (numAllFriendlySoldiers > 4) {
+		//if (numAllFriendlySoldiers > 4) {
 			
 			maybeAskForNoiseTower();
 			
 			maybeAskForPastr();
 		
-		}
+		//}
 		
 		//if (Clock.getRoundNum() > 500) {
 		//maybeCreateExploringWaypoint();	
@@ -95,6 +95,7 @@ public class HeadquartersPlayer extends BasicPlayer implements Player  {
 		createCachedMaps();
 		 
 		rc.yield();
+		return;
 	}
 	
 	private void createCachedMaps() {

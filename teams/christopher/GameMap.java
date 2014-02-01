@@ -271,7 +271,7 @@ class CachedFloodedMap {
 		
 		cacheTurns++;
 		
-		if (Clock.getBytecodesLeft() < 4000) {
+		if (Clock.getBytecodesLeft() < 3000) {
 			//log("Used too many bytecodes");
 			return;
 		}		
@@ -317,7 +317,7 @@ class CachedFloodedMap {
 					}
 				}				
 				
-				if (Clock.getBytecodesLeft() < 4000) {
+				if (Clock.getBytecodesLeft() < 3000) {
 					//log("Used too many bytecodes");
 					break;
 				}		

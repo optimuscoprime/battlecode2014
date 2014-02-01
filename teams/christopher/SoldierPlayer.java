@@ -158,7 +158,19 @@ public class SoldierPlayer extends BasicPlayer implements Player {
 			}
 							
 			if (potentialEnemySoldierAttackers > 0) {
+								
+				// just attack for now?
 				
+				for (RobotInfo nearbyEnemyInfo : nearbyEnemiesWhoCanSeeMeInfos) {
+					if (nearbyEnemyInfo.type == SOLDIER) {
+						if (rc.canAttackSquare(nearbyEnemyInfo.location)) {
+							rc.setIndicatorString(1, "(UNWISE) attacking nearby soldier: " + nearbyEnemyInfo.location);
+							rc.attackSquare(nearbyEnemyInfo.location);
+							rc.yield();
+							return;
+						}
+					}
+				}				
 				
 				//if () {
 					// TODO
@@ -175,7 +187,6 @@ public class SoldierPlayer extends BasicPlayer implements Player {
 			} else {
 				
 				if (nearbyEnemiesWhoCanSeeMeInfos.length > 0) {
-					// TODO
 					
 					// maybe there is a PASTR or a NOISETOWER that we can attack
 					
@@ -183,6 +194,7 @@ public class SoldierPlayer extends BasicPlayer implements Player {
 					for (RobotInfo nearbyEnemyInfo : nearbyEnemiesWhoCanSeeMeInfos) {
 						if (nearbyEnemyInfo.type == PASTR) {
 							if (rc.canAttackSquare(nearbyEnemyInfo.location)) {
+								rc.setIndicatorString(1, "attacking nearby pastr: " + nearbyEnemyInfo.location);
 								rc.attackSquare(nearbyEnemyInfo.location);
 								rc.yield();
 								return;
@@ -194,19 +206,33 @@ public class SoldierPlayer extends BasicPlayer implements Player {
 					for (RobotInfo nearbyEnemyInfo : nearbyEnemiesWhoCanSeeMeInfos) {
 						if (nearbyEnemyInfo.type == NOISETOWER) {
 							if (rc.canAttackSquare(nearbyEnemyInfo.location)) {
+								rc.setIndicatorString(1, "attacking nearby noisetower: " + nearbyEnemyInfo.location);
 								rc.attackSquare(nearbyEnemyInfo.location);
 								rc.yield();
 								return;
 							}
 						}
 					}		
+										
+					// maybe there is a soldier who we can walk towards
 					
-					// otherwise try moving towards a nearby soldier/pastr/noisetower
+					sort(nearbyEnemiesWhoCanSeeMeInfos, new Comparator<RobotInfo>() {
+						@Override
+						public int compare(RobotInfo o1, RobotInfo o2) {
+							return Integer.compare(o1.location.distanceSquaredTo(myLocation), o2.location.distanceSquaredTo(myLocation));
+						}
+					});					
 					
-					//
-					// toLocation = ?
+					toLocation = nearbyEnemiesWhoCanSeeMeInfos[0].location;
+					rc.setIndicatorString(1, "moving towards nearby enemy: " + toLocation);
+					gotoLocation(toLocation); 
+					rc.yield();
+					return;
+
 					
 				} else {
+					
+					
 					// TODO
 					
 					
