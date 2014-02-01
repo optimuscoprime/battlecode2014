@@ -15,6 +15,8 @@ public class SoldierPlayer extends BasicPlayer implements Player {
 	private double[][] cowGrowth;
 	private MapLocation toLocation = null;
 	private Deque<MapLocation> trail;
+	private GameMap gameMap;
+
 	
 	public SoldierPlayer(Robot robot, int robotId, Team team, RobotType robotType, RobotController rc) {
 		super(robot, robotId, team, robotType, rc);
@@ -22,6 +24,9 @@ public class SoldierPlayer extends BasicPlayer implements Player {
 		this.trail = new ArrayDeque<MapLocation>();
 
 		cowGrowth = rc.senseCowGrowth();
+		
+		// every player builds their own map
+		gameMap = new GameMap(robotId, team, robotType, rc, enemyHqLocation, width, height);
 	}
 
 	@Override

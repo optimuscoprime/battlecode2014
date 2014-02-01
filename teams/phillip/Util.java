@@ -1,6 +1,7 @@
 package phillip;
 
 import static battlecode.common.RobotType.SOLDIER;
+import static phillip.Util.die;
 
 import java.util.*;
 
@@ -174,4 +175,21 @@ public class Util {
 		}
 		return numSoldiers;
 	}
+	
+    public static Map<Robot, RobotInfo> senseAllRobotInfo(Robot[] robots) throws GameActionException {
+    	
+    	Map<Robot, RobotInfo> allInfo = new HashMap<Robot, RobotInfo>();
+    	
+    	for (Robot robot: robots) {
+    		if (rc.canSenseObject(robot)) {
+    			try {
+    				allInfo.put(robot,  rc.senseRobotInfo(robot));
+    			} catch (GameActionException e) {
+    				die(e);
+    			}
+    		}
+    	}
+
+    	return allInfo;
+	}	
 }

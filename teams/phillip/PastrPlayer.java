@@ -14,18 +14,12 @@ public class PastrPlayer extends BasicPlayer implements Player {
 
 	@Override
 	public void playOneTurn() throws GameActionException {
-		super.playOneTurn();
-			    		
-		//if (rc.isActive()) {
-			
-			//nearbyFriendlyRobots = rc.senseNearbyGameObjects(Robot.class, 40, myTeam);
-			
-			//numNearbyFriendlySoldiers = countSoldiers(nearbyFriendlyRobots, rc);			
+		super.playOneTurn();    		
 			
 		maybeAskForBackup();
-		//}
 		
 		rc.yield();
+		return;
 	}
 	
 	private void maybeAskForBackup() throws GameActionException {

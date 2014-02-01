@@ -13,8 +13,6 @@ public abstract class BasicPlayer implements Player {
 
 	protected RobotController rc;
 
-	protected GameMap gameMap;
-
 	protected RobotType myRobotType;
 	protected int myRobotId;
 	protected Team myTeam;
@@ -26,6 +24,9 @@ public abstract class BasicPlayer implements Player {
 	
 	protected MapLocation enemyHqLocation;
 	protected MapLocation myHqLocation;
+	
+	protected int width;
+	protected int height;
 	
     public final Direction[] allDirections = new Direction[] {
     	// prefer diagonal directions
@@ -54,11 +55,11 @@ public abstract class BasicPlayer implements Player {
 
 		this.rc = rc;
 		
-		// every player builds their own map
-		gameMap = new GameMap(robotId, team, robotType, rc);
-		
 		this.enemyHqLocation = rc.senseEnemyHQLocation();
 		this.myHqLocation = rc.senseHQLocation();
+		
+		this.width = rc.getMapWidth();
+		this.height = rc.getMapHeight();
 	}
 	
 	public void playOneTurn() throws GameActionException {
@@ -70,27 +71,8 @@ public abstract class BasicPlayer implements Player {
 		
 		if (rc.isActive()) {
 			rc.setIndicatorString(0, ""); // gotoLocation
-			rc.setIndicatorString(1, ""); // 
-			rc.setIndicatorString(2, "");		
+			rc.setIndicatorString(1, ""); // strategy
+			rc.setIndicatorString(2, ""); // active/not active	
 		}
 	}
-	
-    protected Map<Robot, RobotInfo> senseAllRobotInfo(Robot[] robots) throws GameActionException {
-    	
-    	Map<Robot, RobotInfo> allInfo = new HashMap<Robot, RobotInfo>();
-    	
-    	for (Robot robot: robots) {
-    		if (rc.canSenseObject(robot)) {
-    			try {
-    				allInfo.put(robot,  rc.senseRobotInfo(robot));
-    			} catch (GameActionException e) {
-    				die(e);
-    			}
-    		}
-    	}
-
-    	return allInfo;
-	}
-    
-
 }

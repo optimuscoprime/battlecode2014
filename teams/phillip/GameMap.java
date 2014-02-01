@@ -31,13 +31,13 @@ public class GameMap {
         SOUTH,
     };	
 	
-	public GameMap(int robotId, Team team, RobotType robotType, RobotController rc) {
+	public GameMap(int robotId, Team team, RobotType robotType, RobotController rc, MapLocation enemyHqLocation, int width, int height) {
 		this.rc = rc;
 		
-		this.width = rc.getMapWidth();
-		this.height = rc.getMapHeight();
+		this.width = width;
+		this.height = height;
 		
-		this.enemyHqLocation = rc.senseEnemyHQLocation();
+		this.enemyHqLocation = enemyHqLocation;
 
 		// sense terrain tiles, build a map
 		
@@ -49,11 +49,17 @@ public class GameMap {
 			for (int x = 0; x < width; x++) {	
 				MapLocation currentLocation = new MapLocation(x,y);
 				map[x][y] = rc.senseTerrainTile(currentLocation);
-				
-				// pretend that squares near the enemy hq are not traversible
-				//if (currentLocation.distanceSquaredTo(enemyHqLocation) <= RobotType.HQ.attackRadiusMaxSquared) {
-				//	map[x][y] = VOID;
-				//}
+			}
+		}
+		
+		// don't go near HQ
+		MapLocation[] badLocations = MapLocation.getAllMapLocationsWithinRadiusSq(enemyHqLocation, RobotType.HQ.attackRadiusMaxSquared);
+		for (MapLocation badLocation: badLocations) {
+			if (badLocation.x >=0 &&
+				badLocation.x < width &&
+				badLocation.y >=0 &&
+				badLocation.y < height) {
+				map[badLocation.x][badLocation.y] = VOID;
 			}
 		}
 		

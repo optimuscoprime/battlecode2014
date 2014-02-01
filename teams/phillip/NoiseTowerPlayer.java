@@ -12,12 +12,14 @@ public class NoiseTowerPlayer extends BasicPlayer implements Player {
 	private int i = 0;
 	private int n = 0;
 	private double[][] allCowGrowth;
+	private GameMap gameMap;
+
 	
 	public NoiseTowerPlayer(Robot robot, int robotId, Team team, RobotType robotType, RobotController rc) {
 		super(robot, robotId, team, robotType, rc);
 		
-		// static
-		myLocation = rc.getLocation();
+		// every player builds their own map
+		gameMap = new GameMap(robotId, team, robotType, rc, enemyHqLocation, width, height);		
 		
 		pulseLocations = new ArrayList<MapLocation>();
 		
