@@ -8,7 +8,9 @@ score_loss: 0
 
 # only looks at 'custom_teams' if 'use_all_teams' is false
 use_all_teams: false
-custom_teams: 
+custom_teams:
+ - gk_roman
+ - sc02 
  - phillip
  - sound04
  - hubertTheFraternal
