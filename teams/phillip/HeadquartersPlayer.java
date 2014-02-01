@@ -68,8 +68,7 @@ public class HeadquartersPlayer extends BasicPlayer implements Player  {
 	        	sort(nearbyEnemyInfos, new Comparator<RobotInfo>() {        		
 					@Override
 					public int compare(RobotInfo o1, RobotInfo o2) {
-						return Double.compare(o1.health,o2.health);
-						
+						return new Double(o1.health).compareTo(o2.health);	
 					}
 	        	});
 	        	        	

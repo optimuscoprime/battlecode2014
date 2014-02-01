@@ -92,7 +92,7 @@ public class SoldierPlayer extends BasicPlayer implements Player {
 			sort(nearbyEnemiesWhoCanSeeMeInfos, new Comparator<RobotInfo>() {
 				@Override
 				public int compare(RobotInfo o1, RobotInfo o2) {
-					return Double.compare(o1.health,  o2.health);
+					return new Double(o1.health).compareTo(o2.health);
 				}
 			});
 			
@@ -285,7 +285,7 @@ public class SoldierPlayer extends BasicPlayer implements Player {
 					sort(nearbyEnemiesWhoCanSeeMeInfos, new Comparator<RobotInfo>() {
 						@Override
 						public int compare(RobotInfo o1, RobotInfo o2) {
-							return Integer.compare(o1.location.distanceSquaredTo(myLocation), o2.location.distanceSquaredTo(myLocation));
+							return new Integer(o1.location.distanceSquaredTo(myLocation)).compareTo(o2.location.distanceSquaredTo(myLocation));
 						}
 					});				
 					

@@ -53,7 +53,7 @@ public class NoiseTowerPlayer extends BasicPlayer implements Player {
 		Collections.sort(pulseLocations, new Comparator<MapLocation>() {
 			@Override
 			public int compare(MapLocation o1, MapLocation o2) {
-				return Integer.compare(focusLocation.distanceSquaredTo(o2),focusLocation.distanceSquaredTo(o1));
+				return new Integer(focusLocation.distanceSquaredTo(o2)).compareTo(focusLocation.distanceSquaredTo(o1));
 			}
 		});				
 	}
@@ -191,7 +191,7 @@ public class NoiseTowerPlayer extends BasicPlayer implements Player {
     		sort(friendlyPastrLocations, new Comparator<MapLocation>() {
 				@Override
 				public int compare(MapLocation o1, MapLocation o2) {
-					return Integer.compare(myLocation.distanceSquaredTo(o1),myLocation.distanceSquaredTo(o2));
+					return new Integer(myLocation.distanceSquaredTo(o1)).compareTo(myLocation.distanceSquaredTo(o2));
 				}
     		});
     		
