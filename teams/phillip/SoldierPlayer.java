@@ -664,7 +664,7 @@ public class SoldierPlayer extends BasicPlayer implements Player {
 			if (canMove) {
 	
 				int newDistanceToEnemyHq = enemyHqLocation.distanceSquaredTo(newLocation);
-				if (newDistanceToEnemyHq <= RobotType.HQ.attackRadiusMaxSquared) {
+				if (newDistanceToEnemyHq <= RobotType.HQ.attackRadiusMaxSquared + 2) {
 					//log("can't move");
 					canMove = false;
 				}

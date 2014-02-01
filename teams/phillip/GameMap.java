@@ -53,7 +53,8 @@ public class GameMap {
 		}
 		
 		// don't go near HQ
-		MapLocation[] badLocations = MapLocation.getAllMapLocationsWithinRadiusSq(enemyHqLocation, RobotType.HQ.attackRadiusMaxSquared);
+		// include splash range
+		MapLocation[] badLocations = MapLocation.getAllMapLocationsWithinRadiusSq(enemyHqLocation, RobotType.HQ.attackRadiusMaxSquared + 2);
 		for (MapLocation badLocation: badLocations) {
 			if (badLocation.x >=0 &&
 				badLocation.x < width &&
@@ -167,7 +168,7 @@ public class GameMap {
 						}
 						
 						// pretend that squares near the enemy hq are not traversible
-						if (newLocation.distanceSquaredTo(enemyHqLocation) <= RobotType.HQ.attackRadiusMaxSquared) {
+						if (newLocation.distanceSquaredTo(enemyHqLocation) <= RobotType.HQ.attackRadiusMaxSquared + 2) {
 							thisScore += 10000;
 						//	map[x][y] = VOID;
 						}						
