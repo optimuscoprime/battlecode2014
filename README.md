@@ -55,8 +55,3 @@ Then run runall.sh e.g.
 ```
 ./runall.sh
 ```
-
-LECTURE NOTES
-=============
-
-http://optimuscopri.me/wiki/Battlecode2014
