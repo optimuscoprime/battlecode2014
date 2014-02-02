@@ -27,8 +27,6 @@ Step 2
 
 Then do the Battlecode release install (into the directory that you cloned into)
 
-.
-
 SIMULATOR
 =========
 
